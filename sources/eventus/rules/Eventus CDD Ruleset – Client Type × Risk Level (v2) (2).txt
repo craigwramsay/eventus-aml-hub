@@ -1,0 +1,270 @@
+EVENTUS CDD RULESET (v1)
+Client Type × Risk Level
+Status: Authoritative internal document
+Derived from: Eventus AML Policies & Procedures (PCPs)
+Applies to: Client and Matter Level Risk Assessments (Stage 1)
+Version: v1
+Scope: Individuals and UK private limited companies only
+This ruleset provides a deterministic mapping of client type and assessed risk level to mandatory Customer Due Diligence (CDD), Enhanced Due Diligence (EDD), Source of Wealth (SoW) and Source of Funds (SoF) actions.
+This ruleset does not introduce new obligations. It operationalises existing requirements in the Eventus AML Policies & Procedures, the Eventus PWRA, and the Money Laundering Regulations 2017.
+The Assistant must apply this ruleset exactly as written. No discretionary or conditional language may be used.
+
+GENERAL RULES (APPLY TO ALL BLOCKS)
+1. All individuals required to be verified must be verified using either:
+o Amiqus electronic ID&V; or
+o non-electronic verification consisting of:
+* one government-issued photo ID (valid passport or UK photocard driving licence); and
+* one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months).
+(Eventus AML PCPs, §1.1; MLR 2017, regs. 28(4), 28(18))
+2. All CDD actions set out below are mandatory outcomes, not options.
+3. Where EDD is stated as required, MLRO approval is mandatory before the matter proceeds.
+(Eventus AML PCPs, §20; MLR 2017, reg. 33)
+
+PART A — INDIVIDUAL CLIENTS
+
+A1. Individual Client — LOW RISK
+Mandatory CDD Actions
+? Identify the client by recording:
+* full legal name
+* date of birth
+* residential address
+? Verify the client’s identity using one approved verification method (see General Rules).
+? Obtain and retain information on:
+* the nature and purpose of the matter.
+? Ongoing monitoring to be applied throughout the retainer.
+EDD / SoW / SoF
+? Enhanced Due Diligence: NOT required
+? Source of Wealth: NOT required
+? Source of Funds: NOT required
+Authority:
+(Eventus AML PCPs, §§7, 17; MLR 2017, reg. 28)
+
+A2. Individual Client — MEDIUM RISK
+Mandatory CDD Actions
+? Identify the client by recording:
+* full legal name
+* date of birth
+* residential address
+? Verify the client’s identity using one approved verification method.
+? Obtain and record information on:
+* the nature and purpose of the matter.
+? Apply ongoing monitoring throughout the retainer.
+Source of Wealth
+? Source of Wealth Form must be completed and retained.
+? Obtain supporting evidence aligned to the declared source of wealth, including one or more of:
+* payslips or tax returns (employment income);
+* bank statements (savings);
+* sale documentation (asset or business sale);
+* inheritance documentation (where applicable).
+Source of Funds
+? Source of Funds Form must be completed and retained.
+? Obtain bank statement(s) evidencing:
+* origin of funds; and
+* availability of funds for the transaction.
+EDD
+? Enhanced Due Diligence: NOT required
+Authority:
+(Eventus AML PCPs, §§7, 8, 11, 17; MLR 2017, reg. 28)
+
+A3. Individual Client — HIGH RISK
+Mandatory CDD Actions
+? All actions listed for Medium Risk individuals.
+Enhanced Due Diligence
+? Enhanced Due Diligence REQUIRED, including:
+* senior management / MLRO approval;
+* enhanced scrutiny of Source of Wealth and Source of Funds;
+* corroborative documentation where available.
+? Apply enhanced ongoing monitoring.
+Authority:
+(Eventus AML PCPs, §20; MLR 2017, reg. 33; LSAG 2025, §5.15)
+
+PART B — UK PRIVATE LIMITED COMPANIES
+
+B1. UK Private Limited Company — LOW RISK
+Entity Identification
+? Obtain and retain:
+* certificate of incorporation;
+* articles of association.
+? Carry out and retain a Companies House search showing:
+* registered name and number;
+* registered office;
+* current directors;
+* PSC register.
+? Record confirmation that Companies House information is consistent with client-provided information.
+Directors
+? Identify all directors by recording:
+* full legal name;
+* date of birth;
+* service address;
+* role as director.
+? Verify the identity of each director using one approved verification method.
+Beneficial Ownership
+? Identify all individuals who:
+* hold more than 25% of shares or voting rights; or
+* otherwise exercise control.
+? Verify the identity of each beneficial owner using one approved verification method.
+Ongoing Monitoring
+? Apply ongoing monitoring throughout the retainer.
+EDD / SoW / SoF
+? Enhanced Due Diligence: NOT required
+? Source of Wealth: NOT required
+? Source of Funds: NOT required
+Authority:
+(Eventus AML PCPs, §7; MLR 2017, regs. 28, 30)
+
+B2. UK Private Limited Company — MEDIUM RISK
+Mandatory CDD Actions
+? All actions listed for Low Risk UK private limited companies.
+Ownership and Control
+? Obtain and retain an ownership and control structure chart.
+? Record confirmation that ownership and control are understood and not opaque.
+Source of Wealth
+? Source of Wealth Form must be completed and retained.
+? Obtain supporting evidence aligned to the declared source, including one or more of:
+* statutory accounts;
+* dividend vouchers;
+* business sale documentation;
+* loan agreements (where applicable).
+Source of Funds
+? Source of Funds Form must be completed and retained.
+? Obtain bank statement(s) evidencing:
+* origin of funds; and
+* availability of funds for the transaction.
+EDD
+? Enhanced Due Diligence: NOT required
+Authority:
+(Eventus AML PCPs, §§7, 8, 11, 17; MLR 2017, reg. 28)
+
+B3. UK Private Limited Company — HIGH RISK
+Mandatory CDD Actions
+? All actions listed for Medium Risk UK private limited companies.
+Enhanced Due Diligence
+? Enhanced Due Diligence REQUIRED, including:
+* MLRO approval prior to proceeding;
+* enhanced scrutiny of ownership and control;
+* enhanced scrutiny of Source of Wealth and Source of Funds;
+* corroborative documentation where available.
+? Apply enhanced ongoing monitoring.
+Authority:
+(Eventus AML PCPs, §20; MLR 2017, reg. 33; LSAG 2025, §5.15)
+
+EXCLUSIONS (v1)
+This ruleset does not apply to:
+* trusts;
+* charities or not-for-profit organisations;
+* overseas companies;
+* entities listed on regulated markets;
+* any client type not covered by the Individual or UK Private Limited Company CMLRAs.
+Such matters must be assessed directly by reference to the Eventus AML PCPs and escalated to the MLRO where required.
+
+IMPLEMENTATION NOTE
+This ruleset must be applied:
+* at Stage 1 of the Mandatory Process Flow; and
+* reflected verbatim in the Eventus CMLRA Risk Determination PDF template saved to Clio Drive.
+
+
+UK LLPs and UK Partnerships — Client Type × Risk Level
+Status: Authoritative internal document
+Derived from: Eventus AML Policies & Procedures (PCPs)
+Applies to: Client and Matter Level Risk Assessments (Stage 1)
+Version: v2
+Scope:
+* UK Limited Liability Partnerships (LLPs)
+* UK Partnerships (including general and limited partnerships)
+This ruleset provides a deterministic mapping of client type and assessed risk level to mandatory CDD, EDD, Source of Wealth and Source of Funds actions for LLPs and partnerships.
+This ruleset does not introduce new obligations. It operationalises existing requirements in the Eventus AML Policies & Procedures, the Eventus PWRA, and the Money Laundering Regulations 2017.
+The Assistant must apply this ruleset exactly as written.
+
+GENERAL RULES (APPLY TO ALL BLOCKS)
+1. All individuals required to be verified must be verified using either:
+o Amiqus electronic ID&V; or
+o non-electronic verification consisting of:
+* one government-issued photo ID (valid passport or UK photocard driving licence); and
+* one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months).
+(Eventus AML PCPs, §1.1; MLR 2017, regs. 28(4), 28(18))
+2. “Members” (LLPs) and “partners” (partnerships) are treated as individuals acting on behalf of the client and must be identified and verified unless an exemption applies.
+3. Where EDD is stated as required, MLRO approval is mandatory before the matter proceeds.
+(Eventus AML PCPs, §20; MLR 2017, reg. 33)
+
+PART C — UK LLPs AND UK PARTNERSHIPS
+
+C1. UK LLP / Partnership — LOW RISK
+Entity Identification
+? Obtain and retain:
+* LLP incorporation certificate or partnership agreement;
+* constitutional or governing documents (where applicable).
+? Carry out and retain a Companies House search (LLP) or equivalent reliable source (partnership) showing:
+* registered name and number (if applicable);
+* registered or principal place of business;
+* members or partners.
+? Record confirmation that public record information is consistent with client-provided information.
+Members / Partners — Identification and Verification
+? Identify all members or partners by recording:
+* full legal name;
+* date of birth;
+* residential or service address;
+* role as member or partner.
+? Verify the identity of each member or partner using one approved verification method.
+Beneficial Ownership
+? Confirm that the members or partners identified constitute the beneficial owners of the LLP or partnership.
+? Where any individual exercises control by other means, identify and verify that individual.
+Ongoing Monitoring
+? Apply ongoing monitoring throughout the retainer.
+EDD / SoW / SoF
+? Enhanced Due Diligence: NOT required
+? Source of Wealth: NOT required
+? Source of Funds: NOT required
+Authority:
+(Eventus AML PCPs, §7; MLR 2017, regs. 28, 30; LSAG 2025, §6.14)
+
+C2. UK LLP / Partnership — MEDIUM RISK
+Mandatory CDD Actions
+? All actions listed for Low Risk UK LLPs / Partnerships.
+Ownership and Control
+? Obtain and retain a clear description or diagram of:
+* ownership; and
+* management / control arrangements.
+? Record confirmation that ownership and control are understood and not opaque.
+Source of Wealth
+? Source of Wealth Form must be completed and retained.
+? Obtain supporting evidence aligned to the declared source, including one or more of:
+* partnership accounts;
+* profit share or capital contribution records;
+* business sale documentation;
+* loan agreements (where applicable).
+Source of Funds
+? Source of Funds Form must be completed and retained.
+? Obtain bank statement(s) evidencing:
+* origin of funds; and
+* availability of funds for the transaction.
+EDD
+? Enhanced Due Diligence: NOT required
+Authority:
+(Eventus AML PCPs, §§7, 8, 11, 17; MLR 2017, reg. 28)
+
+C3. UK LLP / Partnership — HIGH RISK
+Mandatory CDD Actions
+? All actions listed for Medium Risk UK LLPs / Partnerships.
+Enhanced Due Diligence
+? Enhanced Due Diligence REQUIRED, including:
+* MLRO approval prior to proceeding;
+* enhanced scrutiny of ownership and control;
+* enhanced scrutiny of Source of Wealth and Source of Funds;
+* corroborative documentation where available.
+? Apply enhanced ongoing monitoring.
+Authority:
+(Eventus AML PCPs, §20; MLR 2017, reg. 33; LSAG 2025, §5.15)
+
+EXCLUSIONS (v2)
+This ruleset does not apply to:
+* overseas LLPs or partnerships;
+* LLPs or partnerships with trust or nominee partners;
+* professional partnerships operating in high-risk jurisdictions;
+* any structure requiring bespoke MLRO assessment.
+Such matters must be assessed directly under the Eventus AML PCPs and escalated to the MLRO.
+
+IMPLEMENTATION NOTE
+This ruleset must be applied:
+* at Stage 1 of the Mandatory Process Flow; and
+* reflected verbatim in the Eventus CMLRA Risk Determination PDF template saved to Clio Drive.
+

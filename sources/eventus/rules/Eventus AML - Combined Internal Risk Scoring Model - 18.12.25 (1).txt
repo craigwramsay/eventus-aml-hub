@@ -1,0 +1,105 @@
+?? EVENTUS AML MANUAL
+Combined Internal Risk Scoring Model
+Corporate / Non-Natural Persons & Individuals
+Version 3.7 – December 2025
+(Clarificatory update only – no scoring changes)
+
+VERSION NOTE
+v3.7 update
+This version incorporates a clarification reflecting the final Eventus Source of Wealth (SoW) and Source of Funds (SoF) forms and the operation of the Eventus AML Compliance Assistant.
+Clarification:
+Information obtained via the Source of Wealth and Source of Funds records does not introduce new scoring factors. Any elevated risk identified through SoW or SoF analysis must be assessed by reference back to the Client and Matter Level Risk Assessment (CMLRA) and this Internal Risk Scoring Model.
+No scores, thresholds, or risk appetite positions have been amended.
+(Eventus AML PCPs, §§4, 8, 11; LSAG 2025, §§5.6, 5.13)
+
+PREAMBLE – APPLICATION OF THE MODEL
+This Internal Risk Scoring Model must be applied to all Client and Matter Level Risk Assessments (CMLRAs) conducted by Eventus Law Limited.
+The model:
+* implements a risk-based approach required by the MLR 2017
+(MLR 2017, regs. 18, 28);
+* reflects Eventus’ documented risk appetite
+(Eventus PWRA, §2.4);
+* applies fixed numerical scores which must not be altered or re-weighted
+(LSAG 2025, §5.13).
+Jurisdictional risk clarification
+Country of incorporation, residence, or operation is not scored as a standalone factor. Jurisdictional risk is captured through:
+* beneficial owner residency;
+* exposure to FATF-listed High-Risk Third Countries;
+* sanctions exposure; and
+* cross-border movement of funds.
+(Eventus PWRA, §§2.2–2.3; LSAG 2025, §6.12)
+
+PART A — CORPORATE / NON-NATURAL PERSONS
+
+SECTION 1 – ENTITY IDENTIFICATION
+Existing or new client
+AnswerScoreAuthorityExisting client0PCP §4.3New client+1PCP §4.3
+SECTION 2 – OWNERSHIP & CONTROL
+Directors / members / partners / trustees – residency
+(Context only – not scored)
+ResidencyScoreAny0(PCP §7.2)
+
+Beneficial owner residency
+ResidencyScoreAuthorityAll UK / EEA0PWRA §2.2.3Mixed UK/EEA & elsewhere+1PCP §7.3All outside UK / EEA+2PCP §7.3
+Opaque or non-equivalent foreign intermediates
+AnswerScoreAuthorityNo0—Yes+2LSAG 2025, §6.13
+Complex or layered ownership
+AnswerScoreNo0Yes+2
+Nominee shareholders / bearer shares
+AnswerScoreAuthorityNo0—Yes+2LSAG 2025, §6.13
+Trust or foundation in ownership chain
+AnswerScoreAuthorityNo0—Yes+2LSAG 2025, §6.13
+SECTION 3 – MATTER OVERVIEW
+Is the work routine for Eventus?
+AnswerScoreYes0No+1Unusual+2(PCP §4.5)
+
+One-off or ongoing instruction
+AnswerScoreOngoing0One-off+1
+SECTION 4 – GEOGRAPHICAL & SECTOR RISK
+Activities involving HRTC or UK-sanctioned jurisdictions
+AnswerScoreAuthorityNo0—Yes+3MLR 2017, reg. 33(1)(b)
+Sector risk (per Eventus PWRA)
+SectorOutcomeStandard0Higher-risk+2ProhibitedOUT OF APPETITE(PWRA §§2.2–2.4)
+
+SECTION 5 – SOURCE OF FUNDS INDICATORS
+(Scored via CMLRA only)
+Third-party funding
+ProviderScoreClient0Third party+2(PCP §8.3)
+
+Cross-border funds
+AnswerScoreNo0Yes+1
+PART B — INDIVIDUAL CLIENTS
+
+SECTION 1 – IDENTIFICATION
+Existing or new client
+AnswerScoreExisting client0New client+1
+SECTION 2 – PERSONAL PROFILE & STATUS
+Country of residence
+ResidenceScoreUK / EEA0FATF-equivalent+1Other non-equivalent+1HRTC+3(MLR 2017, reg. 33)
+
+Politically Exposed Person (PEP / RCA)
+AnswerOutcomeNo—YesHIGH RISK – EDD REQUIRED(MLR 2017, reg. 35; PCP §15)
+
+SECTION 3 – MATTER OVERVIEW
+(Same scoring as corporate clients)
+
+SECTION 4 – GEOGRAPHICAL & ACTIVITY RISK
+HRTC / sanctions nexus
+AnswerScoreNo0Yes+3
+SECTION 5 – OTHER RISK INDICATORS
+Unusual or economically irrational transaction
+AnswerScoreNo0Yes+2(LSAG 2025, §6.4)
+
+Reluctance to provide information
+AnswerScoreNo0Yes+2
+RISK THRESHOLDS
+Total ScoreRisk Level0–4Low5–8Medium9+High (EDD required)(PCP §4.6)
+
+AUTOMATIC OUT-OF-APPETITE MATTERS
+* Prohibited sector
+* FATF Black List linkage
+* Source of Wealth cannot be understood or explained
+* Economically irrational transaction without explanation
+* Refusal to provide essential CDD / SoF / SoW information
+(PWRA §2.4.3)
+

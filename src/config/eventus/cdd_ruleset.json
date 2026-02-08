@@ -1,0 +1,449 @@
+{
+  "$schema": "https://eventus-aml-hub/schemas/cdd-ruleset-v1.json",
+  "meta": {
+    "source": "sources/eventus/rules/Eventus CDD Ruleset – Client Type × Risk Level (v2) (2).txt",
+    "version": "v2",
+    "status": "Authoritative internal document",
+    "derivedFrom": "Eventus AML Policies & Procedures (PCPs)",
+    "appliesTo": "Client and Matter Level Risk Assessments (Stage 1)",
+    "scope": ["Individuals", "UK private limited companies", "UK LLPs", "UK Partnerships"]
+  },
+  "generalRules": {
+    "verification_methods": {
+      "description": "All individuals required to be verified must be verified using either:",
+      "options": [
+        {
+          "method": "electronic",
+          "description": "Amiqus electronic ID&V"
+        },
+        {
+          "method": "non_electronic",
+          "requirements": [
+            "one government-issued photo ID (valid passport or UK photocard driving licence)",
+            "one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months)"
+          ]
+        }
+      ],
+      "authority": "Eventus AML PCPs, §1.1; MLR 2017, regs. 28(4), 28(18)"
+    },
+    "mandatory_outcomes": "All CDD actions set out below are mandatory outcomes, not options",
+    "edd_approval": {
+      "rule": "Where EDD is stated as required, MLRO approval is mandatory before the matter proceeds",
+      "authority": "Eventus AML PCPs, §20; MLR 2017, reg. 33"
+    }
+  },
+  "clientTypes": {
+    "individual": {
+      "label": "Individual Client",
+      "riskLevels": {
+        "LOW": {
+          "cdd_actions": [
+            {
+              "action": "identify_client",
+              "description": "Identify the client by recording:",
+              "requirements": ["full legal name", "date of birth", "residential address"]
+            },
+            {
+              "action": "verify_identity",
+              "description": "Verify the client's identity using one approved verification method (see General Rules)"
+            },
+            {
+              "action": "record_matter_info",
+              "description": "Obtain and retain information on:",
+              "requirements": ["the nature and purpose of the matter"]
+            },
+            {
+              "action": "ongoing_monitoring",
+              "description": "Ongoing monitoring to be applied throughout the retainer"
+            }
+          ],
+          "edd": { "required": false },
+          "sow": { "required": false },
+          "sof": { "required": false },
+          "authority": "Eventus AML PCPs, §§7, 17; MLR 2017, reg. 28"
+        },
+        "MEDIUM": {
+          "cdd_actions": [
+            {
+              "action": "identify_client",
+              "description": "Identify the client by recording:",
+              "requirements": ["full legal name", "date of birth", "residential address"]
+            },
+            {
+              "action": "verify_identity",
+              "description": "Verify the client's identity using one approved verification method"
+            },
+            {
+              "action": "record_matter_info",
+              "description": "Obtain and record information on:",
+              "requirements": ["the nature and purpose of the matter"]
+            },
+            {
+              "action": "ongoing_monitoring",
+              "description": "Apply ongoing monitoring throughout the retainer"
+            }
+          ],
+          "sow": {
+            "required": true,
+            "actions": [
+              {
+                "action": "complete_form",
+                "description": "Source of Wealth Form must be completed and retained"
+              },
+              {
+                "action": "obtain_evidence",
+                "description": "Obtain supporting evidence aligned to the declared source of wealth, including one or more of:",
+                "evidence_types": [
+                  "payslips or tax returns (employment income)",
+                  "bank statements (savings)",
+                  "sale documentation (asset or business sale)",
+                  "inheritance documentation (where applicable)"
+                ]
+              }
+            ]
+          },
+          "sof": {
+            "required": true,
+            "actions": [
+              {
+                "action": "complete_form",
+                "description": "Source of Funds Form must be completed and retained"
+              },
+              {
+                "action": "obtain_evidence",
+                "description": "Obtain bank statement(s) evidencing:",
+                "requirements": ["origin of funds", "availability of funds for the transaction"]
+              }
+            ]
+          },
+          "edd": { "required": false },
+          "authority": "Eventus AML PCPs, §§7, 8, 11, 17; MLR 2017, reg. 28"
+        },
+        "HIGH": {
+          "cdd_actions": [
+            {
+              "action": "all_medium_risk_actions",
+              "description": "All actions listed for Medium Risk individuals"
+            }
+          ],
+          "edd": {
+            "required": true,
+            "actions": [
+              {
+                "action": "senior_management_approval",
+                "description": "senior management / MLRO approval"
+              },
+              {
+                "action": "enhanced_sow_sof_scrutiny",
+                "description": "enhanced scrutiny of Source of Wealth and Source of Funds"
+              },
+              {
+                "action": "corroborative_documentation",
+                "description": "corroborative documentation where available"
+              }
+            ]
+          },
+          "enhanced_monitoring": {
+            "required": true,
+            "description": "Apply enhanced ongoing monitoring"
+          },
+          "authority": "Eventus AML PCPs, §20; MLR 2017, reg. 33; LSAG 2025, §5.15"
+        }
+      }
+    },
+    "uk_private_limited_company": {
+      "label": "UK Private Limited Company",
+      "riskLevels": {
+        "LOW": {
+          "entity_identification": [
+            {
+              "action": "obtain_documents",
+              "description": "Obtain and retain:",
+              "requirements": ["certificate of incorporation", "articles of association"]
+            },
+            {
+              "action": "companies_house_search",
+              "description": "Carry out and retain a Companies House search showing:",
+              "requirements": ["registered name and number", "registered office", "current directors", "PSC register"]
+            },
+            {
+              "action": "verify_consistency",
+              "description": "Record confirmation that Companies House information is consistent with client-provided information"
+            }
+          ],
+          "directors": [
+            {
+              "action": "identify_directors",
+              "description": "Identify all directors by recording:",
+              "requirements": ["full legal name", "date of birth", "service address", "role as director"]
+            },
+            {
+              "action": "verify_directors",
+              "description": "Verify the identity of each director using one approved verification method"
+            }
+          ],
+          "beneficial_ownership": [
+            {
+              "action": "identify_beneficial_owners",
+              "description": "Identify all individuals who:",
+              "criteria": ["hold more than 25% of shares or voting rights", "otherwise exercise control"]
+            },
+            {
+              "action": "verify_beneficial_owners",
+              "description": "Verify the identity of each beneficial owner using one approved verification method"
+            }
+          ],
+          "ongoing_monitoring": {
+            "required": true,
+            "description": "Apply ongoing monitoring throughout the retainer"
+          },
+          "edd": { "required": false },
+          "sow": { "required": false },
+          "sof": { "required": false },
+          "authority": "Eventus AML PCPs, §7; MLR 2017, regs. 28, 30"
+        },
+        "MEDIUM": {
+          "cdd_actions": [
+            {
+              "action": "all_low_risk_actions",
+              "description": "All actions listed for Low Risk UK private limited companies"
+            }
+          ],
+          "ownership_control": [
+            {
+              "action": "obtain_structure_chart",
+              "description": "Obtain and retain an ownership and control structure chart"
+            },
+            {
+              "action": "confirm_transparency",
+              "description": "Record confirmation that ownership and control are understood and not opaque"
+            }
+          ],
+          "sow": {
+            "required": true,
+            "actions": [
+              {
+                "action": "complete_form",
+                "description": "Source of Wealth Form must be completed and retained"
+              },
+              {
+                "action": "obtain_evidence",
+                "description": "Obtain supporting evidence aligned to the declared source, including one or more of:",
+                "evidence_types": [
+                  "statutory accounts",
+                  "dividend vouchers",
+                  "business sale documentation",
+                  "loan agreements (where applicable)"
+                ]
+              }
+            ]
+          },
+          "sof": {
+            "required": true,
+            "actions": [
+              {
+                "action": "complete_form",
+                "description": "Source of Funds Form must be completed and retained"
+              },
+              {
+                "action": "obtain_evidence",
+                "description": "Obtain bank statement(s) evidencing:",
+                "requirements": ["origin of funds", "availability of funds for the transaction"]
+              }
+            ]
+          },
+          "edd": { "required": false },
+          "authority": "Eventus AML PCPs, §§7, 8, 11, 17; MLR 2017, reg. 28"
+        },
+        "HIGH": {
+          "cdd_actions": [
+            {
+              "action": "all_medium_risk_actions",
+              "description": "All actions listed for Medium Risk UK private limited companies"
+            }
+          ],
+          "edd": {
+            "required": true,
+            "actions": [
+              {
+                "action": "mlro_approval",
+                "description": "MLRO approval prior to proceeding"
+              },
+              {
+                "action": "enhanced_ownership_scrutiny",
+                "description": "enhanced scrutiny of ownership and control"
+              },
+              {
+                "action": "enhanced_sow_sof_scrutiny",
+                "description": "enhanced scrutiny of Source of Wealth and Source of Funds"
+              },
+              {
+                "action": "corroborative_documentation",
+                "description": "corroborative documentation where available"
+              }
+            ]
+          },
+          "enhanced_monitoring": {
+            "required": true,
+            "description": "Apply enhanced ongoing monitoring"
+          },
+          "authority": "Eventus AML PCPs, §20; MLR 2017, reg. 33; LSAG 2025, §5.15"
+        }
+      }
+    },
+    "uk_llp": {
+      "label": "UK LLP / Partnership",
+      "riskLevels": {
+        "LOW": {
+          "entity_identification": [
+            {
+              "action": "obtain_documents",
+              "description": "Obtain and retain:",
+              "requirements": ["LLP incorporation certificate or partnership agreement", "constitutional or governing documents (where applicable)"]
+            },
+            {
+              "action": "registry_search",
+              "description": "Carry out and retain a Companies House search (LLP) or equivalent reliable source (partnership) showing:",
+              "requirements": ["registered name and number (if applicable)", "registered or principal place of business", "members or partners"]
+            },
+            {
+              "action": "verify_consistency",
+              "description": "Record confirmation that public record information is consistent with client-provided information"
+            }
+          ],
+          "members_partners": [
+            {
+              "action": "identify",
+              "description": "Identify all members or partners by recording:",
+              "requirements": ["full legal name", "date of birth", "residential or service address", "role as member or partner"]
+            },
+            {
+              "action": "verify",
+              "description": "Verify the identity of each member or partner using one approved verification method"
+            }
+          ],
+          "beneficial_ownership": [
+            {
+              "action": "confirm_bo",
+              "description": "Confirm that the members or partners identified constitute the beneficial owners of the LLP or partnership"
+            },
+            {
+              "action": "identify_controllers",
+              "description": "Where any individual exercises control by other means, identify and verify that individual"
+            }
+          ],
+          "ongoing_monitoring": {
+            "required": true,
+            "description": "Apply ongoing monitoring throughout the retainer"
+          },
+          "edd": { "required": false },
+          "sow": { "required": false },
+          "sof": { "required": false },
+          "authority": "Eventus AML PCPs, §7; MLR 2017, regs. 28, 30; LSAG 2025, §6.14"
+        },
+        "MEDIUM": {
+          "cdd_actions": [
+            {
+              "action": "all_low_risk_actions",
+              "description": "All actions listed for Low Risk UK LLPs / Partnerships"
+            }
+          ],
+          "ownership_control": [
+            {
+              "action": "obtain_structure",
+              "description": "Obtain and retain a clear description or diagram of:",
+              "requirements": ["ownership", "management / control arrangements"]
+            },
+            {
+              "action": "confirm_transparency",
+              "description": "Record confirmation that ownership and control are understood and not opaque"
+            }
+          ],
+          "sow": {
+            "required": true,
+            "actions": [
+              {
+                "action": "complete_form",
+                "description": "Source of Wealth Form must be completed and retained"
+              },
+              {
+                "action": "obtain_evidence",
+                "description": "Obtain supporting evidence aligned to the declared source, including one or more of:",
+                "evidence_types": [
+                  "partnership accounts",
+                  "profit share or capital contribution records",
+                  "business sale documentation",
+                  "loan agreements (where applicable)"
+                ]
+              }
+            ]
+          },
+          "sof": {
+            "required": true,
+            "actions": [
+              {
+                "action": "complete_form",
+                "description": "Source of Funds Form must be completed and retained"
+              },
+              {
+                "action": "obtain_evidence",
+                "description": "Obtain bank statement(s) evidencing:",
+                "requirements": ["origin of funds", "availability of funds for the transaction"]
+              }
+            ]
+          },
+          "edd": { "required": false },
+          "authority": "Eventus AML PCPs, §§7, 8, 11, 17; MLR 2017, reg. 28"
+        },
+        "HIGH": {
+          "cdd_actions": [
+            {
+              "action": "all_medium_risk_actions",
+              "description": "All actions listed for Medium Risk UK LLPs / Partnerships"
+            }
+          ],
+          "edd": {
+            "required": true,
+            "actions": [
+              {
+                "action": "mlro_approval",
+                "description": "MLRO approval prior to proceeding"
+              },
+              {
+                "action": "enhanced_ownership_scrutiny",
+                "description": "enhanced scrutiny of ownership and control"
+              },
+              {
+                "action": "enhanced_sow_sof_scrutiny",
+                "description": "enhanced scrutiny of Source of Wealth and Source of Funds"
+              },
+              {
+                "action": "corroborative_documentation",
+                "description": "corroborative documentation where available"
+              }
+            ]
+          },
+          "enhanced_monitoring": {
+            "required": true,
+            "description": "Apply enhanced ongoing monitoring"
+          },
+          "authority": "Eventus AML PCPs, §20; MLR 2017, reg. 33; LSAG 2025, §5.15"
+        }
+      }
+    }
+  },
+  "exclusions": {
+    "description": "This ruleset does not apply to the following - such matters must be assessed directly by reference to the Eventus AML PCPs and escalated to the MLRO where required",
+    "excluded_types": [
+      "trusts",
+      "charities or not-for-profit organisations",
+      "overseas companies",
+      "entities listed on regulated markets",
+      "overseas LLPs or partnerships",
+      "LLPs or partnerships with trust or nominee partners",
+      "professional partnerships operating in high-risk jurisdictions",
+      "any structure requiring bespoke MLRO assessment",
+      "any client type not covered by the Individual, UK Private Limited Company, or UK LLP/Partnership CMLRAs"
+    ]
+  }
+}

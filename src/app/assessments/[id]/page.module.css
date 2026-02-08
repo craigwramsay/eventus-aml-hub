@@ -1,0 +1,327 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.finalisedBanner {
+  background-color: #d1fae5;
+  border: 1px solid #10b981;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.finalisedBanner.dark {
+  background-color: #064e3b;
+  border-color: #10b981;
+}
+
+.finalisedIcon {
+  color: #059669;
+  font-size: 1.25rem;
+}
+
+.finalisedText {
+  color: #065f46;
+  font-weight: 500;
+}
+
+.finalisedDate {
+  color: #047857;
+  font-size: 0.875rem;
+  margin-left: auto;
+}
+
+.draftBanner {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.draftText {
+  color: #92400e;
+  font-weight: 500;
+}
+
+.section {
+  background-color: var(--background);
+  border: 1px solid #e5e5e5;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .section {
+    border-color: #333;
+  }
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sectionTitle {
+    border-color: #333;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  margin-bottom: 0.75rem;
+}
+
+.fieldLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.fieldValue {
+  font-size: 1rem;
+}
+
+.riskBadge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.riskLow {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.riskMedium {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.riskHigh {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.score {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.scoreLabel {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.factorList {
+  list-style: none;
+}
+
+.factorItem {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.375rem;
+  border-left: 3px solid #6366f1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .factorItem {
+    background-color: #1f2937;
+  }
+}
+
+.factorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.factorLabel {
+  font-weight: 500;
+}
+
+.factorScore {
+  font-size: 0.875rem;
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.factorAnswer {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.factorRationale {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+.actionList {
+  list-style: none;
+}
+
+.actionItem {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .actionItem {
+    background-color: #1f2937;
+  }
+}
+
+.actionIcon {
+  color: #10b981;
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.actionContent {
+  flex: 1;
+}
+
+.actionLabel {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.actionDescription {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.actionCategory {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+.rationaleList {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.rationaleItem {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.errorContainer {
+  max-width: 600px;
+  margin: 4rem auto;
+  text-align: center;
+  padding: 2rem;
+}
+
+.errorTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #991b1b;
+}
+
+.errorMessage {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.backLink {
+  color: #6366f1;
+  text-decoration: underline;
+}
+
+.backLink:hover {
+  color: #4f46e5;
+}
+
+.metadata {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .metadata {
+    border-color: #333;
+  }
+
+  .subtitle,
+  .fieldLabel,
+  .factorAnswer,
+  .actionDescription,
+  .actionCategory,
+  .scoreLabel {
+    color: #9ca3af;
+  }
+
+  .finalisedText {
+    color: #6ee7b7;
+  }
+
+  .finalisedDate {
+    color: #34d399;
+  }
+
+  .draftText {
+    color: #fbbf24;
+  }
+
+  .draftBanner {
+    background-color: #78350f;
+    border-color: #f59e0b;
+  }
+}

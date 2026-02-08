@@ -1,0 +1,371 @@
+{
+  "$schema": "https://eventus-aml-hub/schemas/risk-scoring-v1.json",
+  "meta": {
+    "source": "sources/eventus/rules/Eventus AML - Combined Internal Risk Scoring Model - 18.12.25 (1).txt",
+    "version": "3.7",
+    "versionDate": "2025-12",
+    "versionNote": "Clarificatory update only - no scoring changes",
+    "authorities": ["MLR 2017 regs. 18, 28", "LSAG 2025 §5.13", "Eventus PWRA §2.4", "Eventus AML PCPs §§4, 8, 11"]
+  },
+  "riskLevels": ["LOW", "MEDIUM", "HIGH"],
+  "thresholds": {
+    "LOW": { "min": 0, "max": 4 },
+    "MEDIUM": { "min": 5, "max": 8 },
+    "HIGH": { "min": 9, "max": null }
+  },
+  "thresholdAuthority": "PCP §4.6",
+  "automaticOutcomes": {
+    "HIGH_RISK_EDD_REQUIRED": {
+      "description": "Automatic HIGH risk classification requiring Enhanced Due Diligence",
+      "triggers": [
+        {
+          "id": "pep_status",
+          "condition": "individual.pepOrRca == 'Yes'",
+          "authority": "MLR 2017, reg. 35; PCP §15"
+        }
+      ]
+    },
+    "OUT_OF_APPETITE": {
+      "description": "Matter must be declined - outside Eventus risk appetite",
+      "authority": "PWRA §2.4.3",
+      "triggers": [
+        { "id": "prohibited_sector", "description": "Prohibited sector" },
+        { "id": "fatf_black_list", "description": "FATF Black List linkage" },
+        { "id": "sow_unexplained", "description": "Source of Wealth cannot be understood or explained" },
+        { "id": "irrational_unexplained", "description": "Economically irrational transaction without explanation" },
+        { "id": "refusal_cdd", "description": "Refusal to provide essential CDD / SoF / SoW information" }
+      ]
+    }
+  },
+  "scoringFactors": {
+    "corporate": {
+      "section1_identification": {
+        "label": "Section 1 - Entity Identification",
+        "factors": [
+          {
+            "id": "existing_or_new_client",
+            "formFieldId": "16",
+            "label": "Existing or new client",
+            "authority": "PCP §4.3",
+            "options": [
+              { "answer": "Existing client", "score": 0 },
+              { "answer": "New client", "score": 1 }
+            ]
+          }
+        ]
+      },
+      "section2_ownership_control": {
+        "label": "Section 2 - Ownership & Control",
+        "factors": [
+          {
+            "id": "directors_residency",
+            "formFieldId": "22",
+            "label": "Directors / members / partners / trustees - residency",
+            "scored": false,
+            "note": "Context only - not scored",
+            "authority": "PCP §7.2"
+          },
+          {
+            "id": "beneficial_owner_residency",
+            "formFieldId": "26",
+            "label": "Beneficial owner residency",
+            "authority": "PWRA §2.2.3; PCP §7.3",
+            "options": [
+              { "answer": "All UK / EEA", "formAnswer": "All resident in the UK / European Economic Area", "score": 0 },
+              { "answer": "Mixed UK/EEA & elsewhere", "formAnswer": "Some resident in the UK / European Economic Area and some resident elsewhere", "score": 1 },
+              { "answer": "All outside UK / EEA", "formAnswer": "All resident out with the UK / European Economic Area", "score": 2 }
+            ]
+          },
+          {
+            "id": "opaque_foreign_intermediates",
+            "formFieldId": "28",
+            "label": "Opaque or non-equivalent foreign intermediates",
+            "authority": "LSAG 2025, §6.13",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          },
+          {
+            "id": "complex_layered_ownership",
+            "formFieldId": "30",
+            "label": "Complex or layered ownership",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          },
+          {
+            "id": "nominee_bearer_shares",
+            "formFieldId": "32",
+            "label": "Nominee shareholders / bearer shares",
+            "authority": "LSAG 2025, §6.13",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          },
+          {
+            "id": "trust_foundation_in_chain",
+            "formFieldId": "34",
+            "label": "Trust or foundation in ownership chain",
+            "authority": "LSAG 2025, §6.13",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          }
+        ]
+      },
+      "section3_matter_overview": {
+        "label": "Section 3 - Matter Overview",
+        "factors": [
+          {
+            "id": "work_routine",
+            "formFieldId": "37",
+            "label": "Is the work routine for Eventus?",
+            "authority": "PCP §4.5",
+            "options": [
+              { "answer": "Yes", "score": 0 },
+              { "answer": "No", "score": 1 },
+              { "answer": "Unusual", "score": 2 }
+            ]
+          },
+          {
+            "id": "instruction_type",
+            "formFieldId": "39",
+            "label": "One-off or ongoing instruction",
+            "options": [
+              { "answer": "Ongoing", "score": 0 },
+              { "answer": "One-off", "score": 1 }
+            ]
+          }
+        ]
+      },
+      "section4_geographical_sector": {
+        "label": "Section 4 - Geographical & Sector Risk",
+        "factors": [
+          {
+            "id": "hrtc_sanctions",
+            "formFieldId": "47",
+            "label": "Activities involving HRTC or UK-sanctioned jurisdictions",
+            "authority": "MLR 2017, reg. 33(1)(b)",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 3 }
+            ]
+          },
+          {
+            "id": "sector_risk",
+            "formFieldId": "49",
+            "label": "Sector risk (per Eventus PWRA)",
+            "authority": "PWRA §§2.2-2.4",
+            "options": [
+              { "answer": "Standard", "formAnswerPrefix": "Standard - ", "score": 0 },
+              { "answer": "Higher-risk", "formAnswerPrefix": "Higher-risk - ", "score": 2 },
+              { "answer": "Prohibited", "formAnswerPrefix": "Prohibited (outside Eventus' risk appetite) - ", "outcome": "OUT_OF_APPETITE" }
+            ]
+          }
+        ]
+      },
+      "section5_source_of_funds": {
+        "label": "Section 5 - Source of Funds Indicators",
+        "note": "Scored via CMLRA only",
+        "factors": [
+          {
+            "id": "third_party_funding",
+            "formFieldId": "59",
+            "label": "Third-party funding",
+            "authority": "PCP §8.3",
+            "options": [
+              { "answer": "Client", "score": 0 },
+              { "answer": "Third party", "score": 2 }
+            ]
+          },
+          {
+            "id": "cross_border_funds",
+            "formFieldId": "63",
+            "label": "Cross-border funds",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 1 }
+            ]
+          }
+        ]
+      },
+      "section6_other_indicators": {
+        "label": "Section 6 - Other Risk Indicators",
+        "note": "Extended from Individual scoring model - not explicitly defined for Corporate in source v3.7 but not prohibited",
+        "factors": [
+          {
+            "id": "unusual_irrational_transaction",
+            "formFieldId": "67",
+            "label": "Unusual or economically irrational transaction",
+            "authority": "LSAG 2025, §6.4",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          },
+          {
+            "id": "reluctance_to_provide_info",
+            "formFieldId": "68",
+            "label": "Reluctance to provide information",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          }
+        ]
+      }
+    },
+    "individual": {
+      "section1_identification": {
+        "label": "Section 1 - Identification",
+        "factors": [
+          {
+            "id": "existing_or_new_client",
+            "formFieldId": "3",
+            "label": "Existing or new client",
+            "options": [
+              { "answer": "Existing client", "score": 0 },
+              { "answer": "New client", "score": 1 }
+            ]
+          }
+        ]
+      },
+      "section2_personal_profile": {
+        "label": "Section 2 - Personal Profile & Status",
+        "factors": [
+          {
+            "id": "country_of_residence",
+            "formFieldId": "16",
+            "label": "Country of residence",
+            "authority": "MLR 2017, reg. 33",
+            "options": [
+              { "answer": "UK / EEA", "formAnswers": ["UK", "European Economic Area"], "score": 0 },
+              { "answer": "FATF-equivalent", "formAnswer": "FATF-equivalent jurisdiction", "score": 1 },
+              { "answer": "Other non-equivalent", "formAnswer": "Other (i.e. not UK/EEA/FATF-equivalent or HRTC)", "score": 1 },
+              { "answer": "HRTC", "formAnswer": "HRTC - High-Risk Third Country", "score": 3 }
+            ]
+          },
+          {
+            "id": "pep_or_rca",
+            "formFieldId": "20",
+            "label": "Politically Exposed Person (PEP / RCA)",
+            "authority": "MLR 2017, reg. 35; PCP §15",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "outcome": "HIGH_RISK_EDD_REQUIRED" }
+            ]
+          }
+        ]
+      },
+      "section3_matter_overview": {
+        "label": "Section 3 - Matter Overview",
+        "note": "Same scoring as corporate clients",
+        "factors": [
+          {
+            "id": "work_routine",
+            "formFieldId": "24",
+            "label": "Is the work routine for Eventus?",
+            "authority": "PCP §4.5",
+            "options": [
+              { "answer": "Yes", "score": 0 },
+              { "answer": "No", "score": 1 },
+              { "answer": "Unusual", "score": 2 }
+            ]
+          },
+          {
+            "id": "instruction_type",
+            "formFieldId": "28",
+            "label": "One-off or ongoing instruction",
+            "options": [
+              { "answer": "Ongoing", "score": 0 },
+              { "answer": "One-off", "score": 1 }
+            ]
+          }
+        ]
+      },
+      "section4_geographical_activity": {
+        "label": "Section 4 - Geographical & Activity Risk",
+        "factors": [
+          {
+            "id": "hrtc_sanctions_nexus",
+            "formFieldId": "32",
+            "label": "HRTC / sanctions nexus",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 3 }
+            ]
+          }
+        ]
+      },
+      "section5_other_indicators": {
+        "label": "Section 5 - Other Risk Indicators",
+        "factors": [
+          {
+            "id": "unusual_irrational_transaction",
+            "formFieldId": "47",
+            "label": "Unusual or economically irrational transaction",
+            "authority": "LSAG 2025, §6.4",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          },
+          {
+            "id": "reluctance_to_provide_info",
+            "formFieldId": "48",
+            "label": "Reluctance to provide information",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 2 }
+            ]
+          }
+        ]
+      },
+      "section6_source_of_funds": {
+        "label": "Section 6 - Source of Funds Indicators",
+        "note": "Same as corporate - scored via CMLRA only",
+        "factors": [
+          {
+            "id": "third_party_funding",
+            "formFieldId": "38",
+            "label": "Third-party funding",
+            "authority": "PCP §8.3",
+            "options": [
+              { "answer": "Client", "score": 0 },
+              { "answer": "Third party", "score": 2 }
+            ]
+          },
+          {
+            "id": "cross_border_funds",
+            "formFieldId": "42",
+            "label": "Cross-border funds",
+            "options": [
+              { "answer": "No", "score": 0 },
+              { "answer": "Yes", "score": 1 }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "clarifications": {
+    "jurisdictional_risk": {
+      "note": "Country of incorporation, residence, or operation is not scored as a standalone factor",
+      "authority": "Eventus PWRA, §§2.2-2.3; LSAG 2025, §6.12",
+      "captured_through": [
+        "beneficial owner residency",
+        "exposure to FATF-listed High-Risk Third Countries",
+        "sanctions exposure",
+        "cross-border movement of funds"
+      ]
+    },
+    "sow_sof_forms": {
+      "note": "Information obtained via the Source of Wealth and Source of Funds records does not introduce new scoring factors. Any elevated risk identified through SoW or SoF analysis must be assessed by reference back to the CMLRA and this Internal Risk Scoring Model.",
+      "authority": "Eventus AML PCPs, §§4, 8, 11; LSAG 2025, §§5.6, 5.13"
+    }
+  }
+}

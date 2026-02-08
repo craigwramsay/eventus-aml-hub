@@ -1,0 +1,1193 @@
+Eventus Law Limited Anti-Money Laundering Policies and Procedures (PCPs)
+
+Date: 01/10/25
+Last Updated: 01/10/25
+Version control: Version 1
+
+DateChangeNameSenior Management/Board Method of sign off obtained and date
+Table of Contents
+Overview	2
+MLRO	3
+Risk Assessment	4
+Practice Wide Risk Assessment (PWRA)	4
+Client/Matter-Level Risk Assessment	5
+Client Due Diligence	7
+Source of Funds (SoF)	8
+Source of Wealth (SoW)	11
+Complex / Unusual / High-Risk Transactions	12
+Anonymity-Enhancing Features and Unsolicited Funds	13
+Timing of CDD	14
+Simplified Due Diligence	14
+Reliance (reg. 39)	15
+Politically Exposed Persons (PEPs) and Relatives/Close Associates (RCAs)	15
+Ongoing Monitoring	17
+Enhanced Due Diligence (EDD)	20
+Suspicious Activity Reporting	23
+Technology	25
+Training	26
+Internal Controls & Governance	27
+Record keeping & Data Protection	28
+Proliferation Financing	29
+
+
+
+
+
+Overview
+
+Eventus Law Limited have a strict legal and ethical obligation not to be involved in illegal/illicit activity and will fully comply with all relevant sections of the Money Laundering Regulations 2017 (as amended), the Proceeds of Crime Act 2002 (POCA), the Terrorism Act 2000 (TACT) as well as the Legal Sector Affinity Group guidance (LSAG guidance).
+
+* The Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017 (legislation.gov.uk)
+* Proceeds of Crime Act 2002 (legislation.gov.uk)
+* Terrorism Act 2000 (legislation.gov.uk)
+* lsag-aml-guidance-23-april-2025-11.pdf
+
+All partners and employees of the practice are under an obligation and duty to comply with the above.
+
+This policy and any related procedures aim to help partners and staff fulfil these responsibilities, by providing a clear framework, along with setting out the practices key principles and obligations.
+
+All staff are encouraged to report to the practices MLRO any action or inaction which they suspect may represent a breach of these policies or involve an attempt to launder money through the practice. The MLRO has a duty to disclose knowledge or suspicion, or reasonable grounds for suspicion, of money laundering to the National Crime Agency (the ‘NCA’). 
+
+Failure to fulfil the responsibilities as per this Policy may result in disciplinary action and may also result in criminal sanctions for the staff involved. Breaches may also be reportable to our AML Supervisor (The Law Society of Scotland). Further information on this can be found:
+
+* AML FAQs | Law Society of Scotland (lawscot.org.uk)
+
+Regulation 21(1)(a) of the Money Laundering Regulations 2017 requires that, where appropriate to the size and nature of the practice, a member of senior management must be appointed as a Money Laundering Compliance Officer (MLCO), responsible for the implementation of the practice’s policies, controls and procedures (PCPs).
+Eventus Law Limited has considered this requirement in light of its size, structure, governance model and PWRA and has made the decision not to appoint a separate MLCO.
+The reasons for this decision are:
+
+* Eventus is a two-director practice with no other staff, and all AML governance responsibilities (including oversight of PCPs) rest directly and demonstrably with senior management, consistent with LSAG 2025 expectations for small practices.
+* Both directors are actively involved in day-to-day client onboarding and matter supervision, meaning that AML oversight is “baked in” at senior-management level without need for a distinct MLCO role.
+* The MLRO (Craig Ramsay) has been appointed from senior management and is already responsible for:
+– receiving internal SARs;
+– reporting to the NCA;
+– overseeing AML training and AML queries; and
+– reporting to senior management on AML compliance.
+
+* This is consistent with LSAG 2025’s recognition that, in small practices, the MLRO may perform both MLRO and MLCO functions without a separate appointment.
+* This approach is documented and justified within Eventus’ PWRA (Practice Wide Risk Assessment – 25.11.25) in line with LSAG §4.4.
+
+The board will review this decision annually and upon any material change in the practice size, structure, or risk profile.
+
+Obligations
+
+Regulation 19(3) of the Money Laundering Regulations 2017 requires that the practice’s PCPs cover, at a minimum:
+
+* Risk management practices, including risk assessments (MLR 2017 reg. 18; LSAG §§5–6)
+* Internal controls, including senior management responsibility and approval mechanisms (MLR 2017 regs. 19–24; LSAG §9)
+* Customer Due Diligence (CDD), including the nature and extent of identification measures for simplified, standard and enhanced due diligence (MLR 2017 regs. 27–38; LSAG §6)
+* Reliance and Record Keeping (MLR 2017 regs. 39–40; LSAG §§6 & 10)
+* Monitoring of compliance, ongoing review, and internal communication of PCPs (LSAG §§8–9)
+
+Key responsibilities of directors include (but are not limited to):
+
+• Completing client and matter risk assessments in Amiqus and ensuring these are kept up to date.
+• Conducting CDD/EDD in accordance with this policy, including PEP and sanctions checking.
+• Monitoring clients and transactions throughout the matter and documenting ongoing monitoring in Clio Drive.
+• Reporting any suspicion of money laundering or terrorist financing to the MLRO via the internal SAR process.
+• Avoiding any behaviour that could amount to tipping off under POCA or TACT.
+• Completing AML training in line with this policy.
+• Ensuring that all AML-related records (risk assessments, CDD/EDD, SARs, monitoring) are properly saved to Clio Drive.
+
+LSAG 2025 §4.8 sets out additional mandatory elements that PCPs must address. Eventus’ PCPs are drafted to reflect the size and nature of the practice, the PWRA’s conclusions, and relevant supervisory expectations.
+
+
+MLRO 
+
+Eventus Law Limited has appointed Craig Ramsay, Director, as its Money Laundering Reporting Officer (MLRO). The MLRO is responsible for receiving internal Suspicious Activity Reports (SARs), considering them, and disclosing suspicions to the National Crime Agency (NCA) where appropriate.
+
+Under LSAG 2025 §4.3, the MLRO is ultimately responsible for ensuring that any information giving rise to knowledge or suspicion, or reasonable grounds for knowledge or suspicion, of money laundering or terrorist financing is properly disclosed to the NCA.
+
+The MLRO also carries personal legal responsibility for compliance with their obligations. Under s.331 of the Proceeds of Crime Act 2002, an MLRO commits a criminal offence if they fail to make a required disclosure to the NCA following an internal report.
+
+Where appropriate for the size and nature of the practice, the MLRO should submit an annual MLRO Report to the Board, in accordance with LSAG §4.3.3, summarising:
+
+* Numbers and types of internal SARs
+* Numbers of external SARs made to the NCA
+* Key risks arising from client work
+* Training completed during the year
+* Significant changes in AML legislation or risk
+* Recommendations for enhancements to PCPs
+Given Eventus’ size (two directors and no additional staff), the board will review the necessity and proportionality of a formal written annual MLRO Report each year.
+
+The MLRO should be:
+
+* Of sufficient seniority to make decisions about reporting which may affect the practice’s client relationships, and which carry potential criminal, civil, regulatory and disciplinary implications (LSAG §4.3.1).
+* In a position of responsibility with unrestricted access to all client files, matter information, and business records, enabling decisions based on all available information (LSAG §4.3.1).
+* Supported and empowered by the Board to carry out their duties independently and without obstruction (LSAG §4.3.2).
+* Formally appointed, with the decision and rationale documented in accordance with LSAG expectations and Practice Rules. Eventus has recorded the MLRO appointment, rationale and responsibilities in accordance with these requirements.
+
+Risk Assessment 
+
+Practice Wide Risk Assessment (PWRA)
+
+Regulation 18 of the Money Laundering Regulations 2017 requires all practices to conduct, document and maintain a Practice Wide Risk Assessment (PWRA). Eventus Law Limited has prepared a comprehensive PWRA (dated 25 November 2025) and will review it at least annually and upon any material change in the practice’s services, client base or risk exposure.
+In preparing the PWRA, Eventus has considered all relevant factors required under reg. 18(2) and LSAG §5.6, including:
+
+* Client Risk Factors (LSAG §5.6.1)
+* Client Turnover (LSAG §5.6.1.1)
+* PEPs (LSAG §5.6.1.2)
+* Clients in higher-risk sectors (LSAG §5.6.1.3)
+* Clients with cash-intensive businesses (LSAG §5.6.1.4)
+* Geographic Risk (LSAG §5.6.2)
+* Higher-risk jurisdictions (LSAG §5.6.2.1)
+* Product and Service Risks (LSAG §5.6.3)
+* Delivery Channel Risk (LSAG §5.6.4)
+* Transaction Risk (LSAG §5.6.5)
+
+Eventus’ PWRA also incorporates the mandatory external inputs required by reg. 18(2)(a)–(c):
+
+* UK National Risk Assessment 2025
+* LSS Scottish Legal Sectoral Risk Assessment 2022
+* LSAG 2025 Guidance
+
+Summary of PWRA Conclusions (Eventus-specific)
+
+Eventus Law Limited is a two-director boutique corporate/M&A practice, with:
+
+* ~50 new clients per year
+* Majority one-off sell-side M&A mandates for UK SME owners (often high-net-worth individuals)
+* A small number of recurring UK SME clients
+* Occasional company incorporations, but only for existing clients or as part of a wider corporate transaction
+* Use of client account solely for receipt of consideration funds
+* No conveyancing, litigation, funds/PE, crypto, property, tax planning, trust administration, cash-intensive clients or offshore structures
+
+Based on the analysis within the PWRA, senior management assess the inherent risk of Eventus Law Limited as “Medium”. This is a documented divergence from the UK NRA’s “High” rating for the legal sector as a whole, justified by Eventus’ narrower service line, restricted client types, UK-focused work, and limited TCSP activity (LSAG §5.13 requirement satisfied).
+
+This inherent risk rating directly informs the controls set out in these PCPs, including CDD, EDD, ongoing monitoring, and internal reporting.
+
+Client/Matter-Level Risk Assessment
+
+Eventus conducts a written risk assessment for every new client and every new matter. These assessments are mandatory and are undertaken before any regulated work begins.
+
+1. Responsibility for conducting risk assessments
+
+* The fee-earner responsible for the matter must complete the client and matter risk assessments.
+* All risk assessments are completed using Amiqus and a copy is stored on Clio Drive (Eventus’ document management system), consistent with LSAG §5.14.
+* The MLRO may review any risk assessment and may require escalation to Enhanced Due Diligence (EDD) or decline instructions.
+
+2. Risk factors considered (LSAG §5.6)
+
+All client/matter risk assessments must consider:
+
+Client Risk (LSAG §5.10)
+
+Including:
+
+* Legal structure and beneficial ownership
+* Complexity of ownership or control
+* Whether the client is a PEP or related to a PEP
+* Whether the client is in a higher-risk sector
+* Whether the client is cash-intensive
+* Reputation/adverse media/red flags
+* Source of wealth (SoW) clarity
+
+Matter Risk (LSAG §5.11)
+
+Including:
+
+* Purpose and nature of the transaction
+* Complexity of the transaction
+* Unusual features or structures
+* Use of corporate vehicles / SPVs
+* Cross-border elements
+* Source of funds (SoF) clarity
+* Use of client account (always higher risk under LSAG §6.2.3)
+
+Geographic Risk (LSAG §5.6.2)
+
+* Whether client, beneficial owner, transaction, or funds involve:
+– High-risk third countries (FATF)
+– Other jurisdictions with ML/TF vulnerabilities
+* Eventus’ PWRA records that almost all clients are UK-based, which lowers geographic risk.
+
+Delivery Channel Risk (LSAG §5.6.4)
+
+* Remote onboarding
+* Referrer risk
+* Use of intermediaries or agents
+
+Transaction Risk (LSAG §5.6.5)
+
+* High-value M&A transactions
+* “Deal fever” risk
+* Funds flows inconsistent with profile
+* Urgency/artificial deadlines
+
+3. Application: How risk drives due diligence
+
+Eventus applies CDD in accordance with regs. 27–35 and LSAG §6.
+* Low-risk ? SDD only where permitted by law (rare in Eventus’ model).
+* Medium-risk (default) ? Standard CDD, SoF, SoW, sanctions screening, adverse media screening.
+* High-risk ? Mandatory EDD (MLR 2017 reg. 33), including:
+– Enhanced verification
+– More detailed SoF/SoW
+– MLRO review
+– Increased ongoing monitoring
+– Approval by senior management (MLR reg. 35)
+
+Eventus’ PWRA identifies TCSP activity (company formations) and use of client account as higher-risk features. Therefore:
+
+* All incorporations and all deals involving client account funds default to high matter risk, triggering EDD.
+* All cross-border work defaults to high risk unless the counterparty jurisdictions are demonstrably low-risk.
+
+4. Review and updating of risk assessments
+
+Client/matter risk assessments must be reviewed and updated when:
+
+* There is a material change in scope, ownership, structure, or funding
+* New information emerges (adverse media, sanctions updates, inconsistencies in SoF/SoW)
+* Anything occurs which may create suspicion under POCA/TACT
+* Additional funds are introduced that were not anticipated at onboarding
+
+This is required under MLR 2017 reg. 28(11) and LSAG §6.15.
+
+5. International Clients or Overseas Funds
+
+Consistent with Eventus’ PWRA:
+
+* Eventus predominantly acts for UK-based clients, and this reduces inherent geographic risk.
+* Any client, beneficial owner, or funds from higher-risk third countries (FATF) or from other higher-risk jurisdictions will automatically be rated high-risk, requiring EDD.
+* If SoF/SoW originates overseas, enhanced scrutiny is always required.
+* If funds route through multiple jurisdictions or do not align with the client profile, the matter must be escalated to the MLRO.
+
+6. Recording and Documentation
+
+All risk assessments must be:
+
+* Completed and stored electronically on Amiqus
+* Saved to Clio Drive as part of the matter file
+* Capable of being produced to the Law Society of Scotland upon request (MLR reg. 18(4); LSAG §5.14)
+
+No work may proceed until CDD and risk assessment are complete (MLR reg. 30).
+
+Client Due Diligence 
+
+(LSAG Guidance Section 6)
+
+Eventus Law Limited undertakes Customer Due Diligence (CDD) in accordance with Regulations 27–28 of the Money Laundering Regulations 2017. CDD is a key control in preventing the practice from being used for money laundering or terrorist financing and is central to Eventus’ risk-based approach.
+
+CDD is holistic and extends far beyond simple identification and verification. It includes understanding:
+
+* The client’s background, business activities and purpose of the transaction
+* Source of Funds (SoF)
+* Source of Wealth (SoW)
+* Ownership and control structures (for non-natural persons)
+* The anticipated nature and level of activity in the matter
+* Risk factors identified in the PWRA
+* Any red flags across the transaction lifecycle
+
+The fee-earner responsible for the matter must ensure that CDD is completed, recorded and approved before any regulated work is undertaken, unless an exception under reg. 30 applies.
+
+Eventus does not undertake conveyancing or transactions involving the registration of overseas entities under the Register of Overseas Entities regime. If a matter would require such work, Eventus will decline instructions and, if appropriate, signpost the client to a suitable firm.
+
+1. Eventus’ CDD Procedures
+
+1.1 Identification and Verification (ID&V)
+
+Natural persons
+
+Eventus verifies:
+
+* Full legal name
+* Date of birth
+* Residential address
+* Nationality/citizenship (if relevant)
+* Verification using Amiqus electronic ID&V
+* Additional documentation for higher-risk clients (EDD)
+
+Clients unable to produce standard documentation (LSAG §6.14.7) require MLRO approval and alternative evidence.
+
+Where the client is acting via a representative, Eventus verifies the identity and authority of the person purporting to act (reg. 28(10); LSAG §6.14.9).
+
+Non-natural persons
+
+Eventus identifies and verifies:
+
+* Legal name, registered number and registered office
+* Governing law, incorporation details
+* Names of directors/managers
+* Ownership and control structures (LSAG §6.14.10–6.14.13)
+* Ultimate Beneficial Owners (UBOs) in accordance with reg. 28(3)–(8)
+
+Eventus always obtains a full corporate structure chart where the structure is not immediately transparent.
+
+1.2 Beneficial Ownership and Discrepancy Reporting (reg. 30A)
+
+Eventus compares information obtained during CDD with the Companies House PSC register and reports any material discrepancies in accordance with reg. 30A.
+
+No work may proceed while a discrepancy remains unresolved or where it creates suspicion (POCA s.330).
+
+Source of Funds (SoF)
+
+Source of Funds (SoF) refers to the specific funds used in the transaction or activity within the business relationship. Eventus must understand:
+
+* Where the money used in the transaction comes from
+* How the client obtained these funds
+* Whether the SoF is consistent with the client’s profile, SoW, and the nature and purpose of the matter
+
+Statements such as “the funds came from a UK bank” are never sufficient.
+
+1. When SoF is required at Eventus (Eventus-specific PCP)
+
+Eventus undertakes SoF enquiries in all matters, but the nature of the check depends on whether we are acting on:
+
+1.1 Sell-side matters (majority of Eventus’ work)
+
+These matters typically do not involve our client injecting funds. Instead, the buyer provides the purchase price.
+
+In sell-side mandates, Eventus’ SoF responsibilities are therefore:
+
+1. Verifying the legitimacy of the funds being received into Eventus’ client account, where applicable.
+2. Understanding how funds will flow through completion, including confirming that:
+o The buyer’s solicitors are UK-regulated;
+o Completion monies will be paid from a UK solicitor’s client account;
+o Eventus will not receive funds directly from buyers, companies, or third parties.
+
+This satisfies LSAG expectations for SoF in transactions where the firm receives funds but the client is not providing funds.
+
+1.2 Buy-side or funding-related work (less common at Eventus)
+
+Where our client is providing funds (e.g., a rare acquisition or investment):
+
+* Full SoF is required.
+* Open Banking and/or documentary evidence is obtained (see below).
+* EDD applies automatically if the client, jurisdiction, or transaction triggers any reg. 33(6) high-risk factors.
+
+1.3 TCSP activities (company incorporations)
+
+Where Eventus forms a company:
+* SoF is required for any funds injected into the entity as part of the transaction.
+* LSAG highlights TCSP work as high-risk; therefore EDD normally applies.
+
+1.4 Any matter involving the client account
+
+Regardless of matter type:
+
+* SoF is required for all funds entering the client account.
+* Funds must come only from anticipated and verified sources.
+* Any deviation triggers EDD and MLRO review.
+
+2. Acceptable evidence of Source of Funds
+
+Depending on risk and context, Eventus may request:
+
+* Bank statements showing accumulation of funds
+* Statements or letters from regulated financial institutions
+* Payslips or income documentation
+* Audited company accounts
+* Dividend documentation
+* Inheritance documents
+* Business sale/purchase agreements
+* Evidence of asset sales
+
+3. Use of FCA-regulated Open Banking technology (Amiqus)
+
+(Eventus-specific PCP)
+
+Eventus uses the Amiqus Banking Information (Open Banking) check to verify SoF, where the client agrees. This FCA-regulated technology allows Eventus to:
+
+* View verified balances and transactions directly from the client’s bank
+* Confirm account ownership (name, sort code, account number)
+* Filter data by date, transaction type, amount or keyword
+* Reduce fraud risk by eliminating screenshots / manipulated documents
+* Obtain data quickly and securely, improving onboarding time
+
+Where Open Banking cannot be used (e.g., unsupported bank or client preference), Amiqus automatically reverts to secure upload of bank statements.
+
+Open Banking may be used for:
+
+* Buy-side or funding transactions
+* Verification of funds held prior to investment
+* Verifying receipt accounts in sell-side matters (if relevant)
+* Any matter requiring EDD around SoF
+* Any matter involving third-party contributions
+
+Open Banking does not replace professional judgment and must be interpreted in the context of the client’s risk profile and matter characteristics.
+
+4. Third-party SoF
+
+Where funds originate from a third party, Eventus applies the same standard of SoF/EDD as for the client (LSAG §6.17.7).
+
+Reg. 33(6)(b)(iv) identifies unknown or unrelated third-party payments as a high-risk factor.
+Therefore:
+
+* No funds may be accepted from third parties unless their identity, role, and SoF are understood.
+* MLRO approval is required for any third-party payments.
+* Anonymous, indirect or unverified payments will not be accepted.
+
+5. Eventus’ specific approach
+
+Eventus’ SoF conclusions must be:
+* Recorded in Amiqus
+* Saved to Clio Drive
+* Supported by evidence appropriate to the risk level
+* Updated if new funds enter the transaction (reg. 28(11))
+
+
+Source of Wealth (SoW)
+
+Source of Wealth (SoW) describes the origin of a client’s overall wealth, not merely the funds used in the transaction. It considers economic, business and commercial activities contributing to the client’s net worth over time.
+
+1. When SoW is required at Eventus
+
+Eventus requires SoW:
+
+1.1 For all new clients
+
+(as established in the PWRA and NPQ responses)
+Because Eventus normally acts for:
+
+* SME shareholders
+* HNW individuals
+* Owners of trading businesses
+
+SoW establishes a baseline understanding of the client’s financial circumstances and validates consistency with the matter.
+
+1.2 In all high-risk scenarios (mandatory EDD), including:
+
+* PEPs or RCAs (reg. 35)
+* Cross-border matters
+* High-value transactions
+* Complex corporate structures
+* Use of opaque shareholding arrangements
+* Where SoF is unclear or inconsistent
+* Any trigger under reg. 33(6) (e.g., unusual transactions, high-risk jurisdictions)
+
+1.3 For any matter involving the client account
+
+SoW helps validate that receipt of substantial funds is consistent with the client’s profile.
+
+2. Establishing Source of Wealth
+
+Eventus takes a holistic approach, considering:
+
+* Career history and profession
+* Ownership of business interests
+* Dividends and retained profits
+* Historic asset acquisition
+* Investments
+* Inheritance or family wealth
+* Long-term wealth accumulation patterns
+* Consistency and plausibility of the wealth narrative
+
+Amiqus Open Banking data assists in confirming:
+
+* Income patterns
+* Regularity of inflows
+* Alignment with the client’s financial background
+
+—but Open Banking alone does not establish SoW, which must be narrative-based and evidenced.
+
+3. Eventus’ specific SoW requirements
+
+* SoW information must be collected in all new-client onboardings.
+* Depth of SoW must increase in line with risk.
+* Documentary evidence (e.g., business sale documents, accounts, inheritance papers) may be required where the matter is high-risk or where the SoW narrative needs verification.
+* All SoW information is recorded in Amiqus and saved to Clio Drive.
+
+Complex / Unusual / High-Risk Transactions
+
+(MLR 2017 reg. 33(1), 33(6); LSAG 2025 §§6.18–6.19)
+Eventus must identify and scrutinise any transaction or matter feature that is complex, unusually large, unusual in pattern, or lacking an apparent economic or lawful purpose. These are statutory high-risk indicators under regulation 33(1) and regulation 33(6), and LSAG requires firms to apply additional scrutiny in such circumstances.
+Eventus considers the following to be red-flag indicators:
+* Unusual or complex ownership structures or SPVs
+* Unexplained urgency or artificial deadlines
+* Unusual transaction values relative to client profile
+* Funds flows or proposed completion mechanics inconsistent with commercial rationale
+* Frequent amendments to structure or parties without explanation
+* Unclear beneficial ownership or control
+* Use of offshore entities or opaque jurisdictions
+* Transactions with no clear economic or legal purpose
+* Multiple third-party payments or involvement of intermediaries without a legitimate role
+
+Required actions where such indicators arise
+Where any of the above are identified, the matter must be escalated to the MLRO and:
+1. A reassessment of the client/matter risk rating must be undertaken.
+2. EDD must be considered and usually applied, in line with reg. 33.
+3. Additional SoF/SoW enquiries must be conducted, possibly including Open Banking checks via Amiqus.
+4. The background and purpose of the transaction must be examined and documented.
+5. Enhanced ongoing monitoring must be applied throughout the matter.
+6. If concerns persist or suspicion arises, an internal SAR must be submitted.
+Eventus may pause or decline to act where complexity or unusual features cannot be satisfactorily explained or where the matter falls outside the firm’s documented risk appetite.
+Anonymity-Enhancing Features and Unsolicited Funds
+
+(MLR 2017 regs. 33(6)(b)(iv), 40; LSAG 2025 §§6.17, 6.18)
+Eventus does not accept or process any payments, funding routes, or assets that obscure or weaken transparency of ownership, source, or provenance. This reflects LSAG’s requirement for increased scrutiny of anonymity-enhancing mechanisms and reg. 33(6)(b)(iv), which identifies payments by unknown third parties as a high-risk factor.
+Prohibited forms of payment
+Eventus does not accept:
+* Cryptoassets, privacy coins, or digital assets with anonymising features
+* Mixed, pooled or tumbling services
+* Payments routed through unregulated or opaque payment service providers
+* Anonymous prepaid instruments
+* Indirect, masked or layered third-party payments
+* Funds from accounts where ownership cannot be verified
+* Cash payments of any amount
+
+Where Open Banking (Amiqus Banking Information check) is available, Eventus will use it to validate account ownership and provenance of funds.
+Third-party payments
+Eventus will only accept funds from third parties where:
+* The role and connection to the transaction are legitimate and documented;
+* The identity of the third party has been fully verified;
+* The SoF for the third party is assessed to the same standard as for a client;
+* MLRO approval is obtained before any funds are received.
+
+Unknown, unrelated, or unjustified third-party payments will be rejected.
+Unsolicited or unexpected funds
+If funds are received without prior notification or contrary to expectations:
+* The matter must be immediately escalated to the MLRO.
+* The firm will not process or forward the funds under any circumstances.
+* The funds may only be returned to the originating account, once lawful to do so.
+* The MLRO will consider whether an internal SAR or DAML request is required.
+
+This aligns with LSAG’s prohibition on handling undisclosed or unexplained funds and with reg. 40 record-keeping requirements.
+Timing of CDD
+
+(MLR 2017 regs. 27 & 30; LSAG 2025 §6)
+Eventus Law Limited must complete Customer Due Diligence (CDD) before:
+* establishing a business relationship;
+* carrying out any occasional transaction; or
+* receiving any funds into the client account (except minimal sums for verification).
+
+This reflects the requirement in regulation 27(1) that CDD must be completed prior to commencing regulated work.
+Eventus does not use timing exceptions under regulation 30 for routine convenience.
+A timing exception may only be used where:
+* it is strictly necessary not to interrupt the normal conduct of the business;
+* the risk of ML/TF is low; and
+* CDD is completed as soon as practicable thereafter.
+
+Given Eventus’ PWRA and risk profile, timing exceptions are expected to be rare and require prior MLRO approval. No substantive work may proceed unless and until the MLRO authorises the use of the timing exception.
+If CDD cannot be completed promptly, the matter must be paused until it is complete.
+Where a matter later becomes suspicious during the timing-exception window, the MLRO must be informed immediately and the firm must cease work in line with the SAR procedure.
+Simplified Due Diligence
+
+(LSAG §6.20; MLR reg. 37)
+Eventus may only apply SDD where the client/matter presents a demonstrably low risk of ML/TF.
+Given the conclusions of Eventus’ PWRA, including:
+* Corporate/M&A transactions,
+* Use of client account,
+* Occasional TCSP activity,
+* High inherent risk associated with professional enablers (UK NRA 2025),
+
+SDD will be used rarely and only with MLRO approval.
+If SDD is applied:
+* Rationale must be documented in the client/matter risk assessment
+* Ongoing monitoring continues to full standard
+* Any change in circumstances triggers full CDD/EDD
+
+Reliance (reg. 39)
+
+(LSAG Guidance §6.23; MLR 2017 reg. 39)
+Under regulation 39, a practice may, in certain circumstances, rely on another person to carry out Customer Due Diligence (CDD). Reliance requires a formal agreement, and the practice remains legally liable for any non-compliance with CDD requirements, even where reliance is used.
+Eventus Law Limited has considered the requirements of reg. 39, the risks associated with reliance described in LSAG 2025 §6.23, and the firm’s Practice Wide Risk Assessment (PWRA). Having done so, Eventus has determined that it will not use reliance under any circumstances.
+This position is based on the following factors:
+* Eventus operates in a higher-risk area of legal practice (corporate/M&A transactions), including occasional TCSP activity and use of client account for receipt of consideration funds. LSAG identifies these as unsuitable for reliance.
+* Under reg. 39(1), reliance does not transfer liability: Eventus would remain fully responsible for the adequacy of CDD.
+* Many reliance scenarios introduce additional risks, including delay in obtaining underlying documentation, uncertainty about regulatory equivalence, and oversight gaps.
+* Eventus’ PWRA identifies that the firm’s client base is predominantly UK SMEs and individuals, enabling CDD to be undertaken efficiently and directly using Amiqus.
+* LSAG §6.23 recognises that many small practices elect not to use reliance, and this is an acceptable, risk-based position.
+
+Accordingly:
+Eventus Law Limited will not rely on any external person or entity to conduct CDD on its behalf. All CDD must be performed directly by Eventus.
+Any documentation or information supplied by third parties (e.g., by other regulated professionals) may be considered supporting evidence, but cannot constitute reliance under reg. 39 and does not replace Eventus’ obligation to conduct its own full CDD.
+Politically Exposed Persons (PEPs) and Relatives/Close Associates (RCAs)
+
+(MLR 2017 reg. 35; LSAG 2025 §6.19.3)
+PEPs present a higher inherent risk of exposure to corruption, bribery, and abuse of public office. Eventus must identify and apply Enhanced Due Diligence (EDD) to all PEPs and RCAs in accordance with regulation 35.
+Eventus adopts a risk-based, proportionate approach in line with LSAG 2025, the FCA’s PEP guidance (FG17/6), and the firm’s PWRA.
+Identifying PEPs
+Eventus identifies PEPs and RCAs through:
+* Amiqus electronic screening at onboarding (client, beneficial owners, controllers);
+* Screening triggered by changes in ownership, information, or adverse media;
+* Direct questioning of clients where appropriate;
+* Review of publicly available information (for low-likelihood scenarios).
+
+Domestic PEPs
+As required by reg. 35(3A) (post-2024 amendments):
+* The starting point is that UK PEPs present a lower risk than foreign PEPs.
+* If no additional high-risk factors apply, EDD measures may be applied in a proportionate (i.e., lighter-touch) manner.
+
+Eventus’ Risk Appetite for PEPs
+Based on the PWRA:
+* Eventus may act for domestic, lower-risk PEPs, subject to mandatory EDD and senior management approval.
+* Eventus will ordinarily decline instructions from high-risk foreign PEPs, except in exceptional circumstances where the MLRO and senior management jointly consider that the risks can be mitigated and this is fully documented.
+
+Required EDD Measures for PEPs (reg. 35 mandatory steps)
+Where a PEP or RCA is identified, Eventus must:
+1. Obtain senior management approval before establishing or continuing the relationship.
+2. Take adequate measures to establish Source of Funds (SoF) for all relevant transactions.
+3. Take adequate measures to establish Source of Wealth (SoW)—this must be robust, holistic, and evidence-supported.
+4. Apply enhanced ongoing monitoring, including:
+* more frequent checks;
+* closer scrutiny of transactions and funds flows;
+* refreshing screening at appropriate intervals.
+
+5. Record all PEP analyses, decisions, approvals and monitoring actions on Clio Drive.
+SoW and SoF for PEPs (Eventus-specific approach)
+For PEPs and RCAs, Eventus requires:
+* A detailed SoW narrative covering career history, business interests, assets, inheritance, and long-term wealth;
+* Supporting documents where appropriate (e.g., company accounts, sale documents, investment statements, inheritance papers);
+* Open Banking (Amiqus) checks where relevant to SoF;
+* Scrutiny of any involvement of third parties or overseas funds.
+
+If a PEP or RCA refuses to provide required information, Eventus will decline to act.
+Ongoing Monitoring
+All PEP relationships are automatically subject to:
+* Enhanced ongoing monitoring in line with regulation 35(5);
+* Rescreening at appropriate intervals;
+* Continuous review of risk rating and transaction behaviour.
+
+A PEP register may be maintained if proportionate to Eventus’ size and caseload.
+Ongoing Monitoring
+
+(LSAG Guidance §6.21; MLR 2017 reg. 28(11))
+Eventus Law Limited must conduct ongoing monitoring of all business relationships and throughout the lifespan of every matter in accordance with regulation 28(11). Ongoing monitoring consists of:
+* Scrutiny of transactions and activity to ensure they are consistent with Eventus’ knowledge of the client, the client’s business, the purpose and nature of the matter, and the assessed risk profile; and
+* Reviewing and keeping CDD information up to date, including identifying any material changes in the client or matter.
+
+This is a mandatory, continuous requirement and applies to all clients, not only high-risk clients.
+1. How Eventus conducts ongoing monitoring
+Ongoing monitoring at Eventus includes:
+* Reviewing matter activity to ensure it remains consistent with the risk assessment, SoF, SoW, and purpose of the transaction
+* Monitoring for changes in beneficial ownership, control, or client identity (LSAG §6.21.4)
+* Monitoring for new or additional funds, including reviewing SoF where further payments arise
+* Screening the client and beneficial owners for sanctions and PEP changes
+* Reviewing adverse media results over the course of the matter
+* Ensuring that no new third-party funders or entities become involved without appropriate scrutiny
+* Ensuring that the transaction does not become unusual, complex, expedited without justification, or lacking commercial rationale
+* Ensuring any TCSP activities or client account movements remain consistent with the expected pattern of activity
+
+2. Risk-based re-application or updating of CDD
+Eventus will re-apply or update CDD when:
+* Material circumstances change
+* Additional funds arise (especially funds from new sources)
+* New third-party payments are proposed
+* The client’s ownership or control structure changes
+* There is new or inconsistent SoF or SoW information
+* New adverse media or sanctions information emerges
+* The MLRO determines that EDD is required
+* The matter risk rating increases for any reason
+
+This is required under reg. 28(11) and LSAG §6.21.
+Suspending or ceasing work may be appropriate where updated CDD is not provided promptly or where changes create new ML/TF concerns.
+3. Ongoing monitoring and Eventus’ practice model
+Eventus’ PWRA identifies several higher-risk features relevant to ongoing monitoring:
+* Use of client account for receipt of consideration funds on completion
+* Occasional TCSP activity (company incorporations)
+* High-value corporate transactions
+* One-off sell-side engagements with new clients
+
+Therefore:
+* Matters involving client account funds are always subject to enhanced ongoing monitoring
+* All incorporations (TCSP) attract enhanced ongoing monitoring by default
+* High-value M&A transactions require special attention to:
+– changes in price or structure
+– introduction of new parties
+– funds flows
+– use of SPVs or holding companies
+– urgency or compressed timetables
+
+Eventus does not undertake conveyancing, cash-intensive business work, trusts, crypto, litigation, or property transactions — accordingly, the monitoring controls for those sectors do not apply.
+4. Specific review questions
+Fee-earners must consider, and record answers to, the following questions throughout the transaction:
+* Have the source of funds changed?
+* Has any part of the transaction become unusual or inconsistent with the client’s profile?
+* Have any third-party funds been introduced?
+* Has the client or beneficial ownership changed?
+* Has new adverse media emerged?
+* Are there any unexplained changes to the transaction structure, timetable or participants?
+* Does the matter remain within the previously assessed risk category?
+
+Any “yes” or “uncertain” response triggers an update of CDD and possible escalation to the MLRO.
+5. Recording ongoing monitoring
+Each time ongoing monitoring is performed, Eventus must record:
+* What was reviewed
+* Any issues identified
+* Action taken (or the justification for taking no action)
+* Outcome / decision
+* Date and individual undertaking the review
+
+This record is stored on Clio Drive within the matter file and forms part of the audit trail required under reg. 40.
+6. Technology and tools
+Eventus uses:
+* Amiqus for screening, e-ID&V, sanctions/PEP checks
+* Clio and Clio Drive for matter records, documentation, and tracking reviews
+
+Technology is used as an aid, not a substitute for professional judgement (LSAG §6.21.5).
+7. Escalation
+Any concerns identified through ongoing monitoring must be reported to the MLRO immediately.
+Where suspicion arises, the matter must be escalated under the internal SAR procedure, and the MLRO may direct that work be paused pending review.
+
+
+
+
+Enhanced Due Diligence (EDD)
+
+(MLR 2017 regs. 33–35; LSAG 2025 §§6.18–6.19)
+
+Enhanced Due Diligence (EDD) is required where there is a higher risk of money laundering or terrorist financing. EDD builds on standard CDD by requiring the firm to gather additional information, undertake deeper scrutiny, and apply enhanced ongoing monitoring to ensure the relationship and any transaction are consistent with Eventus’ understanding of the client, their wealth, and the purpose of the matter.
+
+Eventus adopts a risk-based approach to EDD, informed by:
+* Eventus’ PWRA (25.11.25)
+* Client and matter-level risk assessments (LSAG §5.6)
+* Regulation 33 mandatory factors
+* PEP requirements under regulation 35
+* LSAG 2025 §§6.18–6.19
+
+Because Eventus undertakes higher-risk work (corporate/M&A transactions, receipt of consideration into client account, occasional TCSP activity), EDD is applied frequently and is always required in certain categories of work (detailed below).
+
+1. When EDD is Mandatory
+
+EDD must be applied in all circumstances required by the Money Laundering Regulations and LSAG guidance.
+
+1.1 High-Risk Third Countries (HRTCs)
+
+(MLR reg. 33(1)(b); post-2024 FATF update)
+
+EDD must be applied whenever:
+* A client, beneficial owner or party is established in a High-Risk Third Country; or
+* A transaction involves a party in an HRTC.
+
+HRTCs are now defined by direct reference to FATF lists (not Schedule 3ZA):
+1. High-Risk Jurisdictions subject to a Call for Action
+2. Jurisdictions under Increased Monitoring
+
+FATF lists are updated three times a year (February, June, October).  Eventus checks these via Amiqus screening and MLRO oversight.
+
+1.2 Politically Exposed Persons (PEPs) and RCAs
+
+(MLR reg. 35; LSAG §6.19.3)
+
+EDD for PEPs is mandatory and governed by Eventus’ dedicated PEPs (see “Politically Exposed Persons (PEPs) and Relatives/Close Associates (RCAs)” above).
+
+1.3 False or stolen identity documents
+
+Where a client or beneficial owner has used false or stolen identity documentation, EDD is mandatory, and the matter must be escalated immediately to the MLRO.
+
+1.4 High-risk features under reg. 33(6)
+
+EDD must also be applied where any of the risk factors in reg. 33(6) apply:
+* Customer risk factors – e.g., complex ownership, opaque structures, high-risk sectors
+* Product/service/transaction/delivery channel factors – e.g.
+– use of client account
+– TCSP services
+– remote/on-boarding without safeguards
+– complex or unusually large M&A transactions
+* Geographic risk factors – including any involvement of higher-risk or sanctioned jurisdictions
+
+1.5 Complex or unusual transactions
+
+See section above titled “Complex / Unusual / High-Risk Transactions”
+
+1.6 Eventus-specific default EDD triggers
+
+Based on Eventus’ PWRA, the following always require EDD:
+* Any matter involving Eventus’ client account
+* All TCSP activity (company incorporations)
+* All cross-border transactions unless the jurisdiction is demonstrably low-risk
+* Any SoF or SoW inconsistencies
+* Any involvement of third-party funders
+* Any matter rated “High Risk” at onboarding or during ongoing monitoring
+
+2. What EDD involves at Eventus
+
+EDD is not a fixed checklist; it is a risk-based intensification of CDD.
+The following measures are applied as appropriate to the level and nature of risk.
+
+2.1 Additional Verification and Information Gathering
+* Obtaining additional documentation to verify identity or beneficial ownership
+* Use of Amiqus Open Banking to confirm account ownership and funds provenance
+* Obtaining corporate structure charts and verifying controllers
+* Obtaining independent evidence of key information (e.g., Companies House, regulated financial institutions)
+
+2.2 Enhanced understanding of the background and purpose
+* Deeper examination of the rationale for the transaction
+* Verification of commercial purpose where materially unclear
+* Assessment of whether the transaction is consistent with the client’s profile, SoW, and SoF
+
+2.3 Enhanced scrutiny of funds
+* Detailed analysis of SoF (bank statements, Open Banking, supporting documentation)
+* Assessing SoW in significantly greater depth (see section 4 below)
+* Verifying the provenance of third-party funds and obtaining MLRO approval
+* Rejecting funds from opaque or anonymity-enhancing sources
+
+2.4 Enhanced checks on ownership and control
+* Examining beneficial owners with less than 25% ownership where control is unclear or where LSAG risk indicators are present
+* Scrutinising trusts, layered corporate structures or offshore entities
+* Verifying the legitimacy of each layer in a chain of ownership
+
+2.5 Enhanced ongoing monitoring
+
+See section above titled “Ongoing Monitoring”
+
+EDD automatically triggers enhanced ongoing monitoring including:
+* More frequent sanctions/PEP screening
+* More frequent SoF checks
+* Trigger-based CDD refreshes
+* MLRO-led review of any deviations from expected activity
+
+2.6 Senior Management / MLRO approval
+* Required before entering or continuing any high-risk business relationship
+* All approvals are minuted within the matter file on Clio Drive
+
+3. Documentation Requirements for EDD
+
+Eventus records all EDD activities in both:
+* Amiqus (risk assessment, screening, SoF/SoW evidence); and
+* Clio Drive (EDD notes, MLRO approvals, escalations, monitoring records).
+
+Each record must explain:
+* Why EDD was required
+* What additional measures were taken
+* What evidence was reviewed
+* What conclusions were reached
+* What ongoing monitoring is required
+
+This evidences compliance with reg. 33 and LSAG §§6.18–6.19.
+
+4. EDD Measures – Understanding Source of Wealth (SoW)
+
+(LSAG §6.18.3)
+
+Eventus takes a holistic, risk-based approach to establishing SoW when EDD applies.
+
+4.1 When enhanced SoW is required
+
+Enhanced SoW measures apply whenever:
+* PEPs or RCAs are involved (mandatory)
+* High-risk jurisdictions or cross-border elements exist
+* The transaction is unusually large or commercially unusual
+* The corporate structure is complex#
+* There are inconsistencies in SoF or unexplained wealth
+* Any reg. 33(6) risk factor applies
+* Any involvement of client account funds at scale
+4.2 What enhanced SoW involves
+
+Enhanced SoW requires deeper examination of:
+Career history and business activities
+Ownership of shares or companies, including valuation evidence
+Historic wealth accumulation over time
+Dividends, drawings, investment income
+Income patterns validated via Open Banking (where appropriate)
+Asset sale proceeds (with supporting documentation)
+Family/inheritance wealth
+Any sudden or unusual increase in wealth
+
+4.3 Evidence sources (illustrative)
+
+Audited accounts and financial statements
+Business sale/purchase agreements
+Investment portfolio summaries
+Inheritance/probate documents
+Dividend vouchers
+Open Banking data indicating long-term income patterns
+Regulated financial institution statements
+
+4.4 Eventus-specific SoW standards
+
+See also: Source of Wealth (SoW) section for full detail; EDD adds enhanced scrutiny and evidence.
+
+Suspicious Activity Reporting
+
+(LSAG §11; POCA 2002; TACT 2000)
+
+All persons working within the regulated sector have statutory obligations under the Proceeds of Crime Act 2002 (POCA) and the Terrorism Act 2000 (TACT) to make disclosures where they know, suspect, or have reasonable grounds to know or suspect that money laundering or terrorist financing is occurring. These obligations apply to all directors and employees of Eventus Law Limited.
+
+1. When an internal SAR must be made
+
+An internal Suspicious Activity Report (internal SAR) must be submitted to the MLRO as soon as practicable where:
+
+* You know, suspect, or have reasonable grounds to know or suspect that a person is engaged in money laundering or terrorist financing, and that information came to you in the course of your work in the regulated sector (subject to legal professional privilege).
+* You are concerned that you may be involved in a prohibited act under ss.327–329 POCA (concealing, arranging, or acquiring/using criminal property) and require a Defence Against Money Laundering (DAML) before proceeding.
+
+Failure to report a suspicion may result in a criminal offence under s.330 POCA or s.21A TACT.
+2. Internal SAR process at Eventus
+
+Eventus operates a clear, documented internal SAR procedure:
+
+1. Identify indicators of suspicion (transactional abnormality, SoF inconsistency, adverse media, unusual structures, unexplained urgency, third-party funds etc.).
+2. Pause all work on the matter unless continuation is authorised by the MLRO under LSAG 11.10 exceptions.
+3. Submit an internal SAR to the MLRO using Eventus’ SAR template (stored on Clio Drive).
+4. The SAR must set out:
+o Who is involved
+o What activity is suspicious and why
+o Relevant dates, transactions, instructions, and documentation
+o Any potential deadlines
+o Whether a DAML is sought
+5. The MLRO reviews the SAR, may request further information, and then decides:
+o Submit SAR to NCA, or
+o Not submit, documenting the full rationale.
+6. All internal SARs and MLRO decisions are retained under reg. 40.
+
+3. Interaction with clients during a SAR
+
+Once suspicion is formed:
+* Fee earners must not request further CDD if doing so risks tipping off (LSAG 11.11).
+* Communications with clients must remain neutral and non-disclosive.
+* The matter may be paused, declined or terminated depending on MLRO instruction.
+
+Defence Against Money Laundering (DAML) / “Consent” Requests
+
+(LSAG §11.10; POCA ss. 335–336)
+
+Where continuing to act risks committing a prohibited act under POCA, the MLRO may seek a DAML from the NCA.
+
+Eventus procedure for DAML
+
+A DAML request must:
+* Clearly specify whether the request is made for the firm, the client, or both;
+* Identify the exact act for which a defence is sought;
+* Include all relevant information needed by the NCA to consider the request.
+
+Once submitted:
+* The NCA’s seven-day notice period applies;
+* During this period, no prohibited act may be carried out;
+* If the NCA refuses consent, a further 31-day moratorium period applies.
+
+All DAML submissions and outcomes must be documented by the MLRO.
+
+Tipping Off
+
+(LSAG §§11.11 & 16.8; POCA s.333A; TACT s.39)
+It is a criminal offence to disclose information that is likely to prejudice an actual or potential money laundering or terrorist financing investigation.
+
+Accordingly:
+* Staff must not inform a client or third party that an internal SAR has been made, is being considered, or that a law enforcement investigation may be underway.
+* Staff must not provide hints, behavioural cues, or indirect signals (e.g., “the regulator requires us to pause your transaction for a few days”).
+
+Any concerns that a conversation may risk tipping off must be escalated immediately to the MLRO.
+
+Breach of the tipping-off offence may result in up to two years’ imprisonment.
+Technology 
+
+(LSAG §7; Eventus-specific)
+Eventus Law Limited uses technology to support compliance with the Money Laundering Regulations and LSAG guidance. Technology is used as an aid, not a substitute for professional judgment.
+1. Tools used at Eventus
+Eventus uses:
+* Amiqus – Electronic ID&V, PEP/sanctions screening, adverse media checks, Companies House integrations, and FCA-regulated Open Banking for Source of Funds analysis.
+* Companies House – Corporate registry searches and verification of beneficial ownership.
+* Clio & Clio Drive – For storing all risk assessments, CDD, EDD, and monitoring records.
+
+2. Purpose and scope of technology use
+Technology is used to:
+* Perform e-ID&V checks;
+* Screen clients and beneficial owners for PEP, sanctions and adverse media;
+* Obtain verified financial data through Open Banking for SoF;
+* Identify discrepancies between client-provided data and corporate registries;
+* Maintain full audit trails for reg. 40 compliance.
+
+3. Access and responsibility
+* Only the two directors have access to Amiqus and screening tools.
+* Fee earners (the two directors) are responsible for interpreting results.
+* The MLRO reviews results and anomalies requiring escalation.
+
+4. Interpretation and limitations
+* Technology outputs must be interpreted in context and cannot be relied upon in isolation.
+* False positives and incomplete data may occur (especially in PEP/adverse media).
+* Open Banking cannot replace documentary evidence where required for EDD.
+* Technology does not replace the requirement for independent professional assessment.
+
+5. Screening lists
+Amiqus screens against:
+* Global sanctions lists (UN, OFSI, EU, OFAC, etc.)
+* PEP lists in line with FATF definitions
+* Adverse media databases
+* FCA-regulated financial data feeds (Open Banking)
+
+All results are recorded within the matter file on Clio Drive.
+Training
+
+(LSAG §8;)
+Employees are Eventus Law Limited’s most effective defence against the practice becoming inadvertently involved in money laundering or terrorist financing. Appropriate, role-specific training is a core AML control and a requirement under the Money Laundering Regulations and LSAG §8.
+1. Eventus’ training approach
+Eventus’ PWRA identifies that, although Eventus is a small practice (two directors and no other staff), the firm operates in a higher-risk area of legal work (corporate/M&A, TCSP activity and limited use of client account). Accordingly:
+* All directors must complete AML training commensurate with their responsibilities, including CDD, EDD, SARs, PEPs, SoF/SoW, ongoing monitoring and the controls described in these PCPs.
+* The MLRO must complete enhanced/specialist training appropriate for their role, including obligations under POCA ss.330–331, SAR decision-making, DAML processes and supervisory expectations.
+* As Eventus has no other employees, no separate staff-level training programme is required.
+
+2. Training content
+Eventus’ AML training must cover:
+* Relevant AML/CTF legislation (POCA, TACT, MLR 2017) in the context of Eventus’ actual services (corporate/M&A, TCSP, client account receipts).
+* The risks identified in Eventus’ PWRA, including divergence from UK NRA sector-wide assumptions.
+* Red flags relevant to Eventus’ practice areas (unusual structures, SPVs, third-party funds, inconsistent SoF/SoW, unexplained urgency etc.).
+* Eventus’ PCPs, including CDD, EDD, SoF/SoW requirements, ongoing monitoring, SAR procedures, reliance (not used), PEP screening, and risk assessment processes.
+* Identification of suspicious activity, internal reporting obligations, DAML requests, and tipping-off prohibitions.
+* Record keeping and data protection requirements.
+
+3. Frequency of training
+Eventus adopts a risk-based approach to training frequency:
+* Annual AML refresher training for both directors (minimum).
+* Additional training when:
+o Legislation or LSAG guidance materially changes;
+o The PWRA is updated;
+o A significant regulatory development arises;
+o The MLRO considers further training necessary based on issues identified during monitoring or file reviews.
+
+4. Responsibility and record keeping
+• The MLRO is responsible for arranging and documenting training.
+• Records must include:
+o Training date;
+o Training provider/materials used;
+o Attendee(s);
+o Topics covered;
+o Any assessment or confirmation of understanding.
+• All training records are stored on Clio Drive and retained for at least five years (see Record Keeping section).
+Internal Controls & Governance
+
+(LSAG §9)
+Eventus maintains internal controls proportionate to its size, structure and PWRA. As a two-director practice with no other staff, senior management involvement in AML governance is direct and continuous.
+1. Oversight and governance structure
+* The Board (the two directors) has ultimate responsibility for AML compliance under the Regulations.
+* Eventus has elected not to appoint a separate MLCO (see earlier section), as oversight is embedded at senior-management level and documented in the PWRA.
+* The MLRO provides ongoing oversight of AML compliance, training, SAR handling, and internal escalation.
+
+2. Internal audit / independent review
+Under LSAG §9.3, practices must consider whether independent audit is required.
+Eventus adopts a risk-based approach:
+• Given Eventus’ size (two directors), absence of employees, and the nature of Eventus’ work, a formal separate “internal audit function” is not proportionate.
+• Instead, Eventus conducts:
+o Annual AML effectiveness reviews led by the MLRO, reporting to the Board.
+o File-spot checks focusing on CDD, SoF/SoW, ongoing monitoring and risk assessments.
+o Review of Amiqus and Clio usage, ensuring compliance with reg. 28 and reg. 40 record-keeping requirements.
+• The Board will consider whether an external independent audit is required where:
+o The practice expands;
+o A material risk event arises;
+o LSAG guidance or supervisory feedback indicates inadequacy of existing controls.
+Findings, recommendations and actions from any review must be recorded and stored on Clio Drive.
+3. Employee screening
+Eventus has no employees, but should this change:
+• Pre-employment screening will be proportionate to the role and will include identity verification, regulatory history (where relevant), employment history and reference checks.
+• Ongoing screening will occur where duties evolve or risk profiles change.
+Record keeping & Data Protection
+
+(LSAG §10; MLR regs. 40–41)
+
+Robust record-keeping is essential to evidencing Eventus’ risk-based AML controls and enabling the Law Society of Scotland to assess compliance.
+
+1. Records that must be kept
+
+Eventus must maintain complete and accurate records of:
+• Client and matter risk assessments (Amiqus + Clio Drive);
+• All CDD and EDD undertaken, including SoF/SoW and Open Banking outputs;
+• All policies, controls and procedures (PCPs), including historical versions;
+• Training records;
+• Internal SARs, MLRO decisions, and any DAML requests;
+• Ongoing monitoring records;
+• Internal effectiveness reviews / audits;
+• Any reliance assessments (not applicable, but the policy position is recorded).
+
+These records support compliance with reg. 28 and reg. 40 by enabling:
+• Reconstruction of transactions;
+• Demonstration of a risk-based approach;
+• Production of documents to the supervisor upon request.
+
+2. Form and accessibility of records
+Eventus stores all AML records electronically via:
+
+• Amiqus – screening, ID&V, Open Banking, CDD;
+• Clio Drive – risk assessments, ongoing monitoring records, SAR records, training evidence and PCPs;
+
+Records must be:
+
+• Readily retrievable;
+• Securely stored;
+• Accessible to the MLRO and senior management;
+• Capable of being provided to the Law Society of Scotland.
+
+3. Data protection
+
+Eventus processes personal data for AML purposes under the lawful basis of:
+
+• Legal obligation (AML Regulations); and
+• Substantial public interest (prevention of crime).
+
+All data is processed in accordance with UK GDPR, including minimisation, accuracy, storage limitation and security requirements.
+
+Amiqus Open Banking usage is subject to client consent and FCA-regulated frameworks.
+
+4. Retention periods
+
+In accordance with reg. 40 and LSAG §10.4, Eventus retains AML records for:
+
+• Five years from the date an occasional transaction is completed; or
+• Five years from the date the business relationship ends, for ongoing client relationships.
+
+After expiry of the retention period:
+
+• Records must be deleted, unless:
+o Regulatory investigations require continued retention; or
+o The client consents to longer retention for non-AML purposes (rare in Eventus’ model).
+
+Destruction of records must be documented.
+
+Proliferation Financing
+
+(MLR regs. 16A, 18A, 19A; LSAG PF Guidance)
+The Money Laundering and Terrorist Financing (Amendment) (No. 2) Regulations 2022 introduced explicit obligations for relevant persons to identify, assess and mitigate the risk of Proliferation Financing (“PF”). 
+PF is defined in regulation 16A as the provision of funds or financial services used for the manufacture, acquisition, possession, development, export, trans-shipment, brokering, transport, transfer, stockpiling or use of nuclear, chemical or biological weapons and their delivery systems.
+Although PF risk within Eventus’ practice area (UK SME corporate/M&A work) is inherently low, the requirement to assess and mitigate PF risk is mandatory and applies regardless of perceived sectoral exposure.
+1. Integration of PF into Eventus’ PWRA
+Eventus has incorporated PF risk into its Practice Wide Risk Assessment (PWRA) in accordance with regulations 18, 18A and LSAG expectations.
+
+The PWRA concludes:
+• Eventus’ client base (UK SME owners/shareholders) and services (sell-side M&A, occasional TCSP activity, limited client account use) present low inherent PF exposure;
+• Eventus does not operate in sectors typically vulnerable to PF (export-controlled goods, logistics, shipping, manufacturing, defence, dual-use technologies);
+• PF risk is nonetheless kept under review, particularly in matters involving:
+o Cross-border elements;
+o Corporate ownership chains involving opaque jurisdictions;
+o Clients or counterparties linked to jurisdictions subject to UN or UK PF-related sanctions;
+o TCSP work forming new entities.
+PF considerations are incorporated into the documented PWRA and will be revisited at least annually.
+2. PF in Client/Matter Risk Assessments
+Client and matter-level risk assessments (see earlier section) must include PF considerations where relevant.
+
+Examples of PF risk indicators include:
+• Client, beneficial owner or counterparty located in, or connected to, a jurisdiction subject to UN or UK PF-related sanctions, or FATF “Call for Action” or “Increased Monitoring” lists;
+• Complex or opaque corporate structures with unclear purpose;
+• Activities potentially linked to export-controlled or dual-use goods;
+• Unusual urgency, lack of commercial rationale, or unexplained restructuring involving overseas entities.
+Any such indicator automatically triggers high-risk classification and EDD.
+3. PF within CDD and EDD
+Eventus incorporates PF considerations into its existing CDD/EDD processes (see earlier CDD and EDD sections). This includes:
+• Establishing beneficial ownership with sufficient clarity to identify PF-related concerns;
+• Considering whether the nature of the client’s business or wealth creation activities could indirectly relate to PF-sensitive sectors;
+• Applying enhanced scrutiny to SoF/SoW (especially cross-border flows) where geographic PF risk is present;
+• Escalating to the MLRO where PF indicators arise during onboarding or ongoing monitoring.
+CDD cannot be completed, and no work may proceed, where PF concerns remain unresolved.
+4. PF in Ongoing Monitoring
+Eventus’ ongoing monitoring framework (see earlier section) also applies to PF.
+Eventus will review:
+• Whether any new parties, jurisdictions or fund flows introduce PF-relevant risks;
+• Whether adverse media or sanctions updates trigger new PF exposure;
+• Whether transaction activity remains consistent with the client’s stated purpose and risk profile.
+Any PF-related concerns must be escalated immediately to the MLRO.
+5. PF in Training
+PF is included in Eventus’ AML training programme (directors only), covering:
+• The definition of PF and how it differs from ML/TF;
+• Key PF risk indicators relevant to corporate legal services;
+• Understanding PF-related sanctions frameworks;
+• Escalation procedures and SAR obligations where PF suspicion arises.
+Training records are maintained in accordance with Eventus’ Training and Record-Keeping sections.
+6. PF in Internal Controls and Record Keeping
+Eventus’ internal controls include:
+• MLRO oversight of PF risk;
+• Annual review of PF inclusion within PWRA and PCPs;
+• Retention of PF-related assessments, decisions and monitoring records in accordance with the Record Keeping section and regulation 40.
+7. Escalation and SARs involving PF
+Where the MLRO identifies that PF is known or suspected, or where there are reasonable grounds for suspicion, an internal SAR must be submitted in accordance with Eventus’ SAR procedures.
+If activity involves a prohibited act, the MLRO must consider whether a DAML request is required.
+8. External Resources
+Eventus remains familiar with and periodically reviews:
+• FATF Guidance on Proliferation Financing Risk Assessment and Mitigation
+• HM Treasury National Risk Assessment of Proliferation Financing
+to ensure that Eventus’ PWRA and PCPs remain compliant and up to date.
+
+
+
+
+
+
+
+
+
+

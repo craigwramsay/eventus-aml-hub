@@ -1,0 +1,305 @@
+Practice Wide Risk Assessment Template
+Notes:
+* r.18(1) of the Money Laundering Regulations 2017 requires that all regulated persons (i.e., independent legal professionals) must carry out and maintain a Practice Wide Risk Assessment (PWRA) to identify and assess the risk of money laundering and terrorist financing to which it is subject. This template aims to serve as a useful guide to aid practices in complying with this requirement, though you do not have to use this template. 
+* Your PWRA must be made available to the Law Society of Scotland (as your AML Supervisor) upon request.
+* The factors outlined within this template should be considered when assessing the inherent AML risk of your practice.
+* Inherent AML Risk is not the same as actual AML risk. Inherent risk is the risk inherent in your business before any mitigating factors or controls (policies, training, CDD etc.) are deployed. This document should be completed on that basis – i.e., do not note any controls your practice deploys to mitigate its AML risk. Robust AML controls should be evidenced through documented AML policies, procedures, record keeping etc.
+* You may wish to detail inherent risk factors in numbers/percentages within each section, however, please be aware that a smaller quantity or percentage of any inherent risk factor does not necessarily mean that it is lower risk. Consideration of such inherent risk factors should still be applied in the context of your business. 
+The factors outlined below are non-exhaustive – there may be other important risk factors which should be considered, dependent upon the size and nature of your practice.
+Practice General Overview Practice nameEventus Law LimitedMLRO nameCraig RamsayMLRO position within the practiceDirectorDate of Last Review (Your PWRA must be comprehensive, tailored to the practice, accurate and kept up to date. It is recommended that your PWRA is reviewed/updated where necessary or at least on an annual basis)N/A – This is our first PWRA
+General Overview of Practice
+* No. of partners/staff
+
+Two directors; two solicitors (both directors). No additional staff.
+
+* Rate of staff turnover at the practice? (High/Low?)
+
+No turnover so far, so very low.
+
+* Practice turnover
+
+Have only been trading for 2 months, but we are aiming for turnover of circa £500,000.
+
+* Type of practice (e.g., niche corporate practice, specialist services, full service, high volume conveyancer)
+
+Niche boutique corporate / M&A practice.
+
+* Types of Work undertaken? (Regulated/non-regulated? Mostly Property? Litigation? Wills/Executry? Trust & Company Service Provision etc.)
+
+- Corporate/M&A transactions (regulated)
+- Share/business sales and purchases (regulated)
+- Formation of companies/LLPs but only for existing clients or as part of wider transactions (regulated)
+- No property, litigation, wills/executries or standalone Trust and Company Service Provider services
+
+* Type of clients (Length/depth of client relationships/stability of client base)
+- Approx. 50 new clients per year
+- Majority are one-off, sell side M&A instructions for SME owners (predominantly UK-based)
+- Mix of SMEs and high-net-worth individuals (being the owners of SMEs)
+- Small percentage of recurring corporate clients
+- No PE/VC funds expected
+- No cash-intensive sector clients; no high-value-goods dealers; no gambling, crypto, art market or money services businesses clients
+* Geographical location of the practice (Rural, urban, high levels of crime?)
+Glasgow (urban). No overseas office.
+* Is there an international element to your business?
+Occasional transactions involving overseas buyers or corporate structures, but practice’s own client base expected to be overwhelmingly UK-based
+
+Note a general paragraph regarding the overall size and nature of your practice here
+
+Eventus Law Limited is a newly formed, boutique corporate/M&A practice consisting of two directors undertaking exclusively corporate transactional work, primarily for UK-based SME owners. The practice anticipates a relatively modest but steady number of new instructions (approximately 50 new client matters per year), most being one-off sell-side M&A mandates. While the practice does not work in high-volume property, litigation, or personal services, its work includes participation in potentially high-value corporate transactions and occasional company formations, which are recognised as inherently higher-risk activities within the UK NRA 2025 (legal services section) and the LSS Sectoral Risk Assessment 2022 (corporate and commercial services).
+Review of the UK National Risk Assessment, LSS Scottish Legal Sectoral Risk Assessment & UK Legal Sectoral Guidance
+* r.18(2) stipulates that all practices must read, and review information made available to them by the supervisory authority under r.17(9) and r.47 and assess the risks outlined within in the context of their own business.
+* Does the practice undertake areas of work which are highlighted in these reports as of higher AML Risk? How much of this work does the practice undertake?
+
+Law Society of Scotland Sectoral Risk Assessment 2022:
+scottish-legal-sectoral-ml_tf-risk-february-2022.pdf
+
+
+Legal Sector Affinity Group Anti-Money Laundering Guidance for the Legal Sector 2025:
+lsag-aml-guidance-23-april-2025-11.pdf
+
+
+
+National risk assessment of money laundering and terrorist financing 2020: 
+NRA_2020_v1.2_FOR_PUBLICATION.pdf (publishing.service.gov.uk)
+
+(This guidance may give you some further context re. risk factors etc.)
+
+Assess your practice in the context of the risk factors set out in the above documents - its clients, activities etc. Note your assessment here
+
+a. UK NRA 2025 – Legal Services Risk
+
+The NRA identifies the use of legal professionals in high-value corporate transactions as a recognised money laundering threat because legal practitioners can be used to facilitate acquisitions, restructure ownership and create corporate vehicles. (UK NRA 2025, Legal Sector chapter) 
+
+Relevant NRA risks applicable to Eventus:
+
+- Abuse of corporate structures
+- Use of professional enablers in business acquisitions
+- High-value transactions linked to illicit funds
+
+Given Eventus participates in share/business sales and may form companies for clients, these NRA-identified risks are inherently relevant.
+
+b. LSS Sectoral Risk Assessment 2022
+
+The Sectoral Assessment highlights that:
+
+- Corporate advisory and transactional services can present increased inherent ML risk, especially where ownership structures are complex or cross-border.
+- TCSP activities increase risk due to anonymity and ease of misuse of companies.
+
+Eventus will undertake occasional TCSP activity (company/LLP creation, albeit only for existing clients or as part of wider transactions – i.e. not on a standalone basis to prospective new clients) and regular corporate sale transactions.
+
+c. LSAG Guidance 2025
+
+Section 5.6 identifies specific risk factors for client, geographical, product/service, delivery channel and transaction risks, all of which apply to practice-wide assessments. Sections 5.3–5.7 emphasise that practices involved in corporate transactions must recognise the higher ML/TF risk inherent in complex structures, high-value transfers, and cross-border elements.
+
+Does Eventus undertake higher-risk work highlighted in these assessments?
+
+Yes — to a limited but material extent.
+
+- Participation in corporate transactions is identified as higher inherent risk.
+- Formation of companies for clients (TCSP activity) is also higher inherent risk.
+- Client account use in M&A (receipt of consideration) engages higher inherent risk (LSAG §5.6.3.2). 
+
+However:
+
+- The practice does not operate in property, conveyancing, crypto, litigation, or cash-intensive sectors — all flagged as high-risk in UK NRA 2025.
+
+Overall conclusion of this section:
+
+Eventus’s work type places it in a medium inherent risk position, consistent with boutique corporate practices noted in LSS Sectoral 2022, provided international exposure and complex structures remain limited.
+
+Specific Inherent AML Risk Factors
+Customer Risk
+Please refer to Section 5.6.1 of the LSAG Guidance. A list of questions to ask yourself in completing this section (non-exhaustive):
+
+
+* High turnover of clients (higher risk) or a stable existing client base? (lower risk)
+* High proportion of one-off clients/deals? (higher risk)
+* Mostly F2F or non-F2F contact with clients? (non-F2F = higher risk)
+* Act for clients across both criminal and civil matters (higher risk)
+* Does the practice have clients who are subject to simplified due diligence, such as public authorities or FCA registered financial institutions (lower risk)
+* Does the practice have a significant number of non-UK/EU clients (where AML regulation may not be as tight) or any high risk jurisdictions? (higher risk)
+* Does the practice have Politically Exposed Persons (PEPs) on its client list (higher risk)
+* Does the practice have clients who run high cash turnover businesses, high value goods businesses or operate in higher risk sectors? (higher risk)
+* Does the practice undertake work for corporate clients who have complex or multiple layers of ownership, or have links to international/offshore jurisdictions? (higher risk)
+
+Note your assessment against the above factors here
+
+Ensure you reach an overall conclusion - Does your client base pose a high, medium, or lower inherent AML risk based on the factors above, or any others you are aware of?
+
+Assessment:
+
+* Client turnover: Approx. 50 new clients/year — moderate to high turnover (higher inherent risk: LSAG §5.6.1.1).
+* One-off clients: Majority are one-off sell-side M&A mandates — inherently higher risk.
+* F2F v non-F2F: Most onboarding expected to be non-F2F (higher risk: LSAG §5.6.4.1).
+* Criminal/civil clients: No criminal work — lower risk.
+* Clients subject to SDD: Very unlikely (few public authorities/FCA firms as clients) — neutral.
+* Non-UK clients: Majority UK; some overseas buyers or counterparties but Eventus’ own clients will mostly be UK-based — moderate risk.
+* PEPs: No expectation of regular PEP clients — lower likelihood but potential exists.
+* Cash-intensive sectors: None anticipated — lower risk (LSAG §5.6.1.4).
+* Complex ownership structures / offshore links: Some SME groups may have layered structures — moderate inherent risk.
+
+Overall inherent customer risk conclusion: Medium–High
+
+Geographical Risk
+Please refer to Section 5.6.2 of the LSAG Guidance.A list of questions to ask yourself in completing this section (non-exhaustive:
+
+* Does the practice operate out-with the UK/EU (where AML regulation may not be so tight) and/or in areas with potentially higher levels of corruption? (higher risk)
+* Does the practice receive funds in from jurisdictions out-with the UK/EU (where AML regulation may not be so tight) (higher risk)
+* Does the practice have a specific client-base, niche or undertake work for clients from out with the UK/EU (where AML regulation may not be so tight) (higher risk)
+
+Note your assessment against the above factors here
+
+Ensure you reach an overall conclusion – Do geographical risk factors pose a high, medium, or lower inherent AML risk based on the factors above, or any others you are aware of?
+
+Assessment:
+
+* Practice operates in the UK only — lower risk.
+* Client base is overwhelmingly UK-based — lower risk.
+* Some international corporate acquirers or cross-border elements may appear in M&A deals — moderate risk.
+* Funds received from outside the UK are possible in M&A completions — increases inherent risk (LSAG §5.6.2.3).
+* No ongoing work with high-risk or FATF-listed jurisdictions expected; any such case would be an exception.
+
+Overall inherent geographical risk conclusion: Medium
+
+Products or Services Offered Risk 
+Please refer to Section 5.6.3 of the LSAG Guidance.A list of questions to ask yourself in completing this section (non-exhaustive:
+
+* Does the practice offer any services which may attract a higher level of risk such as large volume/high value conveyancing, tax mitigation strategies, work involving offshore jurisdictions or the creation and/or management of specialist entities? (higher risk)
+* Does the practice receive requests to do work out-with its usual area of coverage (higher risk)
+* Does the practice undertake work which may be of lower AML risk (executry/wills)
+* Does the practice conduct work not subject to AML supervision, litigation for example (lower risk) 
+
+Note your assessment against the above factors here
+
+Ensure you reach an overall conclusion – Do the products or services your practice offer pose a high, medium, or lower inherent AML risk based on the factors above, or any others you are aware of?
+
+Assessment:
+
+* Corporate/M&A transactions recognised nationally as higher-risk due to:
+o High values
+o Use of complex structures
+o Potential to obscure beneficial ownership
+(UK NRA 2025 – legal sector; LSS 2022 – corporate work) 
+* Company formation (TCSP) carries higher inherent risk (LSAG §5.6.3.3).
+* Practice does not undertake conveyancing, tax planning, trusts, litigation, wills/executries — many of which carry their own risks.
+* Use of client account for receipt of consideration funds increases inherent risk (LSAG §5.6.3.2).
+
+Overall inherent product/service risk conclusion: Medium–High
+
+Delivery Channel Risk
+Please refer to Section 5.6.4 of the LSAG Guidance.A list of questions to ask yourself in completing this section (non-exhaustive:
+
+* Does the practice always meet all clients F2F? (lower risk)
+* Does the practice conduct a large % of its business on a non-F2F basis? (higher risk)
+* Does the practice always meet/hold a relationship with the underlying client? (lower risk)
+* Does the practice undertake work which is conducted through intermediaries or other 3rd parties? (higher risk)
+* What are the methods used within the practice to undertake identification and verification and general due diligence requirements? 
+
+Note your assessment against the above factors here
+
+Ensure you reach an overall conclusion – Do the delivery channels deployed by your practice pose a high, medium, or lower inherent AML risk based on the factors above, or any others you are aware of?
+
+Assessment:
+
+* Most onboarding non-F2F (higher risk).
+* Direct relationship with underlying client in most cases (lower risk).
+* Little or no use of intermediaries (lower risk).
+* Electronic ID&V universal — non-F2F increases inherent risk even if controls are strong.
+* Deal counterparties (buyers, seller groups, investor entities) may be introduced via intermediaries (moderate risk).
+
+Overall inherent delivery channel risk conclusion: Medium
+
+Transaction Type Risk
+Please refer to Section 5.6.5 of the LSAG Guidance.A list of questions to ask yourself in completing this section (non-exhaustive:
+
+* Are there any features in transactions delivered by the practice which may represent higher risk?
+
+For example: 
+
+* Is the practice regularly involved in transactions which are undertaken at short notice, within short timescales, quick turnaround, or high volumes? (higher risk)
+* Is the practice involved in more complex work involving trust or other legal entity company formation, management, or service provision?  (higher risk)
+* Is the practice involved in more complex, high value property transactions? (higher risk)
+* Does the practice undertake work for clients where the source of funds or the parties to the transaction frequently change? (higher risk)
+* Does the practice undertake transactions involving new sources of finance? - (Non-FCA regulated) crowd funding platforms or bitcoin/cryptocurrencies?
+* Does the practice undertake transactions which are longer term in nature, or where funds are locked in for substantial periods of time? (lower risk)
+* Does the practice undertake transactions which are publically funded? (lower risk)
+
+Note your assessment against the above factors here
+
+Ensure you reach an overall conclusion – Do features of the transactions undertaken by your practice pose a high, medium, or lower inherent AML risk based on the factors above, or any others you are aware of?
+
+Assessment:
+
+Relevant higher-risk features present in Eventus’s typical work:
+
+* High-value transactions (common in M&A) — higher risk.
+* Occasional short timescales / quick closings — higher risk.
+* Possible changes in structure / counterparty during negotiations — moderate inherent risk.
+* Receipt of buyer’s funds into client account for onward payment — higher risk (§5.6.3.2).
+* Formation of companies in some matters (TCSP) — higher risk.
+* No crypto, crowdfunding, or unusual financing arrangements expected.
+
+Lower-risk features:
+
+* No publicly funded work
+* No long-term investment holding structures or escrow-type arrangements.
+
+Overall inherent transaction risk conclusion: Medium–High
+
+
+Overall Conclusion
+Please refer to Section 5.7 of the LSAG Guidance.* Given your responses to each of the above risk factors, what is your overall conclusion/summary regarding the inherent AML risk applicable to your practice?
+
+* Does the size and nature of your practice put it at a higher, medium, or lower risk of being used for the purposes of money laundering? Why?
+
+Note your overall conclusion here
+
+
+Overall Inherent AML/CTF Risk Rating for Eventus Law Limited:
+
+Medium
+
+Rationale:
+
+* The practice undertakes activities that are inherently higher risk under the UK NRA and LSS Sectoral Assessment — notably corporate/M&A work, occasional company formation (only for existing clients or as part of wider transaction we are instructed on), and use of client account in transactions.
+
+* However, overall risk is moderated by:
+
+o A UK-based client base
+o Limited exposure to international or opaque corporate structures
+o No involvement in property, tax schemes, litigation, crypto, cash businesses or higher-risk personal services.
+
+* Client volume is modest and the practice is small, allowing greater visibility over clients and matters (inherent organisational risk consideration under LSAG §5.4).
+
+Taken together, the inherent risk profile is squarely medium, consistent with boutique corporate practices referenced in LSS Sectoral 2022.
+
+Does the size and nature of your practice put it at a higher, medium, or lower risk of being used for the purposes of money laundering? Why?
+
+The size and nature of Eventus Law Limited place it at a medium inherent risk of being used for the purposes of money laundering.
+
+This assessment reflects the interaction of two competing factors:
+
+1. Risk-increasing characteristics of the practice:
+
+o The UK NRA 2025 highlights that legal professionals can be used as professional enablers in high-value corporate transactions, particularly where legal advisers participate in business acquisitions, corporate restructuring, or the creation of corporate vehicles (UK NRA 2025, Legal Services).
+o The LSS Sectoral Risk Assessment 2022 identifies corporate/M&A work and TCSP activity (e.g., company formation) as areas of increased inherent risk, because company structures may be used to conceal beneficial ownership or obscure source of funds/wealth.
+o Under LSAG 2025, participation in transactions involving large values, receipt of client monies, and involvement in corporate structuring are noted risk factors within Product/Service, Transaction and Client risk categories (LSAG 2025 §§5.6.1–5.6.5).
+o Eventus undertakes exactly these types of activities—corporate/M&A transactions, occasional company formations, and use of client account for receipt and onward transfer of consideration funds.
+
+2. Risk-mitigating inherent characteristics of the practice:
+
+o The practice is small, with two directors handling all legal work, which reduces inherent organisational complexity and increases visibility over the client base (LSAG 2025 §5.4).
+o The client base is overwhelmingly UK-based, which LSAG recognises as an indicator of lower geographical risk (§5.6.2.2).
+o The practice does not serve inherently higher-risk sectors such as cash-intensive businesses, cryptoasset enterprises, high-value goods traders, or financial services intermediaries, which are highlighted as higher-risk client types in LSAG §§5.6.1.3–5.6.1.4.
+o Eventus does not undertake conveyancing, litigation, wills/executries, trust work or tax mitigation schemes—areas commonly associated with distinct ML/TF risks in the UK NRA and LSS Sectoral 2022.
+
+Conclusion:
+
+Balancing these factors, the nature of Eventus’s work (corporate/M&A and limited TCSP activity) introduces higher-risk features, but the size of the practice and characteristics of the client base reduce the likelihood of unnoticed or uncontrolled risk exposure. Accordingly, the size and nature of the firm support an overall medium inherent risk rating, which aligns with LSAG’s guidance that practices must consider both business model and risk environment when determining inherent risk (LSAG 2025 §5.7).
+
+
+
+
+
+
+
