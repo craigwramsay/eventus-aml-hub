@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import { getAssessmentWithDetails } from '@/app/actions/assessment';
+import { FinaliseButton } from './FinaliseButton';
 import type { RiskFactorResult, MandatoryAction } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
 
@@ -70,6 +72,17 @@ export default async function AssessmentViewPage({ params }: PageProps) {
           <span className={styles.draftText}>Draft - Not yet finalised</span>
         </div>
       )}
+
+      {/* Action Buttons */}
+      <div className={styles.actionButtons}>
+        <Link
+          href={`/assessments/${assessment.id}/determination`}
+          className={styles.determinationButton}
+        >
+          View Risk Determination
+        </Link>
+        {!isFinalised && <FinaliseButton assessmentId={assessment.id} />}
+      </div>
 
       {/* Client & Matter Section */}
       <section className={styles.section}>

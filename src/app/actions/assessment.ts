@@ -7,10 +7,45 @@
  * No service role key is used - all operations are authenticated via user session.
  */
 
-import { createClient, getUser, getUserProfile } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { runAssessment, type ClientType, type FormAnswers } from '@/lib/rules-engine';
 import type { AssessmentOutput } from '@/lib/rules-engine/types';
 import type { Assessment, Matter, Client } from '@/lib/supabase/types';
+
+async function getUserAndProfile() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser();
+
+  if (userErr || !user) {
+    return { supabase, user: null, profile: null, error: 'Not authenticated' };
+  }
+
+  const { data: profile, error: profileErr } = await supabase
+    .from('user_profiles')
+    .select('user_id, firm_id, role')
+    .eq('user_id', user.id)
+    .single();
+
+  if (profileErr || !profile) {
+    return { supabase, user, profile: null, error: 'User profile not found' };
+  }
+
+  if (!profile.firm_id) {
+    return {
+      supabase,
+      user,
+      profile: null,
+      error: 'User profile missing firm_id',
+    };
+  }
+
+  return { supabase, user, profile, error: null };
+}
+
 
 /** Input for submitting an assessment */
 export interface SubmitAssessmentInput {
@@ -380,31 +415,12 @@ export async function finaliseAssessment(
 ): Promise<FinaliseAssessmentResult> {
   try {
     // Get authenticated user
-    const user = await getUser();
-    if (!user) {
-      return {
-        success: false,
-        error: 'Not authenticated',
-      };
-    }
+   const { supabase, user, profile, error } = await getUserAndProfile();
 
-    // Get user profile to get firm_id
-    const profile = await getUserProfile();
-    if (!profile) {
-      return {
-        success: false,
-        error: 'User profile not found',
-      };
-    }
+if (error || !user || !profile) {
+  return { success: false, error: error || 'User profile not found' };
+}
 
-    if (!assessmentId) {
-      return {
-        success: false,
-        error: 'Missing required field: assessmentId',
-      };
-    }
-
-    const supabase = await createClient();
 
     // Fetch the assessment (RLS will enforce access)
     const { data: existingData, error: fetchError } = await supabase

@@ -1,0 +1,33 @@
+---
+source_name: Eventus AML PCPs
+section_ref: s. 8
+topics: [sof, source-of-funds, third-party, verification]
+effective_date: 2024-12-18
+---
+Source of Funds Requirements
+
+8.1 Source of Funds (SoF) documentation is required for all matters rated MEDIUM or HIGH risk.
+
+8.2 SoF documentation must identify and verify the origin of funds being used for a specific transaction or matter. This includes:
+
+(a) The immediate source of funds (e.g., bank account, mortgage provider);
+(b) How the client obtained those funds;
+(c) Supporting documentary evidence.
+
+8.3 Third-Party Funding
+
+Where funds are being provided by a third party (i.e., not the client), additional scrutiny is required:
+
+(a) The third party must be identified and their relationship to the client documented;
+(b) The source of the third party's funds must be established;
+(c) The rationale for third-party funding must be understood and documented;
+(d) This automatically adds 2 points to the risk score under the Internal Risk Scoring Model.
+
+8.4 Cross-Border Funds
+
+Where funds originate from outside the UK, fee earners must:
+
+(a) Identify the jurisdiction of origin;
+(b) Consider any sanctions or HRTC implications;
+(c) Obtain supporting bank documentation;
+(d) This adds 1 point to the risk score.

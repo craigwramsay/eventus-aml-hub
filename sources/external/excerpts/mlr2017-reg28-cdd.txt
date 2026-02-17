@@ -1,0 +1,24 @@
+---
+source_name: Money Laundering Regulations 2017
+section_ref: reg. 28
+topics: [cdd, verification, identity, due-diligence]
+effective_date: 2017-06-26
+---
+Customer due diligence measures
+
+28.—(1) The customer due diligence measures which a relevant person must apply under regulation 27 are—
+
+(a) identifying the customer unless the identity of that customer is known to, and has been verified by, the relevant person;
+
+(b) verifying the customer's identity unless the customer's identity has already been verified by the relevant person;
+
+(c) assessing, and where appropriate obtaining information on, the purpose and intended nature of the business relationship or occasional transaction.
+
+(2) A relevant person must identify the customer by requiring the customer to provide—
+(a) the customer's full name; and
+(b) at least one of the following—
+(i) the customer's date of birth;
+(ii) the customer's place of birth;
+(iii) the customer's nationality.
+
+(3) Where the customer is an individual, the relevant person must also, in the course of identifying the customer, require the customer to provide the customer's residential address.

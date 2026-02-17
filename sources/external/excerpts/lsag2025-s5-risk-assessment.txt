@@ -1,0 +1,21 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 5.13
+topics: [risk-assessment, cmlra, scoring, methodology]
+effective_date: 2025-01-01
+---
+Risk Assessment Methodology
+
+5.13 Firms must undertake a documented risk assessment for each client matter. The risk assessment should:
+
+(a) Consider the risk factors relevant to the client and matter;
+
+(b) Apply a consistent methodology to score or categorise risk;
+
+(c) Document the rationale for the risk rating assigned;
+
+(d) Be proportionate to the nature and size of the firm's business;
+
+(e) Be reviewed and updated periodically, and when there is a material change in circumstances.
+
+The risk assessment should result in a clear determination of whether the matter presents low, medium, or high risk. Firms should ensure that the methodology used is applied consistently across all matters.

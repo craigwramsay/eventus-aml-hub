@@ -1,0 +1,23 @@
+---
+source_name: Money Laundering Regulations 2017
+section_ref: reg. 33
+topics: [edd, enhanced-due-diligence, high-risk, pep]
+effective_date: 2017-06-26
+---
+Enhanced customer due diligence: required assessment
+
+33.—(1) A relevant person must apply enhanced customer due diligence measures and enhanced ongoing monitoring, in addition to the customer due diligence measures required under regulation 28(2) to (10), to manage and mitigate the risks arising—
+
+(a) in any case identified as one where there is a high risk of money laundering or terrorist financing—
+(i) by the relevant person under regulation 18(1), or
+(ii) in information made available to the relevant person under regulations 17(9) and 47;
+
+(b) in relation to a business relationship or transaction with a person established in a high-risk third country or in relation to any relevant transaction where either of the parties to the transaction is established in a high-risk third country.
+
+(2) Enhanced customer due diligence measures taken by a relevant person for the purposes of paragraph (1) must include—
+(a) obtaining additional information on the customer and on the customer's beneficial owner;
+(b) obtaining additional information on the intended nature of the business relationship;
+(c) obtaining information on the source of funds and source of wealth of the customer and of the customer's beneficial owner;
+(d) obtaining information on the reasons for the intended or performed transactions;
+(e) obtaining the approval of senior management for establishing or continuing the business relationship;
+(f) conducting enhanced monitoring of the business relationship.

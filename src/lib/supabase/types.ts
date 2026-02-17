@@ -78,6 +78,21 @@ export interface AuditEvent {
   created_by: string;
 }
 
+export type SourceType = 'external' | 'internal';
+
+export interface AssistantSource {
+  id: string;
+  firm_id: string;
+  source_type: SourceType;
+  source_name: string;
+  section_ref: string;
+  topics: string[];
+  content: string;
+  effective_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Database schema type for Supabase client
 // Using 'any' for table operations to avoid complex generics
 // Real projects should use generated types from Supabase CLI
@@ -114,11 +129,17 @@ export interface Database {
         Insert: Partial<AuditEvent> & Pick<AuditEvent, 'firm_id' | 'entity_type' | 'entity_id' | 'action' | 'created_by'>;
         Update: Partial<AuditEvent>;
       };
+      assistant_sources: {
+        Row: AssistantSource;
+        Insert: Partial<AssistantSource> & Pick<AssistantSource, 'firm_id' | 'source_type' | 'source_name' | 'section_ref' | 'topics' | 'content'>;
+        Update: Partial<AssistantSource>;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: {
       risk_level: RiskLevel;
+      source_type: SourceType;
     };
   };
 }

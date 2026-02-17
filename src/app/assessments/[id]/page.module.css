@@ -294,6 +294,77 @@
   border-top: 1px solid #e5e5e5;
 }
 
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+.determinationButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.determinationButton:hover {
+  background-color: #4338ca;
+}
+
+.finaliseContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.finaliseButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #059669;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.finaliseButton:hover:not(:disabled) {
+  background-color: #047857;
+}
+
+.finaliseButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.finaliseError {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .finaliseError {
+    background-color: #7f1d1d;
+    color: #fecaca;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .metadata {
     border-color: #333;

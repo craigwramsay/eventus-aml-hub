@@ -1,0 +1,17 @@
+---
+source_name: Eventus AML PCPs
+section_ref: s. 4.6
+topics: [risk-scoring, thresholds, cmlra, methodology]
+effective_date: 2024-12-18
+---
+Risk Scoring Thresholds
+
+4.6 Eventus applies the following risk scoring thresholds to all Client and Matter Level Risk Assessments (CMLRAs):
+
+- LOW RISK: Total score of 0 to 4 points
+- MEDIUM RISK: Total score of 5 to 8 points
+- HIGH RISK: Total score of 9 or more points
+
+These thresholds have been calibrated based on Eventus' Practice-Wide Risk Assessment and are reviewed annually. The MLRO may adjust scoring or override thresholds in exceptional circumstances, with documented justification.
+
+All risk scores must be calculated using the approved Internal Risk Scoring Model (currently version 3.7). Manual adjustments to scores are not permitted without MLRO approval.
