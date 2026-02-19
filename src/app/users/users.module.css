@@ -1,0 +1,518 @@
+/* Layout */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .subtitle {
+    color: #9ca3af;
+  }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+/* Buttons */
+.primaryButton {
+  padding: 0.5rem 1rem;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primaryButton:hover {
+  background-color: #4338ca;
+}
+
+.primaryButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: #4f46e5;
+  border: 1px solid #4f46e5;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.secondaryButton:hover {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.dangerButton {
+  padding: 0.5rem 1rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dangerButton:hover {
+  background-color: #fecaca;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dangerButton {
+    background-color: #7f1d1d;
+    color: #fecaca;
+    border-color: #991b1b;
+  }
+
+  .dangerButton:hover {
+    background-color: #991b1b;
+  }
+}
+
+.indigoButton {
+  padding: 0.5rem 1rem;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.indigoButton:hover {
+  background-color: #c7d2fe;
+}
+
+.indigoButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .indigoButton {
+    background-color: #312e81;
+    color: #c7d2fe;
+    border-color: #4338ca;
+  }
+
+  .indigoButton:hover {
+    background-color: #3730a3;
+  }
+}
+
+.smallButton {
+  padding: 0.375rem 0.75rem;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.smallButton:hover {
+  background-color: #c7d2fe;
+}
+
+.smallButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .smallButton {
+    background-color: #312e81;
+    color: #c7d2fe;
+  }
+
+  .smallButton:hover {
+    background-color: #3730a3;
+  }
+}
+
+.smallDangerButton {
+  padding: 0.375rem 0.75rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.smallDangerButton:hover {
+  background-color: #fecaca;
+}
+
+.smallDangerButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .smallDangerButton {
+    background-color: #7f1d1d;
+    color: #fecaca;
+  }
+
+  .smallDangerButton:hover {
+    background-color: #991b1b;
+  }
+}
+
+.smallSuccessButton {
+  padding: 0.375rem 0.75rem;
+  background-color: #d1fae5;
+  color: #065f46;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .smallSuccessButton {
+    background-color: #065f46;
+    color: #a7f3d0;
+  }
+}
+
+/* Table styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--background);
+  border: 1px solid #e5e5e5;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .table {
+    border-color: #333;
+  }
+}
+
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .table th,
+  .table td {
+    border-color: #333;
+  }
+}
+
+.table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  background-color: #f9fafb;
+}
+
+@media (prefers-color-scheme: dark) {
+  .table th {
+    background-color: #1f2937;
+    color: #9ca3af;
+  }
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+@media (prefers-color-scheme: dark) {
+  .table tbody tr:hover {
+    background-color: #1f2937;
+  }
+}
+
+.tableLink {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.tableLink:hover {
+  text-decoration: underline;
+}
+
+/* Role badges */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.badgeSolicitor {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.badgeMlro {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badgeAdmin {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+@media (prefers-color-scheme: dark) {
+  .badgeSolicitor {
+    background-color: #1e3a8a;
+    color: #93c5fd;
+  }
+
+  .badgeMlro {
+    background-color: #78350f;
+    color: #fcd34d;
+  }
+
+  .badgeAdmin {
+    background-color: #312e81;
+    color: #c7d2fe;
+  }
+}
+
+/* Form styles */
+.form {
+  max-width: 500px;
+}
+
+.field {
+  margin-bottom: 1.25rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.375rem;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  .input,
+  .select {
+    border-color: #444;
+  }
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* Feedback */
+.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .error {
+    background-color: #7f1d1d;
+    color: #fecaca;
+  }
+}
+
+.success {
+  background-color: #f0fdf4;
+  color: #166534;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .success {
+    background-color: #065f46;
+    color: #a7f3d0;
+  }
+}
+
+/* Section cards */
+.section {
+  background-color: var(--background);
+  border: 1px solid #e5e5e5;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .section {
+    border-color: #333;
+  }
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sectionTitle {
+    border-color: #333;
+  }
+}
+
+.dangerSection {
+  background-color: var(--background);
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dangerSection {
+    border-color: #991b1b;
+  }
+}
+
+.dangerSection .sectionTitle {
+  color: #991b1b;
+  border-bottom-color: #fecaca;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dangerSection .sectionTitle {
+    color: #fecaca;
+    border-bottom-color: #991b1b;
+  }
+}
+
+/* Detail meta */
+.detailMeta {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.detailMeta p {
+  margin: 0.25rem 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .detailMeta {
+    color: #9ca3af;
+  }
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+@media (prefers-color-scheme: dark) {
+  .emptyState {
+    color: #9ca3af;
+  }
+}
+
+/* Inline actions */
+.actionsRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.actionsError {
+  color: #991b1b;
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .actionsError {
+    color: #fecaca;
+  }
+}
+
+/* Role change row */
+.roleChangeRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.roleChangeRow .select {
+  flex: 1;
+}

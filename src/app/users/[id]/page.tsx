@@ -11,6 +11,7 @@ import { updateUserRole, deactivateUser, sendPasswordReset, getUsersForFirm } fr
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles';
 import type { UserRole } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/supabase/types';
+import styles from '../users.module.css';
 
 export default function UserDetailPage() {
   const router = useRouter();
@@ -84,47 +85,38 @@ export default function UserDetailPage() {
 
   if (!user) {
     return (
-      <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
+      <div className={styles.container}>
         <p>Loading user...</p>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
-      <Link href="/users" style={{ fontSize: '0.875rem', color: '#6366f1' }}>
+    <div className={styles.container}>
+      <Link href="/users" className={styles.backLink}>
         &larr; Back to Users
       </Link>
 
-      <h1 style={{ marginTop: '1rem', fontSize: '1.75rem' }}>
+      <h1 className={styles.title}>
         {user.full_name || user.email || 'User'}
       </h1>
 
-      <div style={{ marginBottom: '1.5rem', color: '#666' }}>
+      <div className={styles.detailMeta}>
         {user.email && <p>Email: {user.email}</p>}
         <p>Current Role: {ROLE_LABELS[user.role]}</p>
         <p>Joined: {new Date(user.created_at).toLocaleDateString('en-GB')}</p>
       </div>
 
-      {error && (
-        <div style={{ color: '#991b1b', background: '#fee2e2', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className={styles.error}>{error}</div>}
+      {success && <div className={styles.success}>{success}</div>}
 
-      {success && (
-        <div style={{ color: '#166534', background: '#f0fdf4', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem' }}>
-          {success}
-        </div>
-      )}
-
-      <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>Change Role</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Change Role</h2>
+        <div className={styles.roleChangeRow}>
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-            style={{ padding: '0.75rem', border: '1px solid #e5e5e5', borderRadius: '0.375rem', flex: 1 }}
+            className={styles.select}
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -135,52 +127,29 @@ export default function UserDetailPage() {
           <button
             onClick={handleUpdateRole}
             disabled={isUpdating || selectedRole === user.role}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#4f46e5',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.375rem',
-              cursor: isUpdating || selectedRole === user.role ? 'not-allowed' : 'pointer',
-            }}
+            className={styles.primaryButton}
           >
             {isUpdating ? 'Updating...' : 'Update'}
           </button>
         </div>
       </div>
 
-      <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>Password Reset</h2>
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Password Reset</h2>
         <button
           onClick={handlePasswordReset}
           disabled={isUpdating}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#e0e7ff',
-            color: '#3730a3',
-            border: '1px solid #c7d2fe',
-            borderRadius: '0.375rem',
-            cursor: isUpdating ? 'not-allowed' : 'pointer',
-          }}
+          className={styles.indigoButton}
         >
           {isUpdating ? 'Sending...' : 'Send Password Reset Email'}
         </button>
       </div>
 
-      <div style={{ borderTop: '1px solid #fee2e2', paddingTop: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.125rem', color: '#991b1b', marginBottom: '0.5rem' }}>
-          Danger Zone
-        </h2>
+      <div className={styles.dangerSection}>
+        <h2 className={styles.sectionTitle}>Danger Zone</h2>
         <button
           onClick={handleDeactivate}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#fee2e2',
-            color: '#991b1b',
-            border: '1px solid #fecaca',
-            borderRadius: '0.375rem',
-            cursor: 'pointer',
-          }}
+          className={styles.dangerButton}
         >
           Deactivate User
         </button>

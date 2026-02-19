@@ -8,6 +8,13 @@ import { getUserProfile } from '@/lib/supabase/server';
 import { canManageUsers, ROLE_LABELS } from '@/lib/auth/roles';
 import { getUsersForFirm, getPendingInvitations } from '@/app/actions/users';
 import InvitationsTable from './InvitationsTable';
+import styles from './users.module.css';
+
+const ROLE_BADGE: Record<string, string> = {
+  solicitor: styles.badgeSolicitor,
+  mlro: styles.badgeMlro,
+  admin: styles.badgeAdmin,
+};
 
 export default async function UsersPage() {
   const profile = await getUserProfile();
@@ -26,55 +33,45 @@ export default async function UsersPage() {
   ]);
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.75rem' }}>User Management</h1>
-          <Link href="/dashboard" style={{ fontSize: '0.875rem', color: '#6366f1' }}>
-            &larr; Dashboard
-          </Link>
-        </div>
-        <Link
-          href="/users/invite"
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#4f46e5',
-            color: 'white',
-            borderRadius: '0.375rem',
-            textDecoration: 'none',
-            fontSize: '0.875rem',
-          }}
-        >
+    <div className={styles.container}>
+      <Link href="/dashboard" className={styles.backLink}>
+        &larr; Back to Dashboard
+      </Link>
+
+      <div className={styles.header}>
+        <h1 className={styles.title}>User Management</h1>
+        <Link href="/users/invite" className={styles.primaryButton}>
           Invite User
         </Link>
       </div>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Active Users ({users.length})</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <h2 className={styles.sectionTitle}>Active Users ({users.length})</h2>
+        <table className={styles.table}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #e5e5e5', textAlign: 'left' }}>
-              <th style={{ padding: '0.75rem' }}>Name</th>
-              <th style={{ padding: '0.75rem' }}>Email</th>
-              <th style={{ padding: '0.75rem' }}>Role</th>
-              <th style={{ padding: '0.75rem' }}>Joined</th>
-              <th style={{ padding: '0.75rem' }}>Actions</th>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Joined</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.user_id} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                <td style={{ padding: '0.75rem' }}>{user.full_name || '—'}</td>
-                <td style={{ padding: '0.75rem' }}>{user.email || '—'}</td>
-                <td style={{ padding: '0.75rem' }}>{ROLE_LABELS[user.role]}</td>
-                <td style={{ padding: '0.75rem' }}>
+              <tr key={user.user_id}>
+                <td>{user.full_name || '—'}</td>
+                <td>{user.email || '—'}</td>
+                <td>
+                  <span className={`${styles.badge} ${ROLE_BADGE[user.role] || ''}`}>
+                    {ROLE_LABELS[user.role]}
+                  </span>
+                </td>
+                <td>
                   {new Date(user.created_at).toLocaleDateString('en-GB')}
                 </td>
-                <td style={{ padding: '0.75rem' }}>
-                  <Link
-                    href={`/users/${user.user_id}`}
-                    style={{ color: '#4f46e5', fontSize: '0.875rem' }}
-                  >
+                <td>
+                  <Link href={`/users/${user.user_id}`} className={styles.tableLink}>
                     Edit
                   </Link>
                 </td>
