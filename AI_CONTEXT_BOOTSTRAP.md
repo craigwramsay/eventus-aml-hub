@@ -27,8 +27,8 @@ The system is designed around regulatory defensibility: every assessment is repr
 
 | Item | Detail |
 |------|--------|
-| **Jurisdiction** | England & Wales |
-| **Regulated sector** | Legal services (SRA-regulated law firms) |
+| **Jurisdiction** | Scotland and England & Wales (configurable per firm) |
+| **Regulated sector** | Legal services (Law Society of Scotland / SRA-regulated law firms) |
 | **Primary legislation** | Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017 (MLR 2017) |
 | **Secondary legislation** | Proceeds of Crime Act 2002 (POCA) |
 | **Sector guidance** | Legal Sector Affinity Group (LSAG) AML Guidance 2025 |
@@ -79,6 +79,9 @@ npm run ingest:excerpts:dry   # Dry run of excerpt ingest
 
 ```
 eventus-aml-hub/
+├── .github/workflows/ci.yml         # CI/CD pipeline (lint, typecheck, test, build, Docker)
+├── Dockerfile                        # Multi-stage production Docker build
+├── docker-compose.yml                # Local Docker development
 ├── scripts/                          # CLI tools (excerpt parser, ingest)
 ├── sources/
 │   ├── eventus/
@@ -91,33 +94,48 @@ eventus-aml-hub/
 │   │       └── cdd_ruleset.json
 │   └── external/
 │       └── excerpts/                 # Regulatory excerpts (MLR 2017, LSAG 2025, etc.)
+├── supabase/migrations/              # SQL migrations for schema changes
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx                # Root layout
+│   │   ├── layout.tsx                # Root layout (with env validation)
 │   │   ├── page.tsx                  # Landing page
+│   │   ├── error.tsx                 # Global error boundary
+│   │   ├── not-found.tsx             # 404 page
 │   │   ├── login/                    # Authentication
-│   │   ├── dashboard/                # Post-login dashboard
+│   │   ├── auth/callback/            # OAuth/magic link callback
+│   │   ├── set-password/             # Password setup page
+│   │   ├── mfa/setup/                # TOTP MFA enrolment (QR code)
+│   │   ├── mfa/verify/               # TOTP MFA challenge
+│   │   ├── dashboard/                # Post-login dashboard (role-aware)
 │   │   ├── clients/                  # Client CRUD (/clients, /clients/new, /clients/[id])
 │   │   ├── matters/                  # Matter CRUD (/matters, /matters/new, /matters/[id])
 │   │   ├── assessments/
 │   │   │   ├── new/                  # Assessment form (config-driven, dynamic)
 │   │   │   └── [id]/
-│   │   │       ├── page.tsx          # Assessment result view
+│   │   │       ├── page.tsx          # Assessment result view (role-gated finalise)
 │   │   │       ├── FinaliseButton.tsx
 │   │   │       └── determination/    # Formal determination document view
-│   │   ├── actions/                  # Server Actions (auth, clients, matters, assessment, assistant-sources)
+│   │   ├── users/                    # User management (admin-only)
+│   │   │   ├── page.tsx              # User list + pending invitations
+│   │   │   ├── invite/               # Invite user form
+│   │   │   └── [id]/                 # User detail / role edit / deactivate
+│   │   ├── invite/accept/            # Invitation acceptance + password setup
+│   │   ├── actions/                  # Server Actions (auth, assessments, clients, matters, users, assistant-sources)
 │   │   └── api/
-│   │       └── assistant/route.ts    # POST endpoint for AI assistant
+│   │       ├── assistant/route.ts    # POST endpoint for AI assistant (rate-limited)
+│   │       └── health/route.ts       # Health check endpoint
 │   ├── components/
 │   │   └── assistant/                # AssistantPanel, GlobalAssistantButton, QuestionHelperButton
 │   ├── lib/
+│   │   ├── auth/                     # RBAC: roles, permission checks (solicitor/mlro/admin)
 │   │   ├── rules-engine/             # Deterministic AML scoring engine
-│   │   ├── determination/            # Snapshot-based determination renderer (legacy)
-│   │   ├── determination-renderer/   # Enhanced determination renderer with policy references
+│   │   ├── determination/            # Consolidated determination renderer (snapshots + policy references + jurisdiction)
 │   │   ├── assistant/                # AI assistant orchestration (prompt, validation, sources)
 │   │   ├── llm/                      # Pluggable LLM client (OpenAI + Anthropic)
+│   │   ├── security/                 # Rate limiter, password policy
+│   │   ├── config/                   # Environment variable validation
 │   │   └── supabase/                 # DB client, server client, types
-│   └── middleware.ts                 # Auth middleware (all routes except /login)
+│   └── middleware.ts                 # Auth + session timeout + MFA enforcement
 ├── CLAUDE.md                         # Claude Code project instructions
 └── vitest.config.ts
 ```
@@ -130,9 +148,10 @@ eventus-aml-hub/
 
 | Table | Purpose | Key columns |
 |-------|---------|-------------|
-| `firms` | Law firm entities | `id`, `name` |
-| `user_profiles` | Users scoped to firm | `id` (= auth.uid), `firm_id`, `email`, `full_name`, `role` |
-| `clients` | Clients of the firm | `id`, `firm_id`, `name`, `client_type` (individual/corporate) |
+| `firms` | Law firm entities | `id`, `name`, `jurisdiction` (`scotland` \| `england_and_wales`) |
+| `user_profiles` | Users scoped to firm | `user_id` (PK, = auth.uid), `firm_id`, `email`, `full_name`, `role` (`solicitor` \| `mlro` \| `admin`), `created_at` |
+| `user_invitations` | Pending user invites | `id`, `firm_id`, `email`, `role`, `invited_by`, `accepted_at`, `created_at` |
+| `clients` | Clients of the firm | `id`, `firm_id`, `name`, `entity_type`, `client_type` |
 | `matters` | Legal matters | `id`, `firm_id`, `client_id`, `reference`, `description`, `status` |
 | `assessments` | Risk assessments | `id`, `firm_id`, `matter_id`, `input_snapshot` (JSON), `output_snapshot` (JSON), `risk_level`, `score`, `created_by`, `finalised_at`, `finalised_by` |
 | `audit_events` | Complete activity log | `id`, `firm_id`, `entity_type`, `entity_id`, `action`, `metadata` (JSON), `created_by` |
@@ -142,6 +161,7 @@ eventus-aml-hub/
 
 ```
 Firm ──< UserProfile
+Firm ──< UserInvitation
 Firm ──< Client ──< Matter ──< Assessment
 Firm ──< AuditEvent
 Firm ──< AssistantSource
@@ -210,11 +230,14 @@ runAssessment({ clientType: 'individual' | 'corporate', formAnswers: Record<stri
 
 ### Determination rendering
 
-Two renderer implementations exist:
-- `src/lib/determination/` -- Renders from stored `AssessmentRecord` (snapshot-based).
-- `src/lib/determination-renderer/` -- Enhanced renderer that includes policy references (PCP, MLR, LSAG section numbers).
+**Location:** `src/lib/determination/`
 
-Both are **deterministic**: no LLM, no recomputation, no conditional language ("if", "consider", "may" are prohibited in output). Same input always produces identical text.
+Single consolidated renderer that produces formal risk determination documents from stored snapshots. Includes:
+- Policy references (PCP, MLR 2017, LSAG 2025 section numbers) linked to risk factors and mandatory actions
+- Jurisdiction-aware regulator details (Law Society of Scotland / SRA)
+- Sections: heading, assessment details, risk determination, triggered risk factors, mandatory actions, policy references, risk appetite
+
+**Deterministic**: no LLM, no recomputation, no conditional language ("if", "consider", "may" are prohibited in output). Same input always produces identical text.
 
 ---
 
@@ -273,7 +296,8 @@ If the answer is not in the provided materials, the response must be exactly:
 
 `validation.ts` rejects requests containing:
 - Client data field names (name, DOB, address, NI number, passport, bank account, etc.)
-- Personal data value patterns (UK postcodes, NI numbers, date-of-birth formats)
+- SoW/SoF only when followed by actual data values (e.g., `SoF: £50,000`) -- standalone regulatory terms like "What does SoF mean?" are allowed
+- Personal data value patterns (UK postcodes, NI numbers, date-of-birth formats, currency amounts)
 - Empty or excessively long questions (max 2000 chars)
 
 ### Source retrieval
@@ -287,15 +311,21 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 | Control | Implementation |
 |---------|---------------|
 | **Authentication** | Supabase Auth (email/password) |
-| **Session management** | Cookie-based via `@supabase/ssr` |
-| **Route protection** | Next.js middleware redirects unauthenticated users to `/login` |
+| **MFA** | TOTP-based via Supabase Auth (`src/app/mfa/`). Middleware enforces AAL2 for all authenticated routes. |
+| **Session management** | Cookie-based via `@supabase/ssr` with 30-minute idle timeout (`aml_last_activity` cookie in middleware) |
+| **RBAC** | Three roles: `solicitor`, `mlro`, `admin`. Permission checks in `src/lib/auth/roles.ts`. Enforced in server actions and UI. |
+| **Route protection** | Next.js middleware redirects unauthenticated users to `/login`, enforces MFA, manages session timeout |
+| **HTTP security headers** | HSTS, CSP, X-Frame-Options (DENY), X-Content-Type-Options, Referrer-Policy, Permissions-Policy — configured in `next.config.ts` |
+| **Rate limiting** | In-memory sliding window (`src/lib/security/rate-limiter.ts`): login 5/15min, assistant 20/min, server actions 60/min |
+| **Password policy** | 12+ chars, mixed case, digit, special char, common password blocklist (`src/lib/security/password-policy.ts`) |
 | **Data isolation** | PostgreSQL RLS policies on all tables, scoped by `firm_id` |
 | **No service role key** | All server actions use the authenticated user's session |
 | **Assessment immutability** | `finalised_at` timestamp locks the record; `checkAssessmentModifiable()` guard |
 | **No PII to LLM** | `validation.ts` pattern-matches and rejects client data before it reaches the LLM |
-| **Audit trail** | All significant actions logged to `audit_events` (assistant questions logged by length only, not content) |
+| **Audit trail** | All significant actions logged to `audit_events` (assistant questions logged by length only, not content). Failed logins also logged. |
 | **Snapshot integrity** | `input_snapshot` and `output_snapshot` stored at creation; determination renders from snapshots, never recomputes |
 | **LLM isolation** | LLM only receives curated source excerpts and the user's question; no database access, no client data |
+| **Env validation** | `src/lib/config/env.ts` validates required environment variables at startup |
 
 ---
 
@@ -304,27 +334,36 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 ### Working
 
 - [x] Authentication (login/logout, session refresh, middleware protection)
-- [x] Dashboard (navigation hub)
+- [x] MFA (TOTP enrolment + verification, middleware-enforced AAL2)
+- [x] Session idle timeout (30 minutes)
+- [x] Role-based access control (solicitor/mlro/admin, server-side enforcement)
+- [x] User management (admin invite flow, role editing, deactivation)
+- [x] Dashboard (navigation hub, role-aware, conditional admin cards)
 - [x] Client CRUD (list, create, view with matters)
 - [x] Matter CRUD (list, create, view with assessments)
 - [x] Assessment form (config-driven, dynamic fields, conditional visibility, individual + corporate)
 - [x] Deterministic rules engine (scoring, risk levels, automatic outcomes, mandatory actions)
 - [x] Assessment result view (score, risk level, contributing factors, mandatory actions)
-- [x] Determination rendering (formal document from snapshots, both renderer variants)
-- [x] Assessment finalisation (immutable lock with audit event)
+- [x] Determination rendering (consolidated renderer with policy references + jurisdiction awareness)
+- [x] Assessment finalisation (immutable lock with audit event, role-gated)
 - [x] Determination copy-to-clipboard
-- [x] AI assistant panel (question input, source-grounded answers, citations)
+- [x] AI assistant panel (question input, source-grounded answers, citations, jurisdiction-aware)
 - [x] Per-question helper buttons on assessment form
-- [x] Assistant input validation (PII rejection)
+- [x] Assistant input validation (PII rejection, refined SoW/SoF patterns)
 - [x] Pluggable LLM client (OpenAI + Anthropic)
 - [x] Source excerpt ingestion pipeline (YAML frontmatter parser, Supabase insert)
-- [x] Audit event logging
+- [x] Audit event logging (including failed login attempts)
 - [x] Multi-tenant firm isolation (RLS)
+- [x] Multi-jurisdiction support (Scotland / England & Wales, per-firm setting)
+- [x] HTTP security headers (HSTS, CSP, X-Frame-Options, etc.)
+- [x] Rate limiting (login, assistant, server actions)
+- [x] Password policy enforcement
+- [x] Environment variable validation
+- [x] Deployment infrastructure (Dockerfile, docker-compose, CI/CD, health check)
+- [x] Error boundaries (error.tsx, not-found.tsx)
 
 ### Incomplete / Not Yet Built
 
-- [ ] User management / invitation flow
-- [ ] Role-based access control (role field exists but not enforced)
 - [ ] Assessment editing / re-assessment workflow
 - [ ] PDF export of determinations
 - [ ] Client/matter search and filtering
@@ -334,27 +373,26 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 - [ ] Vector/semantic search for assistant sources (currently keyword-based)
 - [ ] Source excerpt versioning / update tracking
 - [ ] Automated testing coverage for UI components
-- [ ] Production deployment configuration
+- [ ] Generated Supabase types (currently manual)
 
 ---
 
 ## 11. Known Technical Debt
 
-1. **Two determination renderers.** `src/lib/determination/` and `src/lib/determination-renderer/` overlap in purpose. The latter adds policy references and should be the canonical implementation. Consolidate or deprecate the former.
-2. **Duplicate assessment actions.** Both `src/app/actions/assessment.ts` and `src/app/actions/assessments.ts` export `submitAssessment`. The `assessment.ts` version is more complete (includes finalisation, details retrieval). Consolidate.
-3. **Hardcoded thresholds in determination renderer.** `renderDetermination.ts` has `THRESHOLD_TEXT: { LOW: '0-4', MEDIUM: '5-8', HIGH: '9+' }` which duplicates config values. Should read from the scoring config.
-4. **Keyword-based source retrieval.** The `KEYWORD_TOPICS` mapping in `sources.ts` is manual and incomplete. Should be replaced with vector/semantic search or at minimum a more robust matching strategy.
-5. **No generated Supabase types.** The comment in `types.ts` notes "For full type generation, use: `npx supabase gen types typescript`". Currently using manually defined types.
-6. **`getUser()` and `getUserProfile()` referenced but not imported** in `submitAssessment` in `assessment.ts` (lines 87-101 reference standalone functions while `getUserAndProfile` helper exists and is used by `finaliseAssessment`).
-7. **Config imports use `@/config/` path alias.** The config-loader imports from `@/config/eventus/...` but configs live under `sources/eventus/`. This requires a tsconfig path alias or the files to be copied/symlinked to `src/config/`.
+1. **Hardcoded thresholds in determination renderer.** `renderDetermination.ts` has `THRESHOLD_TEXT: { LOW: '0-4', MEDIUM: '5-8', HIGH: '9+' }` which duplicates config values. Should read from the scoring config.
+2. **Keyword-based source retrieval.** The `KEYWORD_TOPICS` mapping in `sources.ts` is manual and incomplete. Should be replaced with vector/semantic search or at minimum a more robust matching strategy.
+3. **No generated Supabase types.** The comment in `types.ts` notes "For full type generation, use: `npx supabase gen types typescript`". Currently using manually defined types.
+4. **Config imports use `@/config/` path alias.** The config-loader imports from `@/config/eventus/...` but configs live under `sources/eventus/`. This requires a tsconfig path alias or the files to be copied/symlinked to `src/config/`.
+5. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
+6. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
 
 ---
 
 ## 12. Open Issues
 
-1. The middleware matcher excludes API routes from auth (`api routes (handled separately)` comment), but the assistant API route at `/api/assistant` does not perform its own authentication check -- it relies on calling `getUserProfile()` internally. Verify this is sufficient.
-2. `SoW` and `SoF` regex patterns in `validation.ts` may cause false positives (e.g., "What does SoW mean?" would be rejected as containing client data). Consider context-aware validation.
-3. Form validation on the assessment form is minimal -- required field checks exist but no comprehensive validation before submission.
+1. Form validation on the assessment form is minimal -- required field checks exist but no comprehensive validation before submission.
+2. Invite acceptance flow sends users to `/invite/accept` but the email template in Supabase Auth needs to be configured to point to this URL.
+3. The CSP header includes `'unsafe-inline'` and `'unsafe-eval'` for `script-src` (required by Next.js). Should be tightened with nonce-based CSP in a future iteration.
 
 ---
 
@@ -385,11 +423,13 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 
 ## 15. Lessons Learned
 
-1. **Keep two renderer implementations in sync or consolidate immediately.** The existence of `determination/` and `determination-renderer/` has already caused confusion about which is canonical.
+1. **Consolidate duplicate code immediately.** The previous existence of two determination renderers and two assessment action files caused confusion. Now consolidated into single canonical implementations.
 2. **Snapshot pattern is essential.** Storing both input and output at creation time is the only way to guarantee a determination can be reproduced months later, even if config has changed.
-3. **PII validation needs refinement.** Overly broad regex patterns (e.g., "SoW", "SoF") reject legitimate regulatory questions. Consider checking for data values rather than field name keywords alone.
+3. **PII validation: check for data values, not field names alone.** SoW/SoF as standalone terms are legitimate regulatory vocabulary. The validation now only rejects these when followed by actual data values (e.g., `SoF: £50,000`).
 4. **Form config JSON is complex.** The CMLRA form configs use nested sections, conditional visibility (`show_if`), and multiple field types. Changes to form config must be tested against the `AssessmentForm` component renderer.
 5. **Config path resolution matters.** The config-loader uses import aliases (`@/config/...`) which must resolve correctly in both dev and production builds.
+6. **RLS policies and MFA interact.** An AAL2 RLS policy on `user_profiles` blocked all reads for users without MFA, causing a redirect loop. MFA enforcement is now handled in middleware rather than RLS to avoid this coupling.
+7. **TypeScript types must match actual DB schema.** The `UserProfile` type had fields (`id`, `email`, `full_name`, `updated_at`) that didn't exist in the database. Always verify types against the actual table schema.
 
 ---
 
@@ -407,16 +447,18 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 
 ## 17. Next Logical Development Steps
 
-1. **Consolidate duplicate code.** Merge the two assessment action files. Choose one determination renderer as canonical and remove the other.
-2. **Role-based access control.** The `role` field exists on `user_profiles`. Implement enforcement (e.g., only MLRO or partner can finalise assessments).
-3. **PDF export.** Render the determination document as a downloadable PDF for filing with the matter.
-4. **Vector/semantic search for assistant sources.** Replace keyword-based topic matching with embedding-based retrieval for more accurate source selection.
-5. **Assessment re-run workflow.** Allow creating a new assessment for the same matter (re-assessment) while preserving the original. Never modify the original.
-6. **Dashboard analytics.** Summary stats: assessments by risk level, outstanding mandatory actions, matters pending assessment.
-7. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
+1. **PDF export.** Render the determination document as a downloadable PDF for filing with the matter.
+2. **Vector/semantic search for assistant sources.** Replace keyword-based topic matching with embedding-based retrieval for more accurate source selection.
+3. **Assessment re-run workflow.** Allow creating a new assessment for the same matter (re-assessment) while preserving the original. Never modify the original.
+4. **Dashboard analytics.** Summary stats: assessments by risk level, outstanding mandatory actions, matters pending assessment.
+5. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
+6. **SAR workflow.** Suspicious Activity Report submission and tracking.
+7. **Client/matter search and filtering.** Full-text search and filter controls on list pages.
 8. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
-9. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms.
-10. **Production deployment.** Environment configuration, CI/CD pipeline, monitoring, error tracking.
+9. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 95 tests across 4 suites.
+10. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
+11. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
+12. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
 
 ---
 
@@ -434,6 +476,8 @@ OPENAI_API_KEY=           # if provider is openai
 ANTHROPIC_API_KEY=        # if provider is anthropic
 ```
 
+Note: Supabase JWT expiry and MFA settings should be configured in the Supabase dashboard. The application enforces a 30-minute idle session timeout via middleware independently of JWT expiry.
+
 ---
 
-*This document was generated from the codebase at commit history as of the current working state. Update it when architectural decisions change.*
+*Last updated: 19 Feb 2026, after production readiness implementation (commit `11b30cf`). Update when architectural decisions change.*
