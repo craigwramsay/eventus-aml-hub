@@ -10,6 +10,7 @@ import type {
   RiskLevel,
   RiskFactorResult,
   AutomaticOutcomeResult,
+  EDDTriggerResult,
   ScoringFactor,
   ScoringOption,
   ScoringSection,
@@ -221,6 +222,43 @@ export function calculateScore(
     riskFactors,
     automaticOutcome,
   };
+}
+
+/**
+ * Check for EDD triggers based on form answers and config
+ * EDD triggers do NOT change the risk level - they add EDD actions
+ */
+export function checkEDDTriggers(
+  config: RiskScoringConfig,
+  clientType: ClientType,
+  formAnswers: FormAnswers
+): EDDTriggerResult[] {
+  if (!config.eddTriggers || config.eddTriggers.length === 0) {
+    return [];
+  }
+
+  const triggers: EDDTriggerResult[] = [];
+
+  for (const triggerConfig of config.eddTriggers) {
+    const fieldId = triggerConfig.fieldMapping[clientType];
+    if (!fieldId) continue;
+
+    const formAnswer = formAnswers[fieldId];
+    if (formAnswer === undefined || formAnswer === null || formAnswer === '') continue;
+
+    const answer = Array.isArray(formAnswer) ? formAnswer[0] : formAnswer;
+
+    if (triggerConfig.condition.type === 'equals' && answer === triggerConfig.condition.value) {
+      triggers.push({
+        triggerId: triggerConfig.id,
+        description: triggerConfig.description,
+        authority: triggerConfig.authority,
+        triggeredBy: `Field ${fieldId}: "${answer}"`,
+      });
+    }
+  }
+
+  return triggers;
 }
 
 /**

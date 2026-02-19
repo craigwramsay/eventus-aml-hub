@@ -10,7 +10,7 @@ import type {
 } from './types';
 
 // Import configs directly for static bundling
-import riskScoringConfig from '@/config/eventus/risk_scoring_v3_7.json';
+import riskScoringConfig from '@/config/eventus/risk_scoring_v3_8.json';
 import cddRulesetConfig from '@/config/eventus/cdd_ruleset.json';
 import individualFormConfig from '@/config/eventus/forms/CMLRA_individual.json';
 import corporateFormConfig from '@/config/eventus/forms/CMLRA_corporate.json';

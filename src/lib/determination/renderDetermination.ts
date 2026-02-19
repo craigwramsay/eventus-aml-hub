@@ -14,6 +14,8 @@ import type {
   DeterminationSection,
   RiskFactorSnapshot,
   MandatoryActionSnapshot,
+  EDDTriggerSnapshot,
+  AssessmentWarningSnapshot,
 } from './types';
 import {
   collectPolicyReferences,
@@ -149,6 +151,33 @@ function renderRiskDetermination(assessment: AssessmentRecord): DeterminationSec
 }
 
 /**
+ * Render EDD triggers section (if any)
+ */
+function renderEDDTriggers(assessment: AssessmentRecord): DeterminationSection | null {
+  const triggers = assessment.output_snapshot.eddTriggers;
+  if (!triggers || triggers.length === 0) {
+    return null;
+  }
+
+  const lines: string[] = [];
+  lines.push('The following Enhanced Due Diligence triggers have been detected:');
+  lines.push('');
+
+  for (const trigger of triggers) {
+    lines.push(`- ${trigger.description}`);
+    lines.push(`  Authority: ${trigger.authority}`);
+  }
+
+  lines.push('');
+  lines.push('EDD triggers require Enhanced Due Diligence actions regardless of the calculated risk level.');
+
+  return {
+    title: 'EDD TRIGGERS',
+    body: lines.join('\n'),
+  };
+}
+
+/**
  * Render the triggered risk factors section
  */
 function renderRiskFactors(assessment: AssessmentRecord): DeterminationSection {
@@ -242,9 +271,16 @@ function renderMandatoryActions(assessment: AssessmentRecord): DeterminationSect
 
     for (const action of sortedActions) {
       // Use mandatory language - no conditionals
-      lines.push(`- ${action.actionName}`);
+      const priorityLabel = action.priority === 'recommended' ? ' [Recommended]' : '';
+      lines.push(`- ${action.actionName}${priorityLabel}`);
       if (action.description) {
         lines.push(`  ${action.description}`);
+      }
+      if (action.evidenceTypes && action.evidenceTypes.length > 0) {
+        lines.push('  Supporting evidence:');
+        for (const evidence of action.evidenceTypes) {
+          lines.push(`    - ${evidence}`);
+        }
       }
     }
 
@@ -263,6 +299,34 @@ function renderMandatoryActions(assessment: AssessmentRecord): DeterminationSect
 }
 
 /**
+ * Render warnings section (e.g. entity exclusions requiring MLRO escalation)
+ */
+function renderWarnings(assessment: AssessmentRecord): DeterminationSection | null {
+  const warnings = assessment.output_snapshot.warnings;
+  if (!warnings || warnings.length === 0) {
+    return null;
+  }
+
+  const lines: string[] = [];
+
+  for (const warning of warnings) {
+    lines.push(`MLRO ESCALATION REQUIRED: ${warning.message}`);
+    lines.push(`Authority: ${warning.authority}`);
+    lines.push('');
+  }
+
+  // Remove trailing empty line
+  if (lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+
+  return {
+    title: 'WARNINGS',
+    body: lines.join('\n'),
+  };
+}
+
+/**
  * Render the policy references section
  */
 function renderPolicyReferencesSection(assessment: AssessmentRecord): DeterminationSection {
@@ -271,11 +335,15 @@ function renderPolicyReferencesSection(assessment: AssessmentRecord): Determinat
   // Collect unique categories from mandatory actions
   const categories = [...new Set(output_snapshot.mandatoryActions.map((a) => a.category))];
 
+  // Collect EDD trigger IDs
+  const eddTriggerIds = output_snapshot.eddTriggers?.map((t) => t.triggerId);
+
   // Collect all policy references
   const references = collectPolicyReferences(
     output_snapshot.riskLevel,
     categories,
-    output_snapshot.automaticOutcome?.outcomeId || null
+    output_snapshot.automaticOutcome?.outcomeId || null,
+    eddTriggerIds
   );
 
   const lines: string[] = [];
@@ -335,15 +403,32 @@ export function renderDetermination(
   assessment: AssessmentRecord,
   options?: RenderDeterminationOptions
 ): DeterminationOutput {
+  // Resolve jurisdiction: options parameter takes priority, then snapshot
+  const jurisdiction = options?.jurisdiction ?? assessment.input_snapshot.jurisdiction as Jurisdiction | undefined;
+
   const sections: DeterminationSection[] = [
     renderHeading(),
-    renderDetails(assessment, options?.jurisdiction),
+    renderDetails(assessment, jurisdiction),
     renderRiskDetermination(assessment),
-    renderRiskFactors(assessment),
-    renderMandatoryActions(assessment),
-    renderPolicyReferencesSection(assessment),
-    renderRiskAppetite(assessment),
   ];
+
+  // EDD triggers section (only if triggers present)
+  const eddTriggersSection = renderEDDTriggers(assessment);
+  if (eddTriggersSection) {
+    sections.push(eddTriggersSection);
+  }
+
+  sections.push(renderRiskFactors(assessment));
+  sections.push(renderMandatoryActions(assessment));
+
+  // Warnings section (only if warnings present)
+  const warningsSection = renderWarnings(assessment);
+  if (warningsSection) {
+    sections.push(warningsSection);
+  }
+
+  sections.push(renderPolicyReferencesSection(assessment));
+  sections.push(renderRiskAppetite(assessment));
 
   // Build full text with section separators
   const textParts: string[] = [];

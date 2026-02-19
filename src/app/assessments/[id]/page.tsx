@@ -3,7 +3,7 @@ import { getAssessmentWithDetails } from '@/app/actions/assessments';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canFinaliseAssessment } from '@/lib/auth/roles';
 import { FinaliseButton } from './FinaliseButton';
-import type { RiskFactorResult, MandatoryAction } from '@/lib/rules-engine/types';
+import type { RiskFactorResult, MandatoryAction, EDDTriggerResult, AssessmentWarning } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
 
 interface PageProps {
@@ -155,6 +155,47 @@ export default async function AssessmentViewPage({ params }: PageProps) {
           </div>
         )}
       </section>
+
+      {/* EDD Triggers Section */}
+      {outputSnapshot.eddTriggers && outputSnapshot.eddTriggers.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
+            EDD Triggers ({outputSnapshot.eddTriggers.length})
+          </h2>
+          <ul className={styles.factorList}>
+            {outputSnapshot.eddTriggers.map((trigger: EDDTriggerResult) => (
+              <li key={trigger.triggerId} className={styles.factorItem}>
+                <div className={styles.factorHeader}>
+                  <span className={styles.factorLabel}>{trigger.description}</span>
+                </div>
+                <div className={styles.factorAnswer}>
+                  Authority: {trigger.authority}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Warnings Section */}
+      {outputSnapshot.warnings && outputSnapshot.warnings.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
+            Warnings ({outputSnapshot.warnings.length})
+          </h2>
+          <ul className={styles.actionList}>
+            {outputSnapshot.warnings.map((warning: AssessmentWarning) => (
+              <li key={warning.warningId} className={styles.actionItem}>
+                <span className={styles.actionIcon}>&#9888;</span>
+                <div className={styles.actionContent}>
+                  <div className={styles.actionLabel}>{warning.message}</div>
+                  <div className={styles.actionCategory}>{warning.authority}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Risk Factors Section */}
       <section className={styles.section}>

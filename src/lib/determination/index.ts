@@ -12,6 +12,7 @@ export {
   RISK_LEVEL_REFERENCES,
   CATEGORY_REFERENCES,
   AUTOMATIC_OUTCOME_REFERENCES,
+  EDD_TRIGGER_REFERENCES,
   THRESHOLD_AUTHORITY,
   SCORING_MODEL_AUTHORITY,
 } from './policy-references';
@@ -29,4 +30,6 @@ export type {
   RiskFactorSnapshot,
   MandatoryActionSnapshot,
   AutomaticOutcomeSnapshot,
+  EDDTriggerSnapshot,
+  AssessmentWarningSnapshot,
 } from './types';

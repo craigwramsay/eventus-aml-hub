@@ -2,10 +2,10 @@
   "$schema": "https://eventus-aml-hub/schemas/risk-scoring-v1.json",
   "meta": {
     "source": "sources/eventus/rules/Eventus AML - Combined Internal Risk Scoring Model - 18.12.25 (1).txt",
-    "version": "3.7",
-    "versionDate": "2025-12",
-    "versionNote": "Clarificatory update only - no scoring changes",
-    "authorities": ["MLR 2017 regs. 18, 28", "LSAG 2025 §5.13", "Eventus PWRA §2.4", "Eventus AML PCPs §§4, 8, 11"]
+    "version": "3.8",
+    "versionDate": "2026-02",
+    "versionNote": "Added EDD triggers (PCP s.20), delivery channel scoring factor (LSAG 5.6.4), entity exclusion warnings",
+    "authorities": ["MLR 2017 regs. 18, 28", "LSAG 2025 §5.13", "Eventus PWRA §2.4", "Eventus AML PCPs §§4, 8, 11, 20"]
   },
   "riskLevels": ["LOW", "MEDIUM", "HIGH"],
   "thresholds": {
@@ -37,6 +37,60 @@
       ]
     }
   },
+  "eddTriggers": [
+    {
+      "id": "client_account",
+      "description": "Matter involves receipt of funds into Eventus' client account",
+      "authority": "PCP §20 §1.6; PWRA §2.4",
+      "fieldMapping": {
+        "individual": "36",
+        "corporate": "55"
+      },
+      "condition": {
+        "type": "equals",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "tcsp_activity",
+      "description": "Matter involves Trust or Company Service Provider (TCSP) activity",
+      "authority": "PCP §20 §1.6; PWRA §2.4",
+      "fieldMapping": {
+        "individual": "50",
+        "corporate": "70"
+      },
+      "condition": {
+        "type": "equals",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "cross_border_transaction",
+      "description": "Matter involves cross-border movement of funds",
+      "authority": "PCP §20 §1.6; PWRA §2.4",
+      "fieldMapping": {
+        "individual": "42",
+        "corporate": "63"
+      },
+      "condition": {
+        "type": "equals",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "third_party_funder",
+      "description": "Funds are being provided by a third party",
+      "authority": "PCP §20 §1.6; PWRA §2.4",
+      "fieldMapping": {
+        "individual": "38",
+        "corporate": "59"
+      },
+      "condition": {
+        "type": "equals",
+        "value": "Third party"
+      }
+    }
+  ],
   "scoringFactors": {
     "corporate": {
       "section1_identification": {
@@ -138,6 +192,17 @@
             "options": [
               { "answer": "Ongoing", "score": 0 },
               { "answer": "One-off", "score": 1 }
+            ]
+          },
+          {
+            "id": "delivery_channel",
+            "formFieldId": "72",
+            "label": "Client delivery channel",
+            "authority": "LSAG 2025, §5.6.4; PCP §5",
+            "options": [
+              { "answer": "Face-to-face", "score": 0 },
+              { "answer": "Remote (non-face-to-face)", "score": 1 },
+              { "answer": "Via intermediary or referrer", "score": 1 }
             ]
           }
         ]
@@ -284,6 +349,17 @@
               { "answer": "Ongoing", "score": 0 },
               { "answer": "One-off", "score": 1 }
             ]
+          },
+          {
+            "id": "delivery_channel",
+            "formFieldId": "52",
+            "label": "Client delivery channel",
+            "authority": "LSAG 2025, §5.6.4; PCP §5",
+            "options": [
+              { "answer": "Face-to-face", "score": 0 },
+              { "answer": "Remote (non-face-to-face)", "score": 1 },
+              { "answer": "Via intermediary or referrer", "score": 1 }
+            ]
           }
         ]
       },
@@ -366,6 +442,18 @@
     "sow_sof_forms": {
       "note": "Information obtained via the Source of Wealth and Source of Funds records does not introduce new scoring factors. Any elevated risk identified through SoW or SoF analysis must be assessed by reference back to the CMLRA and this Internal Risk Scoring Model.",
       "authority": "Eventus AML PCPs, §§4, 8, 11; LSAG 2025, §§5.6, 5.13"
+    },
+    "aml_supervised_sdd": {
+      "note": "AML-supervised status (field 51 corporate) is captured but does not reduce the risk score. Simplified Due Diligence requires MLRO approval and is rarely appropriate per PCP policy. The field remains informational only.",
+      "authority": "PCP §6; MLR 2017, reg. 37"
+    },
+    "individual_sector_risk": {
+      "note": "Individual occupation (field 18) is captured but not mapped to risk tiers. Subjective classification of individual occupations would introduce inconsistency. Corporate sector risk is scored via the authoritative sector_mapping.json.",
+      "authority": "Eventus PWRA §2.2"
+    },
+    "sof_sow_inconsistency_edd": {
+      "note": "SoF or SoW inconsistencies are listed as an EDD trigger in PCP s.20 but cannot be detected from the initial CMLRA form. This is a manual escalation trigger that must be assessed during the review of SoW/SoF documentation.",
+      "authority": "PCP §20 §1.6"
     }
   }
 }

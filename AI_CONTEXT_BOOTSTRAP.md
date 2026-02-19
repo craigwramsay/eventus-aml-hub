@@ -34,16 +34,18 @@ The system is designed around regulatory defensibility: every assessment is repr
 | **Sector guidance** | Legal Sector Affinity Group (LSAG) AML Guidance 2025 |
 | **FATF lists** | FATF Black List, FATF Grey List (High-Risk Third Countries) |
 | **Internal policies** | Eventus Practice-Wide Risk Assessment (PWRA), AML Policy, Practice & Compliance Procedures (PCPs) |
-| **Risk scoring model** | Eventus Internal Risk Scoring Model v3.7 (PCP S4) |
-| **CDD ruleset** | Derived from PCPs, MLR 2017, LSAG 2025 |
+| **Risk scoring model** | Eventus Internal Risk Scoring Model v3.8 (PCP S4) |
+| **CDD ruleset** | Derived from PCPs, MLR 2017, LSAG 2025 (v2, with new-client SoW at LOW risk) |
 | **Assessment form** | Client & Matter Level Risk Assessment (CMLRA) -- individual and corporate variants |
 
 Key regulatory requirements enforced by the system:
 - Risk-based approach to CDD (MLR 2017 reg. 28).
 - Enhanced due diligence for high-risk situations (MLR 2017 regs. 33, 35).
-- Source of wealth and source of funds verification where required.
+- EDD triggers from PCP s.20 (client account, TCSP, cross-border, third-party funder) — these inject EDD actions without changing the risk level.
+- Source of wealth and source of funds verification where required. New clients at LOW risk require SoW form (PCP s.11).
 - Ongoing monitoring obligations.
 - Automatic HIGH risk escalation for specific triggers (e.g., PEP status, sanctioned jurisdictions).
+- Entity type exclusion warnings (trusts, charities, overseas entities, etc.) with MLRO escalation.
 
 ---
 
@@ -83,19 +85,26 @@ eventus-aml-hub/
 ├── Dockerfile                        # Multi-stage production Docker build
 ├── docker-compose.yml                # Local Docker development
 ├── scripts/                          # CLI tools (excerpt parser, ingest)
-├── sources/
+├── sources/                          # Raw source documents (originals, NOT imported by code)
 │   ├── eventus/
 │   │   ├── excerpts/                 # Internal policy excerpts (YAML frontmatter + content)
-│   │   ├── forms/                    # CMLRA form configs (JSON)
-│   │   │   ├── CMLRA_individual.json
-│   │   │   └── CMLRA_corporate.json
-│   │   └── rules/                    # Risk scoring + CDD ruleset configs (JSON)
-│   │       ├── risk_scoring_v3_7.json
-│   │       └── cdd_ruleset.json
+│   │   ├── forms/                    # Original CMLRA form exports (reference only)
+│   │   ├── rules/                    # Original risk model + CDD ruleset documents (.docx/.txt)
+│   │   ├── *.docx / *.txt           # PWRA, AML Policy source documents
+│   └── sources_external/            # Legislation, guidance PDFs (MLR 2017, LSAG 2025, FATF lists)
 │   └── external/
-│       └── excerpts/                 # Regulatory excerpts (MLR 2017, LSAG 2025, etc.)
+│       └── excerpts/                 # Curated regulatory excerpts for assistant ingestion
 ├── supabase/migrations/              # SQL migrations for schema changes
 ├── src/
+│   ├── config/
+│   │   └── eventus/                  # Runtime config files (imported by rules engine)
+│   │       ├── risk_scoring_v3_8.json  # Risk scoring model (thresholds, factors, EDD triggers)
+│   │       ├── cdd_ruleset.json        # CDD/EDD/SoW/SoF action mappings by risk level
+│   │       ├── forms/
+│   │       │   ├── CMLRA_individual.json  # Individual client form config
+│   │       │   └── CMLRA_corporate.json   # Corporate client form config
+│   │       └── rules/
+│   │           └── sector_mapping.json    # Sector → risk category mapping
 │   ├── app/
 │   │   ├── layout.tsx                # Root layout (with env validation)
 │   │   ├── page.tsx                  # Landing page
@@ -112,7 +121,7 @@ eventus-aml-hub/
 │   │   ├── assessments/
 │   │   │   ├── new/                  # Assessment form (config-driven, dynamic)
 │   │   │   └── [id]/
-│   │   │       ├── page.tsx          # Assessment result view (role-gated finalise)
+│   │   │       ├── page.tsx          # Assessment result view (EDD triggers, warnings, role-gated finalise)
 │   │   │       ├── FinaliseButton.tsx
 │   │   │       └── determination/    # Formal determination document view
 │   │   ├── users/                    # User management (admin-only)
@@ -129,7 +138,17 @@ eventus-aml-hub/
 │   ├── lib/
 │   │   ├── auth/                     # RBAC: roles, permission checks (solicitor/mlro/admin)
 │   │   ├── rules-engine/             # Deterministic AML scoring engine
-│   │   ├── determination/            # Consolidated determination renderer (snapshots + policy references + jurisdiction)
+│   │   │   ├── types.ts             # All engine types (including EDDTriggerResult, AssessmentWarning)
+│   │   │   ├── config-loader.ts     # JSON config importer (singleton cache)
+│   │   │   ├── scorer.ts            # calculateScore() + checkEDDTriggers()
+│   │   │   ├── requirements.ts      # getMandatoryActions() (with entity exclusions, new-client SoW, evidence types)
+│   │   │   └── index.ts             # runAssessment() entry point
+│   │   ├── determination/            # Consolidated determination renderer
+│   │   │   ├── types.ts             # Snapshot types (InputSnapshot, OutputSnapshot, etc.)
+│   │   │   ├── renderDetermination.ts  # Deterministic renderer (EDD triggers, warnings, evidence types, jurisdiction)
+│   │   │   ├── policy-references.ts    # Policy ref mappings (risk level, category, outcome, EDD trigger)
+│   │   │   ├── jurisdiction.ts         # Scotland / England & Wales config
+│   │   │   └── index.ts
 │   │   ├── assistant/                # AI assistant orchestration (prompt, validation, sources)
 │   │   ├── llm/                      # Pluggable LLM client (OpenAI + Anthropic)
 │   │   ├── security/                 # Rate limiter, password policy
@@ -170,8 +189,8 @@ Firm ──< AssistantSource
 ### Critical design notes
 
 - **All tables have `firm_id`**. RLS policies enforce firm isolation at the PostgreSQL level.
-- **`assessments.input_snapshot`** stores a complete copy of form answers at submission time. This is the reproducibility guarantee.
-- **`assessments.output_snapshot`** stores the complete engine output (score, riskLevel, riskFactors, mandatoryActions, rationale, automaticOutcome, timestamp).
+- **`assessments.input_snapshot`** stores a complete copy of form answers at submission time, plus the firm's `jurisdiction` at assessment creation. This is the reproducibility guarantee.
+- **`assessments.output_snapshot`** stores the complete engine output (score, riskLevel, riskFactors, mandatoryActions, rationale, automaticOutcome, eddTriggers, warnings, timestamp). MandatoryActions may include `evidenceTypes` arrays.
 - **`assessments.finalised_at`** -- when non-null, the assessment is immutable. No further writes permitted.
 - **`audit_events`** logs action type and metadata but **never logs assistant question content** (privacy).
 - **No service role key** is used at runtime. All Supabase operations use the authenticated user session.
@@ -189,20 +208,23 @@ Form Answers (JSON)
        │
        ▼
 ┌─────────────────┐    ┌──────────────────────────┐
-│  config-loader   │───▶│ risk_scoring_v3_7.json    │
+│  config-loader   │───▶│ risk_scoring_v3_8.json    │
 │                  │───▶│ cdd_ruleset.json          │
 │                  │───▶│ CMLRA_individual.json      │
 │                  │───▶│ CMLRA_corporate.json       │
+│                  │───▶│ sector_mapping.json         │
 └─────────────────┘
        │
        ▼
 ┌─────────────────┐
 │    scorer.ts     │  calculateScore() → { score, riskLevel, riskFactors, automaticOutcome }
+│                  │  checkEDDTriggers() → EDDTriggerResult[]
 └─────────────────┘
        │
        ▼
 ┌─────────────────┐
-│ requirements.ts  │  getMandatoryActions() → MandatoryAction[]
+│ requirements.ts  │  getMandatoryActions() → { actions: MandatoryAction[], warnings: AssessmentWarning[] }
+│                  │  (entity exclusions, new-client SoW, EDD trigger injection, evidence types)
 └─────────────────┘
        │
        ▼
@@ -215,27 +237,55 @@ Form Answers (JSON)
 
 ```typescript
 runAssessment({ clientType: 'individual' | 'corporate', formAnswers: Record<string, string | string[]> })
-  → AssessmentOutput { score, riskLevel, automaticOutcome, riskFactors, rationale, mandatoryActions, timestamp }
+  → AssessmentOutput {
+      score, riskLevel, automaticOutcome, riskFactors, rationale,
+      mandatoryActions,  // MandatoryAction[] (may include evidenceTypes: string[])
+      eddTriggers,       // EDDTriggerResult[] — PCP s.20 triggers (do NOT change risk level)
+      warnings,          // AssessmentWarning[] — entity exclusions, MLRO escalation
+      timestamp
+    }
 ```
 
 ### Non-negotiable properties
 
-1. **Zero hardcoded rules.** All scoring factors, thresholds, outcomes, and CDD actions live in JSON config files.
+1. **Zero hardcoded rules.** All scoring factors, thresholds, outcomes, EDD triggers, and CDD actions live in JSON config files.
 2. **Deterministic.** Identical input + identical config = identical output. Always.
 3. **No LLM involvement.** The rules engine never calls any AI service.
-4. **Config-versioned.** The scoring model has a version (`v3.7`) and version date. Config changes are tracked.
+4. **Config-versioned.** The scoring model has a version (`v3.8`) and version date. Config changes are tracked.
 5. **Automatic outcomes.** Certain answers (e.g., PEP = Yes) trigger automatic HIGH risk with mandatory EDD, regardless of score.
 6. **Threshold-based risk levels.** LOW: 0-4, MEDIUM: 5-8, HIGH: 9+.
-7. **Snapshot pattern.** Both `input_snapshot` and `output_snapshot` are stored in the assessment record at creation time.
+7. **Snapshot pattern.** Both `input_snapshot` (including jurisdiction) and `output_snapshot` are stored in the assessment record at creation time.
+
+### Key engine concepts
+
+**EDD Triggers (PCP s.20):** Config-driven triggers (client account, TCSP activity, cross-border funds, third-party funder) that inject EDD actions into the mandatory actions list without changing the risk level. A LOW-risk assessment with an EDD trigger stays LOW but gains EDD actions. The PEP trigger remains the only thing that forces automatic HIGH (per MLR reg. 35).
+
+**Entity Exclusions:** When a corporate entity type falls outside the standard CDD ruleset (trusts, charities, unincorporated associations, overseas entities, etc.), the engine produces warnings requiring MLRO escalation. The engine still runs and produces a full assessment — warnings are advisory, not blockers.
+
+**New Client SoW at LOW Risk (PCP s.11):** All new clients at LOW risk require a Source of Wealth form (required) and supporting evidence (recommended). At MEDIUM+ the full SoW requirements apply as before.
+
+**Evidence Types:** The CDD ruleset specifies evidence types for certain actions (e.g., "payslips or tax returns", "bank statements"). These are propagated through to `MandatoryAction.evidenceTypes` and rendered in the determination document.
+
+**Delivery Channel (LSAG 5.6.4):** Scored risk factor (+1 for remote/non-face-to-face or intermediary introduction, 0 for face-to-face) in both individual and corporate assessments.
+
+**Documented Intentional Omissions:**
+- SoF/SoW inconsistencies (PCP s.20) — human judgment during review, not detectable from the initial CMLRA form
+- AML-supervised score reduction — SDD requires MLRO approval and is "rarely" used per policy; automating it would contradict policy intent
+- Individual occupation/sector risk — subjective classification would introduce inconsistency; corporate sector risk is scored via the authoritative `sector_mapping.json`
 
 ### Determination rendering
 
 **Location:** `src/lib/determination/`
 
 Single consolidated renderer that produces formal risk determination documents from stored snapshots. Includes:
-- Policy references (PCP, MLR 2017, LSAG 2025 section numbers) linked to risk factors and mandatory actions
-- Jurisdiction-aware regulator details (Law Society of Scotland / SRA)
-- Sections: heading, assessment details, risk determination, triggered risk factors, mandatory actions, policy references, risk appetite
+- Policy references (PCP, MLR 2017, LSAG 2025 section numbers) linked to risk factors, mandatory actions, and EDD triggers
+- Jurisdiction-aware regulator details (Law Society of Scotland / SRA) — read from `input_snapshot.jurisdiction` (stored at assessment creation)
+- Evidence types shown as sub-lists under applicable mandatory actions
+- EDD Triggers section (when present) — listed after RISK DETERMINATION, before TRIGGERED RISK FACTORS
+- Warnings section (when present) — shown after MANDATORY ACTIONS with MLRO escalation messaging
+- `[Recommended]` label on non-mandatory actions (e.g., evidence at LOW risk)
+
+Standard sections: heading, assessment details, risk determination, [EDD triggers], triggered risk factors, mandatory actions, [warnings], policy references, risk appetite
 
 **Deterministic**: no LLM, no recomputation, no conditional language ("if", "consider", "may" are prohibited in output). Same input always produces identical text.
 
@@ -342,9 +392,14 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 - [x] Client CRUD (list, create, view with matters)
 - [x] Matter CRUD (list, create, view with assessments)
 - [x] Assessment form (config-driven, dynamic fields, conditional visibility, individual + corporate)
-- [x] Deterministic rules engine (scoring, risk levels, automatic outcomes, mandatory actions)
-- [x] Assessment result view (score, risk level, contributing factors, mandatory actions)
-- [x] Determination rendering (consolidated renderer with policy references + jurisdiction awareness)
+- [x] Deterministic rules engine (scoring, risk levels, automatic outcomes, mandatory actions, EDD triggers, entity exclusions, evidence types)
+- [x] EDD trigger detection (PCP s.20: client account, TCSP, cross-border, third-party funder)
+- [x] Entity exclusion warnings (trusts, unincorporated associations → MLRO escalation)
+- [x] New client SoW at LOW risk (form required, evidence recommended)
+- [x] Evidence types propagated from CDD config to mandatory actions
+- [x] Delivery channel scoring factor (LSAG 5.6.4)
+- [x] Assessment result view (score, risk level, contributing factors, mandatory actions, EDD triggers, warnings)
+- [x] Determination rendering (consolidated renderer with policy references, jurisdiction, EDD triggers, warnings, evidence types)
 - [x] Assessment finalisation (immutable lock with audit event, role-gated)
 - [x] Determination copy-to-clipboard
 - [x] AI assistant panel (question input, source-grounded answers, citations, jurisdiction-aware)
@@ -382,9 +437,9 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 1. **Hardcoded thresholds in determination renderer.** `renderDetermination.ts` has `THRESHOLD_TEXT: { LOW: '0-4', MEDIUM: '5-8', HIGH: '9+' }` which duplicates config values. Should read from the scoring config.
 2. **Keyword-based source retrieval.** The `KEYWORD_TOPICS` mapping in `sources.ts` is manual and incomplete. Should be replaced with vector/semantic search or at minimum a more robust matching strategy.
 3. **No generated Supabase types.** The comment in `types.ts` notes "For full type generation, use: `npx supabase gen types typescript`". Currently using manually defined types.
-4. **Config imports use `@/config/` path alias.** The config-loader imports from `@/config/eventus/...` but configs live under `sources/eventus/`. This requires a tsconfig path alias or the files to be copied/symlinked to `src/config/`.
-5. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
-6. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
+4. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
+5. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
+6. **Source documents and runtime configs in separate locations.** Original policy documents live in `sources/` while the JSON configs imported by the rules engine live in `src/config/eventus/`. Changes to the source documents require manual translation into the JSON configs.
 
 ---
 
@@ -406,7 +461,9 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 6. **Firm isolation is absolute.** Users must never see data from another firm. This is enforced at the PostgreSQL level, not in application code.
 7. **Audit logging is mandatory.** All assessment creation, finalisation, and significant actions must produce an `audit_events` record.
 8. **Determination language must be declarative.** No conditional words ("if", "consider", "may", "where required") in rendered determinations. Mandatory actions are stated as directives.
-9. **Config is the single source of truth for business rules.** Scoring factors, thresholds, CDD actions, and form definitions live in JSON config files. Code reads config; code does not contain rules.
+9. **Config is the single source of truth for business rules.** Scoring factors, thresholds, CDD actions, EDD triggers, and form definitions live in JSON config files. Code reads config; code does not contain rules.
+10. **EDD triggers preserve risk level.** EDD triggers (PCP s.20) inject EDD actions but do NOT change the risk level. A LOW-risk assessment with an EDD trigger stays LOW. Only automatic outcomes (e.g., PEP) can override risk level.
+11. **Entity exclusions are warnings, not blockers.** When an excluded entity type is detected, the engine still runs and produces a full assessment. Warnings require MLRO escalation but do not prevent the assessment.
 
 ---
 
@@ -427,9 +484,12 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 2. **Snapshot pattern is essential.** Storing both input and output at creation time is the only way to guarantee a determination can be reproduced months later, even if config has changed.
 3. **PII validation: check for data values, not field names alone.** SoW/SoF as standalone terms are legitimate regulatory vocabulary. The validation now only rejects these when followed by actual data values (e.g., `SoF: £50,000`).
 4. **Form config JSON is complex.** The CMLRA form configs use nested sections, conditional visibility (`show_if`), and multiple field types. Changes to form config must be tested against the `AssessmentForm` component renderer.
-5. **Config path resolution matters.** The config-loader uses import aliases (`@/config/...`) which must resolve correctly in both dev and production builds.
+5. **Config path resolution matters.** The config-loader uses import aliases (`@/config/...`) which resolve to `src/config/`. Config files live in `src/config/eventus/` (NOT `sources/eventus/`). The `sources/` directory holds raw source documents only.
 6. **RLS policies and MFA interact.** An AAL2 RLS policy on `user_profiles` blocked all reads for users without MFA, causing a redirect loop. MFA enforcement is now handled in middleware rather than RLS to avoid this coupling.
 7. **TypeScript types must match actual DB schema.** The `UserProfile` type had fields (`id`, `email`, `full_name`, `updated_at`) that didn't exist in the database. Always verify types against the actual table schema.
+8. **EDD triggers and risk levels are separate concerns.** PCP s.20 says "always require EDD" for certain situations, not "always rate HIGH". Keeping EDD triggers as action injectors (not score modifiers) preserves the integrity of the scoring model while ensuring compliance with policy requirements.
+9. **Entity exclusions should warn, not block.** Blocking the engine for excluded entity types would leave the solicitor with no assessment at all. Running the engine and adding escalation warnings ensures there is always a baseline assessment, with clear direction to involve the MLRO.
+10. **New client SoW at LOW risk uses lighter requirements.** PCP s.11 says "depth of SoW must increase in line with risk." For new LOW-risk clients: form required, evidence recommended. For MEDIUM+: both required. This avoids over-burdening low-risk new client onboarding while maintaining compliance.
 
 ---
 
@@ -455,10 +515,11 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 6. **SAR workflow.** Suspicious Activity Report submission and tracking.
 7. **Client/matter search and filtering.** Full-text search and filter controls on list pages.
 8. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
-9. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 95 tests across 4 suites.
+9. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 132 tests across 4 suites (rules engine: 43, determination: 57, auth: 15, assistant validation: 17).
 10. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
 11. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
 12. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
+13. **Read thresholds from config in determination renderer.** Remove hardcoded `THRESHOLD_TEXT` and read from the scoring config dynamically.
 
 ---
 
@@ -480,4 +541,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 19 Feb 2026, after production readiness implementation (commit `11b30cf`). Update when architectural decisions change.*
+*Last updated: 19 Feb 2026, after PCP alignment gaps implementation (scoring model v3.8, EDD triggers, entity exclusions, new-client SoW, evidence types, delivery channel, jurisdiction in snapshots). 132 tests passing. Update when architectural decisions change.*

@@ -60,7 +60,12 @@
           "edd": { "required": false },
           "sow": { "required": false },
           "sof": { "required": false },
-          "authority": "Eventus AML PCPs, §§7, 17; MLR 2017, reg. 28"
+          "new_client_sow": {
+            "form": "required",
+            "evidence": "recommended",
+            "description": "Source of Wealth Form must be completed for all new clients. Supporting evidence is recommended but not mandatory at LOW risk."
+          },
+          "authority": "Eventus AML PCPs, §§7, 11, 17; MLR 2017, reg. 28"
         },
         "MEDIUM": {
           "cdd_actions": [
@@ -200,7 +205,12 @@
           "edd": { "required": false },
           "sow": { "required": false },
           "sof": { "required": false },
-          "authority": "Eventus AML PCPs, §7; MLR 2017, regs. 28, 30"
+          "new_client_sow": {
+            "form": "required",
+            "evidence": "recommended",
+            "description": "Source of Wealth Form must be completed for all new clients. Supporting evidence is recommended but not mandatory at LOW risk."
+          },
+          "authority": "Eventus AML PCPs, §§7, 11; MLR 2017, regs. 28, 30"
         },
         "MEDIUM": {
           "cdd_actions": [
@@ -339,7 +349,12 @@
           "edd": { "required": false },
           "sow": { "required": false },
           "sof": { "required": false },
-          "authority": "Eventus AML PCPs, §7; MLR 2017, regs. 28, 30; LSAG 2025, §6.14"
+          "new_client_sow": {
+            "form": "required",
+            "evidence": "recommended",
+            "description": "Source of Wealth Form must be completed for all new clients. Supporting evidence is recommended but not mandatory at LOW risk."
+          },
+          "authority": "Eventus AML PCPs, §§7, 11; MLR 2017, regs. 28, 30; LSAG 2025, §6.14"
         },
         "MEDIUM": {
           "cdd_actions": [

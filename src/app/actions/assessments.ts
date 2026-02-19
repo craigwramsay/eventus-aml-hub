@@ -190,9 +190,17 @@ export async function submitAssessment(
       formAnswers: enrichedFormAnswers,
     });
 
+    // Fetch firm jurisdiction for input snapshot
+    const { data: firmData } = await supabase
+      .from('firms')
+      .select('jurisdiction')
+      .eq('id', profile.firm_id)
+      .single();
+
     const inputSnapshot = {
       clientType: derivedClientType,
       formAnswers: enrichedFormAnswers,
+      ...(firmData?.jurisdiction ? { jurisdiction: firmData.jurisdiction } : {}),
     };
 
     const { data, error: insertErr } = await supabase

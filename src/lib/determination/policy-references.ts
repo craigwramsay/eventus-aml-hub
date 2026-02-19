@@ -32,8 +32,16 @@ export const AUTOMATIC_OUTCOME_REFERENCES: Record<string, string[]> = {
 /** Threshold authority reference */
 export const THRESHOLD_AUTHORITY = 'PCP §4.6';
 
+/** Policy references for EDD triggers */
+export const EDD_TRIGGER_REFERENCES: Record<string, string[]> = {
+  client_account: ['PCP §20 §1.6', 'PWRA §2.4'],
+  tcsp_activity: ['PCP §20 §1.6', 'PWRA §2.4'],
+  cross_border_transaction: ['PCP §20 §1.6', 'PWRA §2.4'],
+  third_party_funder: ['PCP §20 §1.6', 'PWRA §2.4'],
+};
+
 /** Scoring model authority reference */
-export const SCORING_MODEL_AUTHORITY = 'Eventus Internal Risk Scoring Model v3.7';
+export const SCORING_MODEL_AUTHORITY = 'Eventus Internal Risk Scoring Model v3.8';
 
 /**
  * Collect all unique policy references for a determination
@@ -41,7 +49,8 @@ export const SCORING_MODEL_AUTHORITY = 'Eventus Internal Risk Scoring Model v3.7
 export function collectPolicyReferences(
   riskLevel: RiskLevel,
   categories: string[],
-  automaticOutcomeId: string | null
+  automaticOutcomeId: string | null,
+  eddTriggerIds?: string[]
 ): string[] {
   const refs = new Set<string>();
 
@@ -62,6 +71,14 @@ export function collectPolicyReferences(
   if (automaticOutcomeId) {
     const outcomeRefs = AUTOMATIC_OUTCOME_REFERENCES[automaticOutcomeId] || [];
     outcomeRefs.forEach((ref) => refs.add(ref));
+  }
+
+  // Add EDD trigger references
+  if (eddTriggerIds) {
+    for (const triggerId of eddTriggerIds) {
+      const triggerRefs = EDD_TRIGGER_REFERENCES[triggerId] || [];
+      triggerRefs.forEach((ref) => refs.add(ref));
+    }
   }
 
   // Sort references for deterministic output

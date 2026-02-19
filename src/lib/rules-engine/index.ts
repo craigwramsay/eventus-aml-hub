@@ -3,7 +3,7 @@
  *
  * Source-driven assessment engine that loads all rules from config.
  * No hardcoded rules - everything derived from:
- * - risk_scoring_v3_7.json
+ * - risk_scoring_v3_8.json
  * - cdd_ruleset.json
  * - CMLRA form configs
  */
@@ -17,7 +17,7 @@ import type {
 } from './types';
 
 import { getRiskScoringConfig, getCDDRulesetConfig } from './config-loader';
-import { calculateScore, generateRationale } from './scorer';
+import { calculateScore, generateRationale, checkEDDTriggers } from './scorer';
 import { getMandatoryActions } from './requirements';
 
 // Re-export types
@@ -30,6 +30,8 @@ export type {
   RiskFactorResult,
   AutomaticOutcomeResult,
   MandatoryAction,
+  EDDTriggerResult,
+  AssessmentWarning,
 } from './types';
 
 // Re-export config loader
@@ -78,6 +80,13 @@ export function runAssessment(input: AssessmentInput): AssessmentOutput {
     riskScoringConfig
   );
 
+  // Check for EDD triggers (does not change risk level)
+  const eddTriggers = checkEDDTriggers(
+    riskScoringConfig,
+    clientType,
+    formAnswers
+  );
+
   // Generate rationale
   const rationale = generateRationale(
     score,
@@ -87,12 +96,13 @@ export function runAssessment(input: AssessmentInput): AssessmentOutput {
     riskScoringConfig
   );
 
-  // Get mandatory actions
-  const mandatoryActions = getMandatoryActions(
+  // Get mandatory actions (pass EDD triggers for action injection)
+  const { actions: mandatoryActions, warnings } = getMandatoryActions(
     clientType,
     riskLevel,
     cddRulesetConfig,
-    formAnswers
+    formAnswers,
+    eddTriggers
   );
 
   return {
@@ -102,6 +112,8 @@ export function runAssessment(input: AssessmentInput): AssessmentOutput {
     riskFactors,
     rationale,
     mandatoryActions,
+    eddTriggers,
+    warnings,
     timestamp: new Date().toISOString(),
   };
 }

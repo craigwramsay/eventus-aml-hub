@@ -11,6 +11,9 @@ import type {
   CDDRulesetConfig,
   CDDRiskLevelConfig,
   CDDAction,
+  EDDTriggerResult,
+  AssessmentWarning,
+  FormAnswers,
 } from './types';
 
 /**
@@ -21,13 +24,19 @@ function mapCDDAction(
   category: MandatoryAction['category'],
   priority: MandatoryAction['priority']
 ): MandatoryAction {
-  return {
+  const mapped: MandatoryAction = {
     actionId: action.action,
     actionName: action.action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
     description: action.description,
     category,
     priority,
   };
+
+  if (action.evidence_types && action.evidence_types.length > 0) {
+    mapped.evidenceTypes = action.evidence_types;
+  }
+
+  return mapped;
 }
 
 /**
@@ -160,30 +169,66 @@ function extractActionsFromConfig(
   return actions;
 }
 
+/** Entity type values from the corporate CMLRA form that map to excluded types */
+const EXCLUDED_ENTITY_PATTERNS: Array<{ pattern: string; label: string }> = [
+  { pattern: 'Trustee(s) of a trust', label: 'Trust' },
+  { pattern: 'Unincorporated association', label: 'Unincorporated association' },
+];
+
 /**
- * Get the appropriate CDD client type key from our client type
+ * Get the appropriate CDD client type key from our client type.
+ * Also checks for entity exclusions and returns warnings.
  */
 function getCDDClientTypeKey(
   clientType: ClientType,
-  formAnswers?: Record<string, string | string[]>
-): keyof CDDRulesetConfig['clientTypes'] {
+  formAnswers?: FormAnswers
+): { key: keyof CDDRulesetConfig['clientTypes']; warnings: AssessmentWarning[] } {
+  const warnings: AssessmentWarning[] = [];
+
   if (clientType === 'individual') {
-    return 'individual';
+    return { key: 'individual', warnings };
   }
 
-  // For corporate, could be company, LLP, or partnership
-  // Default to UK private limited company for now
-  // Could be enhanced to check form field for entity type
+  let key: keyof CDDRulesetConfig['clientTypes'] = 'uk_private_limited_company';
+
   if (formAnswers) {
     const entityType = formAnswers['10']; // Entity type field
     if (typeof entityType === 'string') {
       if (entityType.includes('LLP') || entityType.includes('Partnership')) {
-        return 'uk_llp';
+        key = 'uk_llp';
+      }
+
+      // Check for excluded entity types
+      for (const excluded of EXCLUDED_ENTITY_PATTERNS) {
+        if (entityType === excluded.pattern) {
+          warnings.push({
+            warningId: `excluded_entity_${excluded.label.toLowerCase().replace(/\s+/g, '_')}`,
+            message: `Entity type "${excluded.label}" falls outside the standard CDD ruleset. This matter must be assessed by reference to the Eventus AML PCPs and escalated to the MLRO for bespoke assessment.`,
+            authority: 'CDD Ruleset - Exclusions; Eventus AML PCPs',
+          });
+        }
       }
     }
   }
 
-  return 'uk_private_limited_company';
+  return { key, warnings };
+}
+
+/** Return type for getMandatoryActions including warnings */
+export interface MandatoryActionsResult {
+  actions: MandatoryAction[];
+  warnings: AssessmentWarning[];
+}
+
+/**
+ * Check if the client is new based on form answers
+ */
+function isNewClient(clientType: ClientType, formAnswers?: FormAnswers): boolean {
+  if (!formAnswers) return false;
+  // Individual: field 3, Corporate: field 16
+  const fieldId = clientType === 'individual' ? '3' : '16';
+  const answer = formAnswers[fieldId];
+  return answer === 'New client';
 }
 
 /**
@@ -193,18 +238,19 @@ export function getMandatoryActions(
   clientType: ClientType,
   riskLevel: RiskLevel,
   config: CDDRulesetConfig,
-  formAnswers?: Record<string, string | string[]>
-): MandatoryAction[] {
-  const clientTypeKey = getCDDClientTypeKey(clientType, formAnswers);
+  formAnswers?: FormAnswers,
+  eddTriggers?: EDDTriggerResult[]
+): MandatoryActionsResult {
+  const { key: clientTypeKey, warnings } = getCDDClientTypeKey(clientType, formAnswers);
   const clientConfig = config.clientTypes[clientTypeKey];
 
   if (!clientConfig) {
-    return [];
+    return { actions: [], warnings };
   }
 
   const riskConfig = clientConfig.riskLevels[riskLevel];
   if (!riskConfig) {
-    return [];
+    return { actions: [], warnings };
   }
 
   const actions = extractActionsFromConfig(riskConfig, riskLevel === 'HIGH');
@@ -237,13 +283,77 @@ export function getMandatoryActions(
     }
   }
 
+  // Gap 3: New client SoW at LOW risk
+  if (riskLevel === 'LOW' && isNewClient(clientType, formAnswers)) {
+    const sowConfig = riskConfig.new_client_sow;
+    if (sowConfig) {
+      // Add SoW form (required)
+      if (!actions.find((a) => a.actionId === 'sow_form')) {
+        actions.push({
+          actionId: 'sow_form',
+          actionName: 'Source of Wealth',
+          description: 'Complete and retain Source of Wealth Form (new client requirement)',
+          category: 'sow',
+          priority: sowConfig.form,
+        });
+      }
+      // Add SoW evidence (recommended at LOW)
+      if (!actions.find((a) => a.actionId === 'sow_evidence_new_client')) {
+        actions.push({
+          actionId: 'sow_evidence_new_client',
+          actionName: 'Source of Wealth Evidence',
+          description: 'Obtain supporting evidence aligned to the declared source of wealth',
+          category: 'sow',
+          priority: sowConfig.evidence,
+        });
+      }
+    }
+  }
+
+  // Gap 1: EDD trigger injection - add EDD actions from HIGH config when triggers are present
+  if (eddTriggers && eddTriggers.length > 0 && riskLevel !== 'HIGH') {
+    const highConfig = clientConfig.riskLevels['HIGH'];
+    if (highConfig?.edd?.actions) {
+      // Add the EDD required marker
+      if (!actions.find((a) => a.actionId === 'edd_required')) {
+        actions.push({
+          actionId: 'edd_required',
+          actionName: 'Enhanced Due Diligence',
+          description: 'Enhanced Due Diligence is required due to EDD triggers detected',
+          category: 'edd',
+          priority: 'required',
+        });
+      }
+      // Add individual EDD actions from HIGH config
+      for (const eddAction of highConfig.edd.actions) {
+        if (!actions.find((a) => a.actionId === eddAction.action)) {
+          actions.push(mapCDDAction(eddAction, 'edd', 'required'));
+        }
+      }
+    }
+    // Also add enhanced monitoring if not already present
+    if (highConfig?.enhanced_monitoring?.required) {
+      if (!actions.find((a) => a.actionId === 'enhanced_monitoring')) {
+        actions.push({
+          actionId: 'enhanced_monitoring',
+          actionName: 'Enhanced Ongoing Monitoring',
+          description: highConfig.enhanced_monitoring.description,
+          category: 'monitoring',
+          priority: 'required',
+        });
+      }
+    }
+  }
+
   // Deduplicate by actionId
   const seen = new Set<string>();
-  return actions.filter((action) => {
+  const deduped = actions.filter((action) => {
     if (seen.has(action.actionId)) {
       return false;
     }
     seen.add(action.actionId);
     return true;
   });
+
+  return { actions: deduped, warnings };
 }

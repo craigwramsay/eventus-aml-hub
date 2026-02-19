@@ -46,8 +46,14 @@ export default async function DeterminationPage({ params }: PageProps) {
     finalised_at: assessment.finalised_at,
   };
 
-  // Render the determination
-  const determination = renderDetermination(assessmentRecord);
+  // Read jurisdiction from snapshot (stored at assessment creation time)
+  const jurisdiction = assessmentRecord.input_snapshot.jurisdiction;
+
+  // Render the determination (jurisdiction from snapshot, or options override)
+  const determination = renderDetermination(
+    assessmentRecord,
+    jurisdiction ? { jurisdiction } : undefined
+  );
 
   const isFinalised = assessment.finalised_at !== null;
 

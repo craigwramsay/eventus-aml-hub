@@ -40,8 +40,24 @@ export interface MandatoryAction {
   actionId: string;
   actionName: string;
   description: string;
-  category: 'cdd' | 'edd' | 'sow' | 'sof' | 'monitoring';
+  category: 'cdd' | 'edd' | 'sow' | 'sof' | 'monitoring' | 'escalation';
   priority: 'required' | 'recommended';
+  evidenceTypes?: string[];
+}
+
+/** EDD trigger result from config-driven detection */
+export interface EDDTriggerResult {
+  triggerId: string;
+  description: string;
+  authority: string;
+  triggeredBy: string;
+}
+
+/** Assessment warning (e.g. entity exclusion) */
+export interface AssessmentWarning {
+  warningId: string;
+  message: string;
+  authority: string;
 }
 
 /** Output from runAssessment */
@@ -63,6 +79,12 @@ export interface AssessmentOutput {
 
   /** Mandatory CDD/EDD actions based on risk level and client type */
   mandatoryActions: MandatoryAction[];
+
+  /** EDD triggers detected (does not change risk level) */
+  eddTriggers: EDDTriggerResult[];
+
+  /** Warnings (e.g. entity exclusions requiring MLRO escalation) */
+  warnings: AssessmentWarning[];
 
   /** Timestamp of assessment */
   timestamp: string;
@@ -115,6 +137,21 @@ export interface AutomaticOutcome {
   triggers: AutomaticOutcomeTrigger[];
 }
 
+/** EDD trigger configuration in scoring config */
+export interface EDDTriggerConfig {
+  id: string;
+  description: string;
+  authority: string;
+  fieldMapping: {
+    individual?: string;
+    corporate?: string;
+  };
+  condition: {
+    type: 'equals';
+    value: string;
+  };
+}
+
 export interface RiskScoringConfig {
   meta: {
     source: string;
@@ -127,6 +164,7 @@ export interface RiskScoringConfig {
   thresholds: Record<RiskLevel, ScoringThreshold>;
   thresholdAuthority: string;
   automaticOutcomes: Record<string, AutomaticOutcome>;
+  eddTriggers?: EDDTriggerConfig[];
   scoringFactors: {
     corporate: Record<string, ScoringSection>;
     individual: Record<string, ScoringSection>;
@@ -161,6 +199,11 @@ export interface CDDRiskLevelConfig {
   sof?: {
     required: boolean;
     actions?: CDDAction[];
+  };
+  new_client_sow?: {
+    form: 'required' | 'recommended';
+    evidence: 'required' | 'recommended';
+    description: string;
   };
   authority?: string;
 }

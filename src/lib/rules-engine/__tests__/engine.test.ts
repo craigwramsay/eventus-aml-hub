@@ -412,6 +412,305 @@ describe('AML Rules Engine', () => {
     });
   });
 
+  describe('EDD Triggers (Gap 1)', () => {
+    it('should detect client account EDD trigger for individual', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '35': 'Yes', // Funds movement
+        '36': 'Yes', // Client account
+      };
+      const result = assessIndividual(answers);
+
+      expect(result.eddTriggers.length).toBeGreaterThan(0);
+      const clientAccountTrigger = result.eddTriggers.find(
+        (t) => t.triggerId === 'client_account'
+      );
+      expect(clientAccountTrigger).toBeDefined();
+      expect(clientAccountTrigger?.authority).toContain('PCP §20');
+    });
+
+    it('should detect third party funder EDD trigger for individual', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '35': 'Yes',
+        '38': 'Third party', // Third party funder
+      };
+      const result = assessIndividual(answers);
+
+      const thirdPartyTrigger = result.eddTriggers.find(
+        (t) => t.triggerId === 'third_party_funder'
+      );
+      expect(thirdPartyTrigger).toBeDefined();
+    });
+
+    it('should detect cross-border EDD trigger for individual', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '35': 'Yes',
+        '42': 'Yes', // Cross-border
+      };
+      const result = assessIndividual(answers);
+
+      const crossBorderTrigger = result.eddTriggers.find(
+        (t) => t.triggerId === 'cross_border_transaction'
+      );
+      expect(crossBorderTrigger).toBeDefined();
+    });
+
+    it('should detect TCSP activity EDD trigger for individual', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '50': 'Yes', // TCSP activity
+      };
+      const result = assessIndividual(answers);
+
+      const tcspTrigger = result.eddTriggers.find(
+        (t) => t.triggerId === 'tcsp_activity'
+      );
+      expect(tcspTrigger).toBeDefined();
+    });
+
+    it('should detect EDD triggers for corporate client', () => {
+      const answers: FormAnswers = {
+        ...CORPORATE_FIXTURES.lowRisk,
+        '54': 'Yes',
+        '55': 'Yes', // Client account
+      };
+      const result = assessCorporate(answers);
+
+      const clientAccountTrigger = result.eddTriggers.find(
+        (t) => t.triggerId === 'client_account'
+      );
+      expect(clientAccountTrigger).toBeDefined();
+    });
+
+    it('should NOT change risk level when EDD triggers fire at LOW', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '35': 'Yes',
+        '36': 'Yes', // Client account trigger
+      };
+      const result = assessIndividual(answers);
+
+      // Risk level should remain LOW - triggers don't change it
+      expect(result.riskLevel).toBe('LOW');
+      expect(result.eddTriggers.length).toBeGreaterThan(0);
+    });
+
+    it('should inject EDD actions when triggers present at LOW risk', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '35': 'Yes',
+        '36': 'Yes', // Client account trigger
+      };
+      const result = assessIndividual(answers);
+
+      // Should have EDD actions injected
+      const eddActions = result.mandatoryActions.filter(
+        (a) => a.category === 'edd'
+      );
+      expect(eddActions.length).toBeGreaterThan(0);
+    });
+
+    it('should return empty triggers when no conditions met', () => {
+      const result = assessIndividual(INDIVIDUAL_FIXTURES.lowRisk);
+      expect(result.eddTriggers).toEqual([]);
+    });
+  });
+
+  describe('Entity Exclusion Warnings (Gap 2)', () => {
+    it('should warn for Trust entity type', () => {
+      const answers: FormAnswers = {
+        ...CORPORATE_FIXTURES.lowRisk,
+        '10': 'Trustee(s) of a trust',
+      };
+      const result = assessCorporate(answers);
+
+      expect(result.warnings.length).toBeGreaterThan(0);
+      expect(result.warnings[0].message).toContain('Trust');
+      expect(result.warnings[0].message).toContain('MLRO');
+    });
+
+    it('should warn for Unincorporated association', () => {
+      const answers: FormAnswers = {
+        ...CORPORATE_FIXTURES.lowRisk,
+        '10': 'Unincorporated association',
+      };
+      const result = assessCorporate(answers);
+
+      expect(result.warnings.length).toBeGreaterThan(0);
+      expect(result.warnings[0].message).toContain('Unincorporated association');
+    });
+
+    it('should not warn for standard corporate entity types', () => {
+      const result = assessCorporate(CORPORATE_FIXTURES.lowRisk);
+      expect(result.warnings.length).toBe(0);
+    });
+
+    it('should still produce a risk assessment despite exclusion warning', () => {
+      const answers: FormAnswers = {
+        ...CORPORATE_FIXTURES.lowRisk,
+        '10': 'Trustee(s) of a trust',
+      };
+      const result = assessCorporate(answers);
+
+      // Engine should still run
+      expect(result.score).toBeDefined();
+      expect(result.riskLevel).toBeDefined();
+      expect(result.mandatoryActions.length).toBeGreaterThan(0);
+      expect(result.warnings.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('New Client SoW at LOW Risk (Gap 3)', () => {
+    it('should include SoW for new individual at LOW risk', () => {
+      const result = assessIndividual(INDIVIDUAL_FIXTURES.lowRisk);
+      // lowRisk fixture has '3': 'New client'
+      expect(result.riskLevel).toBe('LOW');
+
+      const sowActions = result.mandatoryActions.filter(
+        (a) => a.category === 'sow'
+      );
+      expect(sowActions.length).toBeGreaterThan(0);
+    });
+
+    it('should mark SoW form as required and evidence as recommended for new LOW client', () => {
+      const result = assessIndividual(INDIVIDUAL_FIXTURES.lowRisk);
+
+      const sowForm = result.mandatoryActions.find(
+        (a) => a.actionId === 'sow_form'
+      );
+      expect(sowForm).toBeDefined();
+      expect(sowForm?.priority).toBe('required');
+
+      const sowEvidence = result.mandatoryActions.find(
+        (a) => a.actionId === 'sow_evidence_new_client'
+      );
+      expect(sowEvidence).toBeDefined();
+      expect(sowEvidence?.priority).toBe('recommended');
+    });
+
+    it('should NOT include new client SoW for existing client at LOW risk', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '3': 'Existing client',
+      };
+      const result = assessIndividual(answers);
+
+      expect(result.riskLevel).toBe('LOW');
+      const sowActions = result.mandatoryActions.filter(
+        (a) => a.category === 'sow'
+      );
+      // Existing client at LOW should not have SoW
+      expect(sowActions.length).toBe(0);
+    });
+
+    it('should include SoW for new corporate at LOW risk', () => {
+      const result = assessCorporate(CORPORATE_FIXTURES.lowRisk);
+      expect(result.riskLevel).toBe('LOW');
+
+      const sowActions = result.mandatoryActions.filter(
+        (a) => a.category === 'sow'
+      );
+      expect(sowActions.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Evidence Types (Gap 4)', () => {
+    it('should include evidence types in SoW actions at MEDIUM risk', () => {
+      const result = assessIndividual(INDIVIDUAL_FIXTURES.mediumRisk);
+      expect(result.riskLevel).toBe('MEDIUM');
+
+      const sowEvidenceAction = result.mandatoryActions.find(
+        (a) => a.category === 'sow' && a.evidenceTypes && a.evidenceTypes.length > 0
+      );
+      expect(sowEvidenceAction).toBeDefined();
+      expect(sowEvidenceAction?.evidenceTypes?.length).toBeGreaterThan(0);
+    });
+
+    it('should include evidence types in corporate SoW actions at MEDIUM risk', () => {
+      const result = assessCorporate(CORPORATE_FIXTURES.mediumRisk);
+      expect(result.riskLevel).toBe('MEDIUM');
+
+      const sowEvidenceAction = result.mandatoryActions.find(
+        (a) => a.category === 'sow' && a.evidenceTypes && a.evidenceTypes.length > 0
+      );
+      expect(sowEvidenceAction).toBeDefined();
+    });
+  });
+
+  describe('Delivery Channel Scoring (Gap 6)', () => {
+    it('should add +1 for remote delivery channel (individual)', () => {
+      const baseAnswers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '3': 'Existing client', // 0 score from this
+        '52': 'Remote (non-face-to-face)', // +1
+      };
+      const result = assessIndividual(baseAnswers);
+
+      const channelFactor = result.riskFactors.find(
+        (f) => f.factorId === 'delivery_channel'
+      );
+      expect(channelFactor).toBeDefined();
+      expect(channelFactor?.score).toBe(1);
+    });
+
+    it('should add +1 for intermediary delivery channel (individual)', () => {
+      const baseAnswers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '3': 'Existing client',
+        '52': 'Via intermediary or referrer', // +1
+      };
+      const result = assessIndividual(baseAnswers);
+
+      const channelFactor = result.riskFactors.find(
+        (f) => f.factorId === 'delivery_channel'
+      );
+      expect(channelFactor).toBeDefined();
+      expect(channelFactor?.score).toBe(1);
+    });
+
+    it('should add 0 for face-to-face delivery channel', () => {
+      const baseAnswers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '52': 'Face-to-face',
+      };
+      const result = assessIndividual(baseAnswers);
+
+      const channelFactor = result.riskFactors.find(
+        (f) => f.factorId === 'delivery_channel'
+      );
+      expect(channelFactor).toBeDefined();
+      expect(channelFactor?.score).toBe(0);
+    });
+
+    it('should score delivery channel for corporate', () => {
+      const baseAnswers: FormAnswers = {
+        ...CORPORATE_FIXTURES.lowRisk,
+        '72': 'Remote (non-face-to-face)', // +1
+      };
+      const result = assessCorporate(baseAnswers);
+
+      const channelFactor = result.riskFactors.find(
+        (f) => f.factorId === 'delivery_channel'
+      );
+      expect(channelFactor).toBeDefined();
+      expect(channelFactor?.score).toBe(1);
+    });
+  });
+
+  describe('Output Structure', () => {
+    it('should always include eddTriggers array in output', () => {
+      const result = assessIndividual(INDIVIDUAL_FIXTURES.lowRisk);
+      expect(Array.isArray(result.eddTriggers)).toBe(true);
+    });
+
+    it('should always include warnings array in output', () => {
+      const result = assessIndividual(INDIVIDUAL_FIXTURES.lowRisk);
+      expect(Array.isArray(result.warnings)).toBe(true);
+    });
+  });
+
   describe('Boundary Cases', () => {
     it('should handle score exactly at LOW/MEDIUM boundary (4)', () => {
       // Create input that scores exactly 4 (boundary of LOW)

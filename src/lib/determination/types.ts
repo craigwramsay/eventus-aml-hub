@@ -24,6 +24,7 @@ export interface InputSnapshot {
   formAnswers: Record<string, string | string[]>;
   formVersion?: string | null;
   assessedAt: string;
+  jurisdiction?: 'scotland' | 'england_and_wales';
 }
 
 /** Risk factor from output snapshot */
@@ -41,8 +42,24 @@ export interface MandatoryActionSnapshot {
   actionId: string;
   actionName: string;
   description: string;
-  category: 'cdd' | 'edd' | 'sow' | 'sof' | 'monitoring';
+  category: 'cdd' | 'edd' | 'sow' | 'sof' | 'monitoring' | 'escalation';
   priority: 'required' | 'recommended';
+  evidenceTypes?: string[];
+}
+
+/** EDD trigger from output snapshot */
+export interface EDDTriggerSnapshot {
+  triggerId: string;
+  description: string;
+  authority: string;
+  triggeredBy: string;
+}
+
+/** Assessment warning from output snapshot */
+export interface AssessmentWarningSnapshot {
+  warningId: string;
+  message: string;
+  authority: string;
 }
 
 /** Automatic outcome from output snapshot */
@@ -60,6 +77,8 @@ export interface OutputSnapshot {
   riskFactors: RiskFactorSnapshot[];
   rationale: string[];
   mandatoryActions: MandatoryActionSnapshot[];
+  eddTriggers?: EDDTriggerSnapshot[];
+  warnings?: AssessmentWarningSnapshot[];
   timestamp: string;
 }
 

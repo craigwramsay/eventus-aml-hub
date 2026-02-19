@@ -512,7 +512,7 @@ describe('renderDetermination', () => {
 
     it('includes scoring model authority', () => {
       const result = renderDetermination(LOW_RISK_ASSESSMENT);
-      expect(result.determinationText).toContain('Scoring Model: Eventus Internal Risk Scoring Model v3.7');
+      expect(result.determinationText).toContain('Scoring Model: Eventus Internal Risk Scoring Model v3.8');
     });
 
     it('includes applicable policy sections header', () => {
@@ -588,6 +588,184 @@ describe('renderDetermination', () => {
       const result1 = renderDetermination(LOW_RISK_ASSESSMENT, { jurisdiction: 'scotland' });
       const result2 = renderDetermination(LOW_RISK_ASSESSMENT, { jurisdiction: 'scotland' });
       expect(result1.determinationText).toBe(result2.determinationText);
+    });
+
+    it('reads jurisdiction from input_snapshot when options not provided (Gap 5)', () => {
+      const assessmentWithJurisdiction: AssessmentRecord = {
+        ...LOW_RISK_ASSESSMENT,
+        input_snapshot: {
+          ...LOW_RISK_ASSESSMENT.input_snapshot,
+          jurisdiction: 'scotland',
+        },
+      };
+
+      const result = renderDetermination(assessmentWithJurisdiction);
+      expect(result.determinationText).toContain('Jurisdiction: Scotland');
+      expect(result.determinationText).toContain('Regulator: Law Society of Scotland');
+    });
+
+    it('prefers options jurisdiction over snapshot jurisdiction', () => {
+      const assessmentWithJurisdiction: AssessmentRecord = {
+        ...LOW_RISK_ASSESSMENT,
+        input_snapshot: {
+          ...LOW_RISK_ASSESSMENT.input_snapshot,
+          jurisdiction: 'scotland',
+        },
+      };
+
+      const result = renderDetermination(assessmentWithJurisdiction, { jurisdiction: 'england_and_wales' });
+      expect(result.determinationText).toContain('Jurisdiction: England & Wales');
+    });
+  });
+
+  describe('EDD Triggers Section (Gap 1)', () => {
+    const ASSESSMENT_WITH_TRIGGERS: AssessmentRecord = {
+      ...LOW_RISK_ASSESSMENT,
+      output_snapshot: {
+        ...LOW_RISK_ASSESSMENT.output_snapshot,
+        eddTriggers: [
+          {
+            triggerId: 'client_account',
+            description: 'Matter involves receipt of funds into Eventus\' client account',
+            authority: 'PCP §20 §1.6; PWRA §2.4',
+            triggeredBy: 'Field 36: "Yes"',
+          },
+        ],
+      },
+    };
+
+    it('includes EDD TRIGGERS section when triggers present', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_TRIGGERS);
+      expect(result.determinationText).toContain('EDD TRIGGERS');
+      expect(result.determinationText).toContain('client account');
+    });
+
+    it('shows trigger authority', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_TRIGGERS);
+      expect(result.determinationText).toContain('PCP §20');
+    });
+
+    it('omits EDD TRIGGERS section when no triggers', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      expect(result.determinationText).not.toContain('EDD TRIGGERS');
+    });
+
+    it('places EDD TRIGGERS after RISK DETERMINATION', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_TRIGGERS);
+      const text = result.determinationText;
+      const riskDetIndex = text.indexOf('RISK DETERMINATION');
+      const eddTriggersIndex = text.indexOf('EDD TRIGGERS');
+      const riskFactorsIndex = text.indexOf('TRIGGERED RISK FACTORS');
+      expect(eddTriggersIndex).toBeGreaterThan(riskDetIndex);
+      expect(eddTriggersIndex).toBeLessThan(riskFactorsIndex);
+    });
+  });
+
+  describe('Evidence Types in Actions (Gap 4)', () => {
+    const ASSESSMENT_WITH_EVIDENCE: AssessmentRecord = {
+      ...MEDIUM_RISK_ASSESSMENT,
+      output_snapshot: {
+        ...MEDIUM_RISK_ASSESSMENT.output_snapshot,
+        mandatoryActions: [
+          ...MEDIUM_RISK_ASSESSMENT.output_snapshot.mandatoryActions,
+          {
+            actionId: 'obtain_evidence',
+            actionName: 'Obtain Evidence',
+            description: 'Obtain supporting evidence aligned to the declared source of wealth',
+            category: 'sow',
+            priority: 'required',
+            evidenceTypes: ['payslips or tax returns', 'bank statements'],
+          },
+        ],
+      },
+    };
+
+    it('shows evidence types under actions that have them', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_EVIDENCE);
+      expect(result.determinationText).toContain('Supporting evidence:');
+      expect(result.determinationText).toContain('payslips or tax returns');
+      expect(result.determinationText).toContain('bank statements');
+    });
+  });
+
+  describe('Warnings Section (Gap 2)', () => {
+    const ASSESSMENT_WITH_WARNINGS: AssessmentRecord = {
+      ...LOW_RISK_ASSESSMENT,
+      output_snapshot: {
+        ...LOW_RISK_ASSESSMENT.output_snapshot,
+        warnings: [
+          {
+            warningId: 'excluded_entity_trust',
+            message: 'Entity type "Trust" falls outside the standard CDD ruleset. This matter must be assessed by reference to the Eventus AML PCPs and escalated to the MLRO for bespoke assessment.',
+            authority: 'CDD Ruleset - Exclusions; Eventus AML PCPs',
+          },
+        ],
+      },
+    };
+
+    it('includes WARNINGS section when warnings present', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_WARNINGS);
+      expect(result.determinationText).toContain('WARNINGS');
+      expect(result.determinationText).toContain('MLRO ESCALATION REQUIRED');
+    });
+
+    it('shows warning message and authority', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_WARNINGS);
+      expect(result.determinationText).toContain('Trust');
+      expect(result.determinationText).toContain('CDD Ruleset - Exclusions');
+    });
+
+    it('omits WARNINGS section when no warnings', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      expect(result.determinationText).not.toContain('WARNINGS');
+    });
+
+    it('places WARNINGS after MANDATORY ACTIONS', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_WARNINGS);
+      const text = result.determinationText;
+      const actionsIndex = text.indexOf('MANDATORY ACTIONS');
+      const warningsIndex = text.indexOf('WARNINGS');
+      const policyIndex = text.indexOf('POLICY REFERENCES');
+      expect(warningsIndex).toBeGreaterThan(actionsIndex);
+      expect(warningsIndex).toBeLessThan(policyIndex);
+    });
+  });
+
+  describe('Recommended Priority Label', () => {
+    const ASSESSMENT_WITH_RECOMMENDED: AssessmentRecord = {
+      ...LOW_RISK_ASSESSMENT,
+      output_snapshot: {
+        ...LOW_RISK_ASSESSMENT.output_snapshot,
+        mandatoryActions: [
+          {
+            actionId: 'sow_form',
+            actionName: 'Source of Wealth',
+            description: 'Complete and retain Source of Wealth Form',
+            category: 'sow',
+            priority: 'required',
+          },
+          {
+            actionId: 'sow_evidence_new_client',
+            actionName: 'Source of Wealth Evidence',
+            description: 'Obtain supporting evidence',
+            category: 'sow',
+            priority: 'recommended',
+          },
+        ],
+      },
+    };
+
+    it('shows [Recommended] label for recommended priority actions', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_RECOMMENDED);
+      expect(result.determinationText).toContain('[Recommended]');
+    });
+
+    it('does not show [Recommended] for required actions', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_RECOMMENDED);
+      // Source of Wealth form is required, should not have [Recommended]
+      const lines = result.determinationText.split('\n');
+      const sowFormLine = lines.find(l => l.includes('Source of Wealth') && !l.includes('Evidence'));
+      expect(sowFormLine).not.toContain('[Recommended]');
     });
   });
 });
