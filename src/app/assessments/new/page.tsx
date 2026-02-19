@@ -59,7 +59,7 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
   }
 
   // Derive client type from the client
-  const derivedClientType = matter.client.client_type;
+  const derivedClientType = (matter.client.entity_type === 'Individual' ? 'individual' : 'corporate') as 'individual' | 'corporate';
 
   return (
     <div className={styles.container}>
@@ -93,7 +93,6 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
 
       <AssessmentForm
         matterId={matter.id}
-        clientName={matter.client.name}
         derivedClientType={derivedClientType}
         individualFormConfig={individualFormConfig}
         corporateFormConfig={corporateFormConfig}

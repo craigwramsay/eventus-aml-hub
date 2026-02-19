@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { getAssessmentWithDetails } from '@/app/actions/assessment';
+import { getAssessmentWithDetails } from '@/app/actions/assessments';
+import { getUserProfile } from '@/lib/supabase/server';
+import { canFinaliseAssessment } from '@/lib/auth/roles';
 import { FinaliseButton } from './FinaliseButton';
 import type { RiskFactorResult, MandatoryAction } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
@@ -40,15 +42,17 @@ export default async function AssessmentViewPage({ params }: PageProps) {
       <div className={styles.errorContainer}>
         <h1 className={styles.errorTitle}>Assessment Not Found</h1>
         <p className={styles.errorMessage}>{result.error}</p>
-        <a href="/" className={styles.backLink}>
+        <Link href="/" className={styles.backLink}>
           Return to home
-        </a>
+        </Link>
       </div>
     );
   }
 
   const { assessment, client, matter, outputSnapshot } = result.data;
   const isFinalised = assessment.finalised_at !== null;
+  const profile = await getUserProfile();
+  const canFinalise = profile ? canFinaliseAssessment(profile.role) : false;
 
   return (
     <div className={styles.container}>
@@ -81,7 +85,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         >
           View Risk Determination
         </Link>
-        {!isFinalised && <FinaliseButton assessmentId={assessment.id} />}
+        {!isFinalised && canFinalise && <FinaliseButton assessmentId={assessment.id} />}
       </div>
 
       {/* Client & Matter Section */}

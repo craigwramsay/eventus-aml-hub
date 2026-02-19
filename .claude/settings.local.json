@@ -7,7 +7,12 @@
       "Bash(npx tsc:*)",
       "Bash(npm run build:*)",
       "Bash(npx ts-node:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(ls -la \"C:\\\\Users\\\\craig\\\\eventus-aml-hub\\\\src\\\\config\"\" 2>&1 || echo \"Directory not found \")",
+      "Bash(npm run lint:*)",
+      "Bash(npx supabase:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git add:*)"
     ]
   }
 }

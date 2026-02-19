@@ -7,6 +7,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 export interface LoginInput {
   email: string;
@@ -31,6 +33,17 @@ export async function signIn(input: LoginInput): Promise<AuthResult> {
     };
   }
 
+  // Rate limit by IP
+  const headersList = await headers();
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const rateCheck = checkRateLimit(`login:${ip}`, RATE_LIMITS.login);
+  if (!rateCheck.allowed) {
+    return {
+      success: false,
+      error: 'Too many login attempts. Please try again later.',
+    };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -39,6 +52,8 @@ export async function signIn(input: LoginInput): Promise<AuthResult> {
   });
 
   if (error) {
+    // Log failed login attempt for audit
+    console.warn(`Failed login attempt for ${email} from ${ip}: ${error.message}`);
     return {
       success: false,
       error: error.message,

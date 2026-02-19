@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { finaliseAssessment } from '@/app/actions/assessment';
+import { finaliseAssessment } from '@/app/actions/assessments';
 import styles from './page.module.css';
 
 interface FinaliseButtonProps {

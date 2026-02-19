@@ -15,20 +15,24 @@ export type Json =
 
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
+import type { UserRole } from '@/lib/auth/roles';
+
 // Row types for reading from database
 export interface UserProfile {
-  id: string;
+  user_id: string;
   firm_id: string;
-  email: string;
+  email: string | null;
   full_name: string | null;
-  role: string;
+  role: UserRole;
   created_at: string;
-  updated_at: string;
 }
+
+export type Jurisdiction = 'scotland' | 'england_and_wales';
 
 export interface Firm {
   id: string;
   name: string;
+  jurisdiction: Jurisdiction;
   created_at: string;
   updated_at: string;
 }
@@ -37,10 +41,18 @@ export interface Client {
   id: string;
   firm_id: string;
   name: string;
-  client_type: 'individual' | 'corporate';
+  entity_type: string;
+  client_type: string;
+  sector: string;
+  clio_contact_id?: string | null;
+  registered_number?: string | null;
+  registered_address?: string | null;
+  trading_address?: string | null;
+  aml_regulated?: boolean;
   created_at: string;
   updated_at: string;
 }
+
 
 export interface Matter {
   id: string;
@@ -78,6 +90,16 @@ export interface AuditEvent {
   created_by: string;
 }
 
+export interface UserInvitation {
+  id: string;
+  firm_id: string;
+  email: string;
+  role: UserRole;
+  invited_by: string;
+  accepted_at: string | null;
+  created_at: string;
+}
+
 export type SourceType = 'external' | 'internal';
 
 export interface AssistantSource {
@@ -101,7 +123,7 @@ export interface Database {
     Tables: {
       user_profiles: {
         Row: UserProfile;
-        Insert: Partial<UserProfile> & Pick<UserProfile, 'id' | 'firm_id' | 'email'>;
+        Insert: Partial<UserProfile> & Pick<UserProfile, 'user_id' | 'firm_id'>;
         Update: Partial<UserProfile>;
       };
       firms: {
@@ -111,7 +133,7 @@ export interface Database {
       };
       clients: {
         Row: Client;
-        Insert: Partial<Client> & Pick<Client, 'firm_id' | 'name' | 'client_type'>;
+        Insert: Partial<Client> & Pick<Client, 'firm_id' | 'name' | 'entity_type'>;
         Update: Partial<Client>;
       };
       matters: {
@@ -133,6 +155,11 @@ export interface Database {
         Row: AssistantSource;
         Insert: Partial<AssistantSource> & Pick<AssistantSource, 'firm_id' | 'source_type' | 'source_name' | 'section_ref' | 'topics' | 'content'>;
         Update: Partial<AssistantSource>;
+      };
+      user_invitations: {
+        Row: UserInvitation;
+        Insert: Partial<UserInvitation> & Pick<UserInvitation, 'firm_id' | 'email' | 'role' | 'invited_by'>;
+        Update: Partial<UserInvitation>;
       };
     };
     Views: Record<string, never>;

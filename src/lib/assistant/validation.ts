@@ -17,8 +17,9 @@ const CLIENT_DATA_PATTERNS = [
 
   // Financial data
   /\b(bank[_\s]?account|account[_\s]?number|sort[_\s]?code|iban|bic|swift)\b/i,
-  /\b(source[_\s]?of[_\s]?wealth|sow)\b/i,
-  /\b(source[_\s]?of[_\s]?funds|sof)\b/i,
+  // SoW/SoF only match when followed by actual data (e.g. "SoF: £50,000")
+  /\b(source[_\s]?of[_\s]?wealth|sow)\s*[:=]\s*\S/i,
+  /\b(source[_\s]?of[_\s]?funds|sof)\s*[:=]\s*\S/i,
 
   // Contact information
   /\b(email[_\s]?address|phone[_\s]?number|mobile|telephone)\b/i,
@@ -38,6 +39,8 @@ const PERSONAL_DATA_VALUE_PATTERNS = [
   /\b[A-Z]{2}\s*\d{2}\s*\d{2}\s*\d{2}\s*[A-Z]\b/i,
   // Dates that look like DOBs (DD/MM/YYYY or similar)
   /\b(0?[1-9]|[12]\d|3[01])[\/\-](0?[1-9]|1[0-2])[\/\-](19|20)\d{2}\b/,
+  // Currency amounts (likely client financial data)
+  /[£$€]\s?\d{1,3}(?:,?\d{3})*(?:\.\d{2})?\b/,
 ];
 
 export interface ValidationResult {

@@ -36,4 +36,5 @@ export interface AssistantResponse {
 export interface FirmContext {
   firmId: string;
   firmName: string;
+  jurisdiction?: string;
 }

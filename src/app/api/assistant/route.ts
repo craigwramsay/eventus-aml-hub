@@ -26,6 +26,7 @@ import { getUser, getUserProfile } from '@/lib/supabase/server';
 import { createClient } from '@/lib/supabase/server';
 import { processAssistantRequest } from '@/lib/assistant';
 import type { AssistantRequest } from '@/lib/assistant';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 /** Log an assistant call (without content) */
 async function logAssistantCall(
@@ -74,15 +75,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get firm name
+    // Rate limit by user
+    const rateCheck = checkRateLimit(`assistant:${user.id}`, RATE_LIMITS.assistant);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait before asking another question.' },
+        { status: 429 }
+      );
+    }
+
+    // Get firm details
     const supabase = await createClient();
     const { data: firmData } = await supabase
       .from('firms')
-      .select('name')
+      .select('name, jurisdiction')
       .eq('id', profile.firm_id)
       .single();
 
     const firmName = firmData?.name || 'AML Hub';
+    const jurisdiction = firmData?.jurisdiction;
 
     // Parse request body
     let body: AssistantRequest;
@@ -107,6 +118,7 @@ export async function POST(request: NextRequest) {
     const result = await processAssistantRequest(body, {
       firmId: profile.firm_id,
       firmName,
+      jurisdiction,
     });
 
     // Log the call (without content)

@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "categories": {
+    "Standard": [
+      "Professional services",
+      "Property holding",
+      "Manufacturing",
+      "Retail",
+      "Consulting",
+      "Technology services"
+    ],
+    "Higher-risk": [
+      "Cash-intensive trade",
+      "Hospitality",
+      "Construction",
+      "Transport",
+      "Cryptoasset activity",
+      "Gambling",
+      "Private wealth / family office",
+      "Unregulated financial services",
+      "Property development"
+    ],
+    "Prohibited": [
+      "Weapons or defence brokering",
+      "Shell company with no legitimate purpose",
+      "Unlicensed money services",
+      "Opaque ownership structure with unverifiable BO"
+    ]
+  }
+}

@@ -15,6 +15,12 @@ import type {
   RiskFactorSnapshot,
   MandatoryActionSnapshot,
 } from './types';
+import {
+  collectPolicyReferences,
+  SCORING_MODEL_AUTHORITY,
+} from './policy-references';
+import { getJurisdictionConfig } from './jurisdiction';
+import type { Jurisdiction } from '@/lib/supabase/types';
 
 /** Category display labels */
 const CATEGORY_LABELS: Record<string, string> = {
@@ -87,7 +93,7 @@ function renderHeading(): DeterminationSection {
 /**
  * Render the assessment details section
  */
-function renderDetails(assessment: AssessmentRecord): DeterminationSection {
+function renderDetails(assessment: AssessmentRecord, jurisdiction?: Jurisdiction): DeterminationSection {
   const lines: string[] = [];
 
   lines.push(`Matter Reference: ${assessment.matter_id}`);
@@ -101,6 +107,12 @@ function renderDetails(assessment: AssessmentRecord): DeterminationSection {
   }
 
   lines.push(`Client Type: ${formatClientType(assessment.input_snapshot.clientType)}`);
+
+  if (jurisdiction) {
+    const config = getJurisdictionConfig(jurisdiction);
+    lines.push(`Jurisdiction: ${config.jurisdictionLabel}`);
+    lines.push(`Regulator: ${config.regulator}`);
+  }
 
   return {
     title: 'ASSESSMENT DETAILS',
@@ -251,6 +263,38 @@ function renderMandatoryActions(assessment: AssessmentRecord): DeterminationSect
 }
 
 /**
+ * Render the policy references section
+ */
+function renderPolicyReferencesSection(assessment: AssessmentRecord): DeterminationSection {
+  const { output_snapshot } = assessment;
+
+  // Collect unique categories from mandatory actions
+  const categories = [...new Set(output_snapshot.mandatoryActions.map((a) => a.category))];
+
+  // Collect all policy references
+  const references = collectPolicyReferences(
+    output_snapshot.riskLevel,
+    categories,
+    output_snapshot.automaticOutcome?.outcomeId || null
+  );
+
+  const lines: string[] = [];
+
+  lines.push(`Scoring Model: ${SCORING_MODEL_AUTHORITY}`);
+  lines.push('');
+  lines.push('Applicable Policy Sections:');
+
+  for (const ref of references) {
+    lines.push(`  - ${ref}`);
+  }
+
+  return {
+    title: 'POLICY REFERENCES',
+    body: lines.join('\n'),
+  };
+}
+
+/**
  * Render the risk appetite statement
  */
 function renderRiskAppetite(assessment: AssessmentRecord): DeterminationSection {
@@ -270,6 +314,10 @@ function renderRiskAppetite(assessment: AssessmentRecord): DeterminationSection 
   };
 }
 
+export interface RenderDeterminationOptions {
+  jurisdiction?: Jurisdiction;
+}
+
 /**
  * Render a complete determination from an assessment record
  *
@@ -280,15 +328,20 @@ function renderRiskAppetite(assessment: AssessmentRecord): DeterminationSection 
  * - Uses UTC timestamps for timezone independence
  *
  * @param assessment - The assessment record with snapshots
+ * @param options - Optional configuration (jurisdiction)
  * @returns Determination text and structured sections
  */
-export function renderDetermination(assessment: AssessmentRecord): DeterminationOutput {
+export function renderDetermination(
+  assessment: AssessmentRecord,
+  options?: RenderDeterminationOptions
+): DeterminationOutput {
   const sections: DeterminationSection[] = [
     renderHeading(),
-    renderDetails(assessment),
+    renderDetails(assessment, options?.jurisdiction),
     renderRiskDetermination(assessment),
     renderRiskFactors(assessment),
     renderMandatoryActions(assessment),
+    renderPolicyReferencesSection(assessment),
     renderRiskAppetite(assessment),
   ];
 

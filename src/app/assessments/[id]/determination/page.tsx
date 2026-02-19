@@ -5,7 +5,8 @@
  * Route: /assessments/[id]/determination
  */
 
-import { getAssessment } from '@/app/actions/assessment';
+import Link from 'next/link';
+import { getAssessment } from '@/app/actions/assessments';
 import { renderDetermination } from '@/lib/determination';
 import type { AssessmentRecord, InputSnapshot, OutputSnapshot } from '@/lib/determination';
 import { CopyButton } from './CopyButton';
@@ -26,9 +27,9 @@ export default async function DeterminationPage({ params }: PageProps) {
         <p className={styles.errorMessage}>
           The assessment could not be found or you do not have access.
         </p>
-        <a href="/" className={styles.backLink}>
+        <Link href="/" className={styles.backLink}>
           Return to home
-        </a>
+        </Link>
       </div>
     );
   }

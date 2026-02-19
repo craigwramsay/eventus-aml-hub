@@ -28,9 +28,23 @@
   color: #666;
 }
 
+.role {
+  font-size: 0.75rem;
+  color: #4f46e5;
+  background-color: #eef2ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
 @media (prefers-color-scheme: dark) {
   .email {
     color: #9ca3af;
+  }
+
+  .role {
+    color: #a5b4fc;
+    background-color: #1e1b4b;
   }
 }
 

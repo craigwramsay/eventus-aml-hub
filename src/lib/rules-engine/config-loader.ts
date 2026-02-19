@@ -14,6 +14,14 @@ import riskScoringConfig from '@/config/eventus/risk_scoring_v3_7.json';
 import cddRulesetConfig from '@/config/eventus/cdd_ruleset.json';
 import individualFormConfig from '@/config/eventus/forms/CMLRA_individual.json';
 import corporateFormConfig from '@/config/eventus/forms/CMLRA_corporate.json';
+import sectorMappingConfig from '@/config/eventus/rules/sector_mapping.json';
+
+export type SectorRiskCategory = 'Standard' | 'Higher-risk' | 'Prohibited';
+
+export interface SectorMappingConfig {
+  version: string;
+  categories: Record<SectorRiskCategory, string[]>;
+}
 
 /**
  * Loaded configuration singleton
@@ -21,6 +29,7 @@ import corporateFormConfig from '@/config/eventus/forms/CMLRA_corporate.json';
 let loadedConfig: {
   riskScoring: RiskScoringConfig;
   cddRuleset: CDDRulesetConfig;
+  sectorMapping: SectorMappingConfig;
   forms: {
     individual: FormConfig;
     corporate: FormConfig;
@@ -33,6 +42,7 @@ let loadedConfig: {
 export function loadConfig(): {
   riskScoring: RiskScoringConfig;
   cddRuleset: CDDRulesetConfig;
+  sectorMapping: SectorMappingConfig;
   forms: {
     individual: FormConfig;
     corporate: FormConfig;
@@ -45,6 +55,7 @@ export function loadConfig(): {
   loadedConfig = {
     riskScoring: riskScoringConfig as unknown as RiskScoringConfig,
     cddRuleset: cddRulesetConfig as unknown as CDDRulesetConfig,
+    sectorMapping: sectorMappingConfig as unknown as SectorMappingConfig,
     forms: {
       individual: individualFormConfig as unknown as FormConfig,
       corporate: corporateFormConfig as unknown as FormConfig,
@@ -66,6 +77,13 @@ export function getRiskScoringConfig(): RiskScoringConfig {
  */
 export function getCDDRulesetConfig(): CDDRulesetConfig {
   return loadConfig().cddRuleset;
+}
+
+/**
+ * Get sector mapping configuration
+ */
+export function getSectorMappingConfig(): SectorMappingConfig {
+  return loadConfig().sectorMapping;
 }
 
 /**

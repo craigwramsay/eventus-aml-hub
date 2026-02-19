@@ -341,6 +341,7 @@ describe('renderDetermination', () => {
         'RISK DETERMINATION',
         'TRIGGERED RISK FACTORS',
         'MANDATORY ACTIONS',
+        'POLICY REFERENCES',
         'RISK APPETITE',
       ]);
     });
@@ -500,6 +501,93 @@ describe('renderDetermination', () => {
       // Both +2 factors should be before +1 factors
       expect(opaqueIndex).toBeLessThan(newClientIndex);
       expect(sectorIndex).toBeLessThan(newClientIndex);
+    });
+  });
+
+  describe('Policy References', () => {
+    it('includes POLICY REFERENCES section in output', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      expect(result.determinationText).toContain('POLICY REFERENCES');
+    });
+
+    it('includes scoring model authority', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      expect(result.determinationText).toContain('Scoring Model: Eventus Internal Risk Scoring Model v3.7');
+    });
+
+    it('includes applicable policy sections header', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      expect(result.determinationText).toContain('Applicable Policy Sections:');
+    });
+
+    it('includes risk level references for LOW risk', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      const policySection = result.sections.find(s => s.title === 'POLICY REFERENCES');
+      expect(policySection?.body).toContain('PCP §4.6');
+      expect(policySection?.body).toContain('PCP §7');
+      expect(policySection?.body).toContain('MLR 2017 reg. 28');
+    });
+
+    it('includes CDD category references for assessments with CDD actions', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      const policySection = result.sections.find(s => s.title === 'POLICY REFERENCES');
+      expect(policySection?.body).toContain('MLR 2017 reg. 28(2)');
+    });
+
+    it('includes HIGH risk references including EDD', () => {
+      const result = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
+      const policySection = result.sections.find(s => s.title === 'POLICY REFERENCES');
+      expect(policySection?.body).toContain('PCP §15');
+      expect(policySection?.body).toContain('PCP §20');
+      expect(policySection?.body).toContain('MLR 2017 regs. 33, 35');
+    });
+
+    it('includes automatic outcome references', () => {
+      const result = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
+      const policySection = result.sections.find(s => s.title === 'POLICY REFERENCES');
+      expect(policySection?.body).toContain('MLR 2017 reg. 35');
+    });
+
+    it('includes SoW/SoF category references for MEDIUM risk', () => {
+      const result = renderDetermination(MEDIUM_RISK_ASSESSMENT);
+      const policySection = result.sections.find(s => s.title === 'POLICY REFERENCES');
+      expect(policySection?.body).toContain('PCP §11.2');
+      expect(policySection?.body).toContain('PCP §11.3');
+      expect(policySection?.body).toContain('LSAG 2025 §5.6');
+    });
+
+    it('produces deterministic policy references', () => {
+      const result1 = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
+      const result2 = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
+      const policy1 = result1.sections.find(s => s.title === 'POLICY REFERENCES');
+      const policy2 = result2.sections.find(s => s.title === 'POLICY REFERENCES');
+      expect(policy1?.body).toBe(policy2?.body);
+    });
+  });
+
+  describe('Jurisdiction Support', () => {
+    it('includes Scottish jurisdiction details when specified', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT, { jurisdiction: 'scotland' });
+      expect(result.determinationText).toContain('Jurisdiction: Scotland');
+      expect(result.determinationText).toContain('Regulator: Law Society of Scotland');
+    });
+
+    it('includes English jurisdiction details when specified', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT, { jurisdiction: 'england_and_wales' });
+      expect(result.determinationText).toContain('Jurisdiction: England & Wales');
+      expect(result.determinationText).toContain('Regulator: Solicitors Regulation Authority (SRA)');
+    });
+
+    it('omits jurisdiction when not specified', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      expect(result.determinationText).not.toContain('Jurisdiction:');
+      expect(result.determinationText).not.toContain('Regulator:');
+    });
+
+    it('remains deterministic with jurisdiction', () => {
+      const result1 = renderDetermination(LOW_RISK_ASSESSMENT, { jurisdiction: 'scotland' });
+      const result2 = renderDetermination(LOW_RISK_ASSESSMENT, { jurisdiction: 'scotland' });
+      expect(result1.determinationText).toBe(result2.determinationText);
     });
   });
 });

@@ -5,13 +5,12 @@
   "fields": [
     { "id": "1", "type": "section", "fields": ["2", "18", "36", "43", "53", "66"] },
 
-    { "id": "2", "type": "section", "fields": ["3", "4", "6", "8", "10", "12", "16"], "label": "Section 1 - Entity Identification" },
+    { "id": "2", "type": "section", "fields":["3","4","6","8","10","16"], "label": "Section 1 - Entity Identification" },
     { "id": "3", "type": "text", "label": "Client name", "validation": ["required"] },
     { "id": "4", "type": "text", "label": "Registered number (if applicable)" },
     { "id": "6", "type": "text", "label": "Registered address", "validation": ["required"] },
     { "id": "8", "type": "text", "label": "Trading address (if different from registered address)" },
     { "id": "10", "type": "radio", "label": { "value": "Type of entity", "options": ["Private company limited by shares", "Private company limited by guarantee", "Public limited company", "LLP", "Partnership", "Trustee(s) of a trust", "Unincorporated association"] }, "validation": ["required"] },
-    { "id": "12", "type": "text", "label": "Client's sector", "validation": ["required"] },
     { "id": "16", "type": "radio", "label": { "value": "Existing or new client", "options": ["Existing client", "New client"] }, "validation": ["required"] },
 
     { "id": "18", "type": "section", "fields": ["19", "20", "22", "24", "26", "28", "30", "32", "34"], "label": "Section 2 - Ownership & Control" },

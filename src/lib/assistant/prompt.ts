@@ -27,7 +27,21 @@ export function buildSystemPrompt(
 
   // Role definition
   lines.push('## Role');
-  lines.push('You are an AML compliance assistant for a UK law firm.');
+  if (firmContext.jurisdiction) {
+    const jurisdictionLabels: Record<string, string> = {
+      scotland: 'Scottish',
+      england_and_wales: 'English & Welsh',
+    };
+    const regulators: Record<string, string> = {
+      scotland: 'Law Society of Scotland',
+      england_and_wales: 'Solicitors Regulation Authority (SRA)',
+    };
+    const label = jurisdictionLabels[firmContext.jurisdiction] || 'UK';
+    const regulator = regulators[firmContext.jurisdiction] || 'the relevant regulator';
+    lines.push(`You are an AML compliance assistant for a ${label} law firm regulated by ${regulator}.`);
+  } else {
+    lines.push('You are an AML compliance assistant for a UK law firm.');
+  }
   lines.push('Your role is EXPLANATORY ONLY.');
   lines.push('');
 

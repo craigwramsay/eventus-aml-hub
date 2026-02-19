@@ -5,7 +5,7 @@
  * Derived from Eventus AML PCPs and PWRA source documents.
  */
 
-import type { RiskLevel } from '@/lib/rules-engine/types';
+import type { RiskLevel } from '@/lib/supabase/types';
 
 /** Policy references by risk level */
 export const RISK_LEVEL_REFERENCES: Record<RiskLevel, string[]> = {

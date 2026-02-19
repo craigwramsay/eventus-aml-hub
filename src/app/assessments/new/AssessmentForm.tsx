@@ -3,16 +3,14 @@
 /**
  * Assessment Form Component
  * Renders dynamic CMLRA form based on config and submits via deterministic engine
- * Client type is strictly derived from matter → no override permitted.
  */
 
 import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitAssessment } from '@/app/actions/assessments';
-import type { ClientType, FormAnswers } from '@/lib/rules-engine/types';
+import type { FormAnswers } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
 
-// Types for form config
 interface FormFieldLabel {
   value: string;
   options: string[];
@@ -49,7 +47,6 @@ interface FormConfig {
 
 interface AssessmentFormProps {
   matterId: string;
-  clientName: string;
   derivedClientType: 'individual' | 'corporate';
   individualFormConfig: FormConfig;
   corporateFormConfig: FormConfig;
@@ -62,16 +59,12 @@ export function AssessmentForm({
   corporateFormConfig,
 }: AssessmentFormProps) {
   const router = useRouter();
-
-  // Client type is strictly derived — no override allowed
-  const clientType: ClientType = derivedClientType;
-
   const [answers, setAnswers] = useState<FormAnswers>({});
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formConfig =
-    clientType === 'individual'
+    derivedClientType === 'individual'
       ? individualFormConfig
       : corporateFormConfig;
 
@@ -132,9 +125,7 @@ export function AssessmentForm({
     return field.json_content.content
       .map(
         (block) =>
-          block.content
-            ?.map((inline) => inline.text || '')
-            .join('') || ''
+          block.content?.map((inline) => inline.text || '').join('') || ''
       )
       .join('\n');
   };
@@ -168,11 +159,7 @@ export function AssessmentForm({
     const isTopLevel = childFields.some((f) => f.type === 'section');
 
     if (isTopLevel) {
-      return (
-        <div key={field.id}>
-          {childFields.map((childField) => renderField(childField))}
-        </div>
-      );
+      return <div key={field.id}>{childFields.map(renderField)}</div>;
     }
 
     return (
@@ -182,19 +169,18 @@ export function AssessmentForm({
             {field.label as string}
           </h2>
         )}
-        {childFields.map((childField) => renderField(childField))}
+        {childFields.map(renderField)}
       </div>
     );
   };
 
   const renderTextField = (field: FormField): React.ReactNode => {
-    const labelText = getLabelText(field);
     const value = (answers[field.id] as string) || '';
 
     return (
       <div key={field.id} className={styles.field}>
         <label className={styles.fieldLabel}>
-          {labelText}
+          {getLabelText(field)}
           {isRequired(field) && (
             <span className={styles.fieldRequired}>*</span>
           )}
@@ -204,7 +190,6 @@ export function AssessmentForm({
           className={styles.input}
           value={value}
           onChange={(e) => setAnswer(field.id, e.target.value)}
-          required={isRequired(field)}
         />
         {field.hint && (
           <div className={styles.fieldHint}>{field.hint}</div>
@@ -214,85 +199,61 @@ export function AssessmentForm({
   };
 
   const renderRadioField = (field: FormField): React.ReactNode => {
-    const labelText = getLabelText(field);
-    const options = getOptions(field);
     const selectedValue = (answers[field.id] as string) || '';
+    const options = getOptions(field);
 
     return (
       <div key={field.id} className={styles.field}>
         <label className={styles.fieldLabel}>
-          {labelText}
+          {getLabelText(field)}
           {isRequired(field) && (
             <span className={styles.fieldRequired}>*</span>
           )}
         </label>
         <div className={styles.radioGroup}>
           {options.map((option) => (
-            <label
-              key={option}
-              className={`${styles.radioOption} ${
-                selectedValue === option ? styles.selected : ''
-              }`}
-            >
+            <label key={option} className={styles.radioOption}>
               <input
                 type="radio"
-                className={styles.radioInput}
                 name={field.id}
                 value={option}
                 checked={selectedValue === option}
                 onChange={() => setAnswer(field.id, option)}
               />
-              <span className={styles.radioLabel}>{option}</span>
+              {option}
             </label>
           ))}
         </div>
-        {field.hint && (
-          <div className={styles.fieldHint}>{field.hint}</div>
-        )}
       </div>
     );
   };
 
   const renderCheckboxField = (field: FormField): React.ReactNode => {
-    const labelText = getLabelText(field);
-    const options = getOptions(field);
     const selectedValues = Array.isArray(answers[field.id])
       ? (answers[field.id] as string[])
       : [];
+    const options = getOptions(field);
 
     return (
       <div key={field.id} className={styles.field}>
         <label className={styles.fieldLabel}>
-          {labelText}
+          {getLabelText(field)}
           {isRequired(field) && (
             <span className={styles.fieldRequired}>*</span>
           )}
         </label>
         <div className={styles.checkboxGroup}>
           {options.map((option) => (
-            <label
-              key={option}
-              className={`${styles.checkboxOption} ${
-                selectedValues.includes(option)
-                  ? styles.selected
-                  : ''
-              }`}
-            >
+            <label key={option}>
               <input
                 type="checkbox"
-                className={styles.checkboxInput}
                 checked={selectedValues.includes(option)}
                 onChange={() => toggleCheckbox(field.id, option)}
               />
-              <span className={styles.checkboxLabel}>
-                {option}
-              </span>
+              {option}
             </label>
           ))}
         </div>
-        {field.hint && (
-          <div className={styles.fieldHint}>{field.hint}</div>
-        )}
       </div>
     );
   };
@@ -300,12 +261,7 @@ export function AssessmentForm({
   const renderRichText = (field: FormField): React.ReactNode => {
     const content = getRichTextContent(field);
     if (!content) return null;
-
-    return (
-      <div key={field.id} className={styles.richText}>
-        {content}
-      </div>
-    );
+    return <div key={field.id} className={styles.richText}>{content}</div>;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -316,7 +272,6 @@ export function AssessmentForm({
     try {
       const result = await submitAssessment({
         matter_id: matterId,
-        client_type: clientType,
         form_answers: answers,
       });
 
@@ -335,16 +290,12 @@ export function AssessmentForm({
   const rootField = formConfig.fields.find(
     (f) =>
       f.type === 'section' &&
-      f.fields?.some((id) => {
-        const child = fieldMap.get(id);
-        return child?.type === 'section';
-      })
+      f.fields?.some((id) => fieldMap.get(id)?.type === 'section')
   );
 
   return (
     <form onSubmit={handleSubmit}>
       {error && <div className={styles.error}>{error}</div>}
-
       {rootField && renderField(rootField)}
 
       <div className={styles.formActions}>
