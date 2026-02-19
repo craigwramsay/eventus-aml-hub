@@ -47,6 +47,16 @@ export default function AcceptInvitePage() {
       return;
     }
 
+    // Mark invitation as accepted
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      await supabase
+        .from('user_invitations')
+        .update({ accepted_at: new Date().toISOString() })
+        .eq('email', user.email)
+        .is('accepted_at', null);
+    }
+
     // Redirect to MFA setup
     router.push('/mfa/setup');
   }

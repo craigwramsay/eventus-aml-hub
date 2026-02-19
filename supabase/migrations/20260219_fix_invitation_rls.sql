@@ -1,24 +1,17 @@
--- User Invitations Table
--- Tracks invitations sent by firm admins to new users
+-- Fix user_invitations RLS policies
+-- 1. Fix column reference (id → user_id) in SELECT policy
+-- 2. Restrict INSERT to admins only (defence in depth)
+-- 3. Add UPDATE policy for invite acceptance
 
-CREATE TABLE IF NOT EXISTS user_invitations (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  firm_id uuid NOT NULL REFERENCES firms(id),
-  email text NOT NULL,
-  role text NOT NULL CHECK (role IN ('solicitor', 'mlro', 'admin')),
-  invited_by uuid NOT NULL REFERENCES user_profiles(user_id),
-  accepted_at timestamptz,
-  created_at timestamptz DEFAULT now()
-);
+-- Drop existing policies
+DROP POLICY IF EXISTS "Users can view invitations for their firm" ON user_invitations;
+DROP POLICY IF EXISTS "Admins can create invitations" ON user_invitations;
 
-ALTER TABLE user_invitations ENABLE ROW LEVEL SECURITY;
-
--- Users can view invitations for their firm
+-- Recreate with correct column and admin restriction
 CREATE POLICY "Users can view invitations for their firm"
   ON user_invitations FOR SELECT
   USING (firm_id = (SELECT firm_id FROM user_profiles WHERE user_id = auth.uid()));
 
--- Only admins can create invitations
 CREATE POLICY "Admins can create invitations"
   ON user_invitations FOR INSERT
   WITH CHECK (
@@ -26,7 +19,7 @@ CREATE POLICY "Admins can create invitations"
     AND (SELECT role FROM user_profiles WHERE user_id = auth.uid()) = 'admin'
   );
 
--- Allow updating accepted_at (for invite acceptance flow)
+-- Allow users to accept their own invitations (update accepted_at)
 CREATE POLICY "Users can accept their own invitations"
   ON user_invitations FOR UPDATE
   USING (email = (SELECT email FROM auth.users WHERE id = auth.uid()))

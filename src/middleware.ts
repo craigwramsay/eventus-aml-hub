@@ -98,16 +98,19 @@ export async function middleware(request: NextRequest) {
   if (!MFA_EXEMPT_ROUTES.some((route) => pathname.startsWith(route))) {
     const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-    // If user has MFA enrolled but hasn't verified this session, redirect to verify
     if (aalData && aalData.currentLevel !== 'aal2') {
-      // Check if user actually has MFA factors enrolled
+      // Check if user has MFA factors enrolled
       const { data: factorsData } = await supabase.auth.mfa.listFactors();
       const totpFactors = factorsData?.all?.filter(
         (f) => f.factor_type === 'totp' && f.status === 'verified'
       );
+
       if (totpFactors && totpFactors.length > 0) {
-        const mfaUrl = new URL('/mfa/verify', request.url);
-        return NextResponse.redirect(mfaUrl);
+        // Has MFA enrolled but hasn't verified this session — verify now
+        return NextResponse.redirect(new URL('/mfa/verify', request.url));
+      } else {
+        // No MFA enrolled — must set up before accessing the app
+        return NextResponse.redirect(new URL('/mfa/setup', request.url));
       }
     }
   }
