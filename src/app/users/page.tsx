@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canManageUsers, ROLE_LABELS } from '@/lib/auth/roles';
 import { getUsersForFirm, getPendingInvitations } from '@/app/actions/users';
+import InvitationsTable from './InvitationsTable';
 
 export default async function UsersPage() {
   const profile = await getUserProfile();
@@ -56,6 +57,7 @@ export default async function UsersPage() {
               <th style={{ padding: '0.75rem' }}>Name</th>
               <th style={{ padding: '0.75rem' }}>Email</th>
               <th style={{ padding: '0.75rem' }}>Role</th>
+              <th style={{ padding: '0.75rem' }}>Joined</th>
               <th style={{ padding: '0.75rem' }}>Actions</th>
             </tr>
           </thead>
@@ -65,6 +67,9 @@ export default async function UsersPage() {
                 <td style={{ padding: '0.75rem' }}>{user.full_name || '—'}</td>
                 <td style={{ padding: '0.75rem' }}>{user.email || '—'}</td>
                 <td style={{ padding: '0.75rem' }}>{ROLE_LABELS[user.role]}</td>
+                <td style={{ padding: '0.75rem' }}>
+                  {new Date(user.created_at).toLocaleDateString('en-GB')}
+                </td>
                 <td style={{ padding: '0.75rem' }}>
                   <Link
                     href={`/users/${user.user_id}`}
@@ -79,33 +84,7 @@ export default async function UsersPage() {
         </table>
       </section>
 
-      {invitations.length > 0 && (
-        <section>
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>
-            Pending Invitations ({invitations.length})
-          </h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e5e5e5', textAlign: 'left' }}>
-                <th style={{ padding: '0.75rem' }}>Email</th>
-                <th style={{ padding: '0.75rem' }}>Role</th>
-                <th style={{ padding: '0.75rem' }}>Invited</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invitations.map((inv) => (
-                <tr key={inv.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                  <td style={{ padding: '0.75rem' }}>{inv.email}</td>
-                  <td style={{ padding: '0.75rem' }}>{ROLE_LABELS[inv.role]}</td>
-                  <td style={{ padding: '0.75rem' }}>
-                    {new Date(inv.created_at).toLocaleDateString('en-GB')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
+      <InvitationsTable invitations={invitations} />
     </div>
   );
 }

@@ -270,6 +270,195 @@ export async function updateUserRole(
   }
 }
 
+export type ResendInviteResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Resend an invitation email (admin-only)
+ */
+export async function resendInvite(invitationId: string): Promise<ResendInviteResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageUsers(profile.role as UserRole)) {
+      return { success: false, error: 'Only administrators can resend invitations' };
+    }
+
+    // Fetch invitation scoped to firm, must be pending
+    const { data: invitation, error: fetchErr } = await supabase
+      .from('user_invitations')
+      .select('*')
+      .eq('id', invitationId)
+      .eq('firm_id', profile.firm_id)
+      .is('accepted_at', null)
+      .single();
+
+    if (fetchErr || !invitation) {
+      return { success: false, error: 'Invitation not found or already accepted' };
+    }
+
+    const { error: resendErr } = await supabase.auth.resend({
+      type: 'signup',
+      email: invitation.email,
+    });
+
+    if (resendErr) {
+      console.error('Failed to resend invite:', resendErr);
+      return { success: false, error: resendErr.message };
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'user_invitation',
+      entity_id: invitationId,
+      action: 'invite_resent',
+      metadata: { email: invitation.email },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in resendInvite:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
+export type CancelInviteResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Cancel a pending invitation (admin-only)
+ */
+export async function cancelInvite(invitationId: string): Promise<CancelInviteResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageUsers(profile.role as UserRole)) {
+      return { success: false, error: 'Only administrators can cancel invitations' };
+    }
+
+    // Fetch invitation for audit log before deleting
+    const { data: invitation, error: fetchErr } = await supabase
+      .from('user_invitations')
+      .select('email')
+      .eq('id', invitationId)
+      .eq('firm_id', profile.firm_id)
+      .is('accepted_at', null)
+      .single();
+
+    if (fetchErr || !invitation) {
+      return { success: false, error: 'Invitation not found or already accepted' };
+    }
+
+    const { error: deleteErr } = await supabase
+      .from('user_invitations')
+      .delete()
+      .eq('id', invitationId)
+      .eq('firm_id', profile.firm_id);
+
+    if (deleteErr) {
+      console.error('Failed to cancel invitation:', deleteErr);
+      return { success: false, error: 'Failed to cancel invitation' };
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'user_invitation',
+      entity_id: invitationId,
+      action: 'invite_cancelled',
+      metadata: { email: invitation.email },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in cancelInvite:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
+export type SendPasswordResetResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Send a password reset email to a user (admin-only)
+ */
+export async function sendPasswordReset(userId: string): Promise<SendPasswordResetResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageUsers(profile.role as UserRole)) {
+      return { success: false, error: 'Only administrators can send password resets' };
+    }
+
+    if (userId === user.id) {
+      return { success: false, error: 'Use the normal password reset flow for your own account' };
+    }
+
+    // Fetch target user's profile scoped to firm
+    const { data: targetProfile, error: fetchErr } = await supabase
+      .from('user_profiles')
+      .select('email')
+      .eq('user_id', userId)
+      .eq('firm_id', profile.firm_id)
+      .single();
+
+    if (fetchErr || !targetProfile || !targetProfile.email) {
+      return { success: false, error: 'User not found in your firm' };
+    }
+
+    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?type=recovery`;
+
+    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
+      targetProfile.email,
+      { redirectTo }
+    );
+
+    if (resetErr) {
+      console.error('Failed to send password reset:', resetErr);
+      return { success: false, error: resetErr.message };
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'user_profile',
+      entity_id: userId,
+      action: 'password_reset_requested',
+      metadata: { email: targetProfile.email },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in sendPasswordReset:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
 export type DeactivateUserResult =
   | { success: true }
   | { success: false; error: string };

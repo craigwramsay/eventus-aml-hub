@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { updateUserRole, deactivateUser, getUsersForFirm } from '@/app/actions/users';
+import { updateUserRole, deactivateUser, sendPasswordReset, getUsersForFirm } from '@/app/actions/users';
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles';
 import type { UserRole } from '@/lib/auth/roles';
 import type { UserProfile } from '@/lib/supabase/types';
@@ -44,6 +44,22 @@ export default function UserDetailPage() {
 
     if (result.success) {
       setSuccess('Role updated successfully');
+    } else {
+      setError(result.error);
+    }
+
+    setIsUpdating(false);
+  }
+
+  async function handlePasswordReset() {
+    setError(null);
+    setSuccess(null);
+    setIsUpdating(true);
+
+    const result = await sendPasswordReset(userId);
+
+    if (result.success) {
+      setSuccess('Password reset email sent');
     } else {
       setError(result.error);
     }
@@ -131,6 +147,24 @@ export default function UserDetailPage() {
             {isUpdating ? 'Updating...' : 'Update'}
           </button>
         </div>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>Password Reset</h2>
+        <button
+          onClick={handlePasswordReset}
+          disabled={isUpdating}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#e0e7ff',
+            color: '#3730a3',
+            border: '1px solid #c7d2fe',
+            borderRadius: '0.375rem',
+            cursor: isUpdating ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {isUpdating ? 'Sending...' : 'Send Password Reset Email'}
+        </button>
       </div>
 
       <div style={{ borderTop: '1px solid #fee2e2', paddingTop: '1.5rem' }}>
