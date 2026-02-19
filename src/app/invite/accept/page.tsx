@@ -47,14 +47,41 @@ export default function AcceptInvitePage() {
       return;
     }
 
-    // Mark invitation as accepted
+    // Create user profile from auth metadata (set during invite signUp)
     const { data: { user } } = await supabase.auth.getUser();
-    if (user?.email) {
-      await supabase
-        .from('user_invitations')
-        .update({ accepted_at: new Date().toISOString() })
-        .eq('email', user.email)
-        .is('accepted_at', null);
+    if (user) {
+      const meta = user.user_metadata || {};
+      const firmId = meta.firm_id;
+      const role = meta.role || 'solicitor';
+      const fullName = meta.full_name || null;
+
+      if (firmId) {
+        // Check if profile already exists (idempotent)
+        const { data: existing } = await supabase
+          .from('user_profiles')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!existing) {
+          await supabase.from('user_profiles').insert({
+            user_id: user.id,
+            firm_id: firmId,
+            email: user.email,
+            full_name: fullName,
+            role,
+          });
+        }
+      }
+
+      // Mark invitation as accepted
+      if (user.email) {
+        await supabase
+          .from('user_invitations')
+          .update({ accepted_at: new Date().toISOString() })
+          .eq('email', user.email)
+          .is('accepted_at', null);
+      }
     }
 
     // Redirect to MFA setup

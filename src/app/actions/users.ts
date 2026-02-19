@@ -117,16 +117,9 @@ export async function inviteUser(input: InviteUserInput): Promise<InviteUserResu
       return { success: false, error: signUpErr.message };
     }
 
-    // Create user profile for the new user
-    if (signUpData.user) {
-      await supabase.from('user_profiles').insert({
-        user_id: signUpData.user.id,
-        firm_id: profile.firm_id,
-        email,
-        full_name,
-        role,
-      });
-    }
+    // Note: user_profiles row is created during invite acceptance (/invite/accept)
+    // when the new user is authenticated as themselves (RLS allows self-insert).
+    // The firm_id, role, and full_name are stored in auth user metadata above.
 
     // Create invitation record
     const { data, error: insertErr } = await supabase
