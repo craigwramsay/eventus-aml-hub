@@ -6,15 +6,15 @@ Configure these in **Supabase Dashboard → Authentication → Email Templates**
 
 ### Invite User
 
-**Subject:** You've been invited to AML Hub
+**Subject:** You've been invited to Eventus's Compliance Hub
+
+> **Note:** Supabase templates don't support dynamic subjects. For multi-tenant, replace with custom email sending (e.g., Resend/SendGrid).
 
 **Body:**
 ```html
-<h2>You've been invited to AML Hub</h2>
+<h2>You've been invited to Eventus's Compliance Hub</h2>
 <p>You have been invited to join your firm's AML compliance hub.</p>
-<p>Click the link below to set up your account:</p>
 <p><a href="{{ .SiteURL }}/auth/callback?code={{ .Token }}&type=invite">Accept Invitation</a></p>
-<p>This link expires in 24 hours.</p>
 ```
 
 ### Password Recovery (Reset)
