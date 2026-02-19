@@ -99,6 +99,35 @@ export async function inviteUser(input: InviteUserInput): Promise<InviteUserResu
       return { success: false, error: 'An invitation is already pending for this email' };
     }
 
+    // Create the auth user via signUp with a random password.
+    // Supabase will send the confirmation/invite email automatically.
+    // The user will set their real password via /invite/accept after clicking the link.
+    const tempPassword = crypto.randomUUID() + '!Aa1';
+    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+      email,
+      password: tempPassword,
+      options: {
+        data: { full_name, role, firm_id: profile.firm_id },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?type=invite`,
+      },
+    });
+
+    if (signUpErr) {
+      console.error('Failed to create auth user:', signUpErr);
+      return { success: false, error: signUpErr.message };
+    }
+
+    // Create user profile for the new user
+    if (signUpData.user) {
+      await supabase.from('user_profiles').insert({
+        user_id: signUpData.user.id,
+        firm_id: profile.firm_id,
+        email,
+        full_name,
+        role,
+      });
+    }
+
     // Create invitation record
     const { data, error: insertErr } = await supabase
       .from('user_invitations')

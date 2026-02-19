@@ -29,15 +29,15 @@ Configure these in **Supabase Dashboard → Authentication → Email Templates**
 <p>If you did not request this, you can safely ignore this email.</p>
 ```
 
-### Confirm Signup
+### Confirm Signup (used for invitations via signUp)
 
-**Subject:** Confirm your AML Hub account
+**Subject:** You've been invited to Eventus's Compliance Hub
 
 **Body:**
 ```html
-<h2>Confirm Your Account</h2>
-<p>Click the link below to confirm your account:</p>
-<p><a href="{{ .SiteURL }}/auth/callback?code={{ .Token }}&type=signup">Confirm Account</a></p>
+<h2>You've been invited to Eventus's Compliance Hub</h2>
+<p>You have been invited to join your firm's AML compliance hub.</p>
+<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next=/invite/accept">Accept Invitation</a></p>
 ```
 
 ## Auth Settings
