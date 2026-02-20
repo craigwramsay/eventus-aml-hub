@@ -11,6 +11,7 @@ import { getEvidenceForAssessment } from '@/app/actions/evidence';
 import { renderDetermination } from '@/lib/determination';
 import type { AssessmentRecord, InputSnapshot, OutputSnapshot, EvidenceForDetermination } from '@/lib/determination';
 import { CopyButton } from './CopyButton';
+import { PrintButton } from './PrintButton';
 import styles from './page.module.css';
 
 interface PageProps {
@@ -92,7 +93,10 @@ export default async function DeterminationPage({ params }: PageProps) {
             Assessment ID: {assessment.id}
           </p>
         </div>
-        <CopyButton text={determination.determinationText} />
+        <div className={styles.headerButtons}>
+          <CopyButton text={determination.determinationText} />
+          <PrintButton />
+        </div>
       </div>
 
       <pre className={styles.determinationBlock}>

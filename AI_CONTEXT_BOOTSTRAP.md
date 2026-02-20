@@ -61,6 +61,8 @@ Key regulatory requirements enforced by the system:
 | Testing | Vitest 4.0.18 |
 | Linting | ESLint 9 with Next.js Core Web Vitals |
 | LLM clients | OpenAI SDK, Anthropic SDK (pluggable via env var) |
+| Embeddings | OpenAI text-embedding-3-small via raw fetch (1536 dimensions) |
+| Vector search | pgvector (Supabase extension) with HNSW index |
 | Scripts | tsx for TypeScript script execution |
 | Fonts | Geist Sans + Geist Mono (next/font) |
 
@@ -106,7 +108,7 @@ eventus-aml-hub/
 │   │       └── rules/
 │   │           └── sector_mapping.json    # Sector → risk category mapping
 │   ├── app/
-│   │   ├── layout.tsx                # Root layout (with env validation)
+│   │   ├── layout.tsx                # Root layout (env validation + AuthenticatedAssistant)
 │   │   ├── page.tsx                  # Landing page
 │   │   ├── error.tsx                 # Global error boundary
 │   │   ├── not-found.tsx             # 404 page
@@ -132,9 +134,10 @@ eventus-aml-hub/
 │   │   ├── actions/                  # Server Actions (auth, assessments, clients, matters, users, assistant-sources)
 │   │   └── api/
 │   │       ├── assistant/route.ts    # POST endpoint for AI assistant (rate-limited)
+│   │       ├── admin/backfill-embeddings/route.ts  # POST trigger for embedding backfill
 │   │       └── health/route.ts       # Health check endpoint
 │   ├── components/
-│   │   └── assistant/                # AssistantPanel, GlobalAssistantButton, QuestionHelperButton
+│   │   └── assistant/                # AssistantPanel, GlobalAssistantButton, QuestionHelperButton, AuthenticatedAssistant
 │   ├── lib/
 │   │   ├── auth/                     # RBAC: roles, permission checks (solicitor/mlro/admin)
 │   │   ├── rules-engine/             # Deterministic AML scoring engine
@@ -150,6 +153,7 @@ eventus-aml-hub/
 │   │   │   ├── jurisdiction.ts         # Scotland / England & Wales config
 │   │   │   └── index.ts
 │   │   ├── assistant/                # AI assistant orchestration (prompt, validation, sources)
+│   │   ├── embeddings/               # OpenAI embedding client (text-embedding-3-small)
 │   │   ├── llm/                      # Pluggable LLM client (OpenAI + Anthropic)
 │   │   ├── security/                 # Rate limiter, password policy
 │   │   ├── config/                   # Environment variable validation
@@ -174,7 +178,13 @@ eventus-aml-hub/
 | `matters` | Legal matters | `id`, `firm_id`, `client_id`, `reference`, `description`, `status` |
 | `assessments` | Risk assessments | `id`, `firm_id`, `matter_id`, `input_snapshot` (JSON), `output_snapshot` (JSON), `risk_level`, `score`, `created_by`, `finalised_at`, `finalised_by` |
 | `audit_events` | Complete activity log | `id`, `firm_id`, `entity_type`, `entity_id`, `action`, `metadata` (JSON), `created_by` |
-| `assistant_sources` | Curated knowledge base | `id`, `firm_id`, `source_type` (external/internal), `source_name`, `section_ref`, `topics` (text[]), `content`, `effective_date` |
+| `assistant_sources` | Curated knowledge base | `id`, `firm_id`, `source_type` (external/internal), `source_name`, `section_ref`, `topics` (text[]), `content`, `effective_date`, `embedding` (vector(1536), nullable) |
+
+### Functions (RPC)
+
+| Function | Purpose | Notes |
+|----------|---------|-------|
+| `match_assistant_sources(query_embedding, match_threshold, match_count)` | Vector similarity search for assistant sources | `SECURITY INVOKER` — RLS enforces firm isolation. Returns sources + similarity score. |
 
 ### Relationships
 
@@ -310,9 +320,11 @@ User Question
 └──────────────┘
       │
       ▼
-┌──────────────┐
-│  sources.ts   │  Keyword → topic mapping → Supabase query on assistant_sources (firm-scoped)
-└──────────────┘
+┌──────────────────┐
+│    sources.ts     │  1. Try vector similarity search (pgvector + OpenAI embeddings)
+│                   │  2. Fall back to keyword → topic mapping if vector unavailable or empty
+│                   │  3. Final fallback: retrieve all sources
+└──────────────────┘
       │
       ▼
 ┌──────────────┐
@@ -352,7 +364,13 @@ If the answer is not in the provided materials, the response must be exactly:
 
 ### Source retrieval
 
-Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics[]` → fallback to all sources if no match. No vector search currently implemented.
+**Primary: Vector similarity search** — embeds the user's question via OpenAI `text-embedding-3-small`, then calls `match_assistant_sources` RPC (pgvector cosine similarity, threshold 0.5, HNSW index). Graceful degradation: if `OPENAI_API_KEY` is not set or vector search returns empty, falls back to keyword-based topic matching (`KEYWORD_TOPICS` → `overlaps` query on `assistant_sources.topics[]`). Final fallback: retrieve all sources.
+
+**Embedding generation:** New sources automatically get embeddings on create/bulk-create (fail-safe — source is still created if embedding fails). Admin `backfillEmbeddings()` action generates embeddings for existing sources missing them.
+
+### UI integration
+
+The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on all pages via `AuthenticatedAssistant` in the root layout. It only appears when the user has an active session. Clicking opens the `AssistantPanel` sliding chat interface. `QuestionHelperButton` provides contextual help on individual assessment form fields.
 
 ---
 
@@ -403,8 +421,11 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 - [x] Assessment finalisation (immutable lock with audit event, role-gated)
 - [x] Determination copy-to-clipboard
 - [x] AI assistant panel (question input, source-grounded answers, citations, jurisdiction-aware)
+- [x] AI assistant floating button (authenticated-only, all pages via root layout)
 - [x] Per-question helper buttons on assessment form
 - [x] Assistant input validation (PII rejection, refined SoW/SoF patterns)
+- [x] Vector/semantic search for assistant sources (pgvector + OpenAI embeddings, keyword fallback)
+- [x] Embedding backfill for existing sources (admin API endpoint)
 - [x] Pluggable LLM client (OpenAI + Anthropic)
 - [x] Source excerpt ingestion pipeline (YAML frontmatter parser, Supabase insert)
 - [x] Audit event logging (including failed login attempts)
@@ -420,12 +441,11 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 ### Incomplete / Not Yet Built
 
 - [ ] Assessment editing / re-assessment workflow
-- [ ] PDF export of determinations
+- [x] PDF export of determinations (browser print with `@media print` styles)
 - [ ] Client/matter search and filtering
 - [ ] Dashboard analytics / reporting
 - [ ] Ongoing monitoring tracking
 - [ ] SAR (Suspicious Activity Report) workflow
-- [ ] Vector/semantic search for assistant sources (currently keyword-based)
 - [ ] Source excerpt versioning / update tracking
 - [ ] Automated testing coverage for UI components
 - [ ] Generated Supabase types (currently manual)
@@ -435,11 +455,10 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 ## 11. Known Technical Debt
 
 1. **Hardcoded thresholds in determination renderer.** `renderDetermination.ts` has `THRESHOLD_TEXT: { LOW: '0-4', MEDIUM: '5-8', HIGH: '9+' }` which duplicates config values. Should read from the scoring config.
-2. **Keyword-based source retrieval.** The `KEYWORD_TOPICS` mapping in `sources.ts` is manual and incomplete. Should be replaced with vector/semantic search or at minimum a more robust matching strategy.
-3. **No generated Supabase types.** The comment in `types.ts` notes "For full type generation, use: `npx supabase gen types typescript`". Currently using manually defined types.
-4. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
-5. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
-6. **Source documents and runtime configs in separate locations.** Original policy documents live in `sources/` while the JSON configs imported by the rules engine live in `src/config/eventus/`. Changes to the source documents require manual translation into the JSON configs.
+2. **No generated Supabase types.** The comment in `types.ts` notes "For full type generation, use: `npx supabase gen types typescript`". Currently using manually defined types.
+3. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
+4. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
+5. **Source documents and runtime configs in separate locations.** Original policy documents live in `sources/` while the JSON configs imported by the rules engine live in `src/config/eventus/`. Changes to the source documents require manual translation into the JSON configs.
 
 ---
 
@@ -507,19 +526,17 @@ Keyword-based topic extraction → `overlaps` query on `assistant_sources.topics
 
 ## 17. Next Logical Development Steps
 
-1. **PDF export.** Render the determination document as a downloadable PDF for filing with the matter.
-2. **Vector/semantic search for assistant sources.** Replace keyword-based topic matching with embedding-based retrieval for more accurate source selection.
-3. **Assessment re-run workflow.** Allow creating a new assessment for the same matter (re-assessment) while preserving the original. Never modify the original.
-4. **Dashboard analytics.** Summary stats: assessments by risk level, outstanding mandatory actions, matters pending assessment.
-5. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
-6. **SAR workflow.** Suspicious Activity Report submission and tracking.
-7. **Client/matter search and filtering.** Full-text search and filter controls on list pages.
-8. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
-9. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 132 tests across 4 suites (rules engine: 43, determination: 57, auth: 15, assistant validation: 17).
-10. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
-11. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
-12. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
-13. **Read thresholds from config in determination renderer.** Remove hardcoded `THRESHOLD_TEXT` and read from the scoring config dynamically.
+1. **Assessment re-run workflow.** Allow creating a new assessment for the same matter (re-assessment) while preserving the original. Never modify the original.
+2. **Dashboard analytics.** Summary stats: assessments by risk level, outstanding mandatory actions, matters pending assessment.
+3. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
+4. **SAR workflow.** Suspicious Activity Report submission and tracking.
+5. **Client/matter search and filtering.** Full-text search and filter controls on list pages.
+6. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
+7. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 163 tests across 6 suites (rules engine: 43, determination: 67, auth: 15, assistant validation: 17, Companies House client: 10, embeddings client: 11).
+8. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
+9. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
+10. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
+11. **Read thresholds from config in determination renderer.** Remove hardcoded `THRESHOLD_TEXT` and read from the scoring config dynamically.
 
 ---
 
@@ -533,7 +550,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 # LLM Assistant (required for assistant feature)
 ASSISTANT_LLM_PROVIDER=openai|anthropic
 ASSISTANT_LLM_MODEL=gpt-4o|claude-sonnet-4-20250514
-OPENAI_API_KEY=           # if provider is openai
+OPENAI_API_KEY=           # if provider is openai; also used for embeddings (vector search)
 ANTHROPIC_API_KEY=        # if provider is anthropic
 ```
 
@@ -541,4 +558,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 19 Feb 2026, after PCP alignment gaps implementation (scoring model v3.8, EDD triggers, entity exclusions, new-client SoW, evidence types, delivery channel, jurisdiction in snapshots). 132 tests passing. Update when architectural decisions change.*
+*Last updated: 20 Feb 2026, after vector/semantic search + assistant UI integration. 163 tests passing across 6 suites. Update when architectural decisions change.*

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { validateEnv } from "@/lib/config/env";
+import { AuthenticatedAssistant } from "@/components/assistant";
 import "./globals.css";
 
 // Validate environment variables at startup
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
+        <AuthenticatedAssistant />
       </body>
     </html>
   );
