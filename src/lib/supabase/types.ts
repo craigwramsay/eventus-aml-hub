@@ -202,7 +202,28 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      match_assistant_sources: {
+        Args: {
+          query_embedding: string;
+          match_threshold?: number;
+          match_count?: number;
+        };
+        Returns: Array<{
+          id: string;
+          firm_id: string;
+          source_type: string;
+          source_name: string;
+          section_ref: string;
+          topics: string[];
+          content: string;
+          effective_date: string | null;
+          created_at: string;
+          updated_at: string;
+          similarity: number;
+        }>;
+      };
+    };
     Enums: {
       risk_level: RiskLevel;
       source_type: SourceType;

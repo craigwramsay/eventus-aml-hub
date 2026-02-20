@@ -2,9 +2,11 @@
  * Assistant Source Retrieval
  *
  * Retrieves relevant source excerpts for the assistant.
+ * Uses vector similarity search when available, falls back to keyword matching.
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { generateEmbedding, isEmbeddingConfigured } from '@/lib/embeddings';
 import type { AssistantSource } from '@/lib/supabase/types';
 
 /** Keywords to topic mapping for simple relevance matching */
@@ -65,20 +67,43 @@ export function extractTopicsFromQuestion(questionText: string): string[] {
 }
 
 /**
- * Retrieve relevant sources for a question
+ * Retrieve sources by vector similarity search
  *
- * @param firmId - The firm ID for RLS
+ * @param firmId - The firm ID (RLS enforced at DB level via SECURITY INVOKER)
  * @param questionText - The user's question
  * @param limit - Maximum number of sources to return
  */
-export async function retrieveRelevantSources(
+async function retrieveSourcesByVector(
+  firmId: string,
+  questionText: string,
+  limit: number = 10
+): Promise<AssistantSource[]> {
+  const queryEmbedding = await generateEmbedding(questionText);
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc('match_assistant_sources', {
+    query_embedding: JSON.stringify(queryEmbedding),
+    match_threshold: 0.5,
+    match_count: limit,
+  });
+
+  if (error) {
+    console.error('Vector search failed:', error);
+    return [];
+  }
+
+  return (data as unknown as AssistantSource[]) || [];
+}
+
+/**
+ * Retrieve sources by keyword topic matching (original approach)
+ */
+async function retrieveSourcesByKeyword(
   firmId: string,
   questionText: string,
   limit: number = 10
 ): Promise<AssistantSource[]> {
   const supabase = await createClient();
-
-  // Extract topics from the question
   const topics = extractTopicsFromQuestion(questionText);
 
   let query = supabase
@@ -89,7 +114,6 @@ export async function retrieveRelevantSources(
     .order('section_ref')
     .limit(limit);
 
-  // If we have topics, filter by them
   if (topics.length > 0) {
     query = query.overlaps('topics', topics);
   }
@@ -102,6 +126,38 @@ export async function retrieveRelevantSources(
   }
 
   return (data as AssistantSource[]) || [];
+}
+
+/**
+ * Retrieve relevant sources for a question
+ *
+ * Tries vector similarity search first when configured.
+ * Falls back to keyword matching if vector search is unavailable or returns empty.
+ *
+ * @param firmId - The firm ID for RLS
+ * @param questionText - The user's question
+ * @param limit - Maximum number of sources to return
+ */
+export async function retrieveRelevantSources(
+  firmId: string,
+  questionText: string,
+  limit: number = 10
+): Promise<AssistantSource[]> {
+  // Try vector search first
+  if (isEmbeddingConfigured()) {
+    try {
+      const vectorResults = await retrieveSourcesByVector(firmId, questionText, limit);
+      if (vectorResults.length > 0) {
+        return vectorResults;
+      }
+      // Vector search returned empty — fall through to keyword matching
+    } catch (error) {
+      console.error('Vector search error, falling back to keyword matching:', error);
+    }
+  }
+
+  // Fallback: keyword-based topic matching
+  return retrieveSourcesByKeyword(firmId, questionText, limit);
 }
 
 /**

@@ -8,6 +8,9 @@
  */
 
 import { createClient, getUser, getUserProfile } from '@/lib/supabase/server';
+import { generateEmbedding, isEmbeddingConfigured } from '@/lib/embeddings';
+import { canManageUsers } from '@/lib/auth/roles';
+import type { UserRole } from '@/lib/auth/roles';
 import type { AssistantSource, SourceType } from '@/lib/supabase/types';
 
 /** Input for creating an assistant source */
@@ -100,6 +103,19 @@ export async function createAssistantSource(
       return { success: false, error: 'Failed to create assistant source' };
     }
 
+    // Generate embedding (fail-safe — source is still created if embedding fails)
+    if (isEmbeddingConfigured()) {
+      try {
+        const embedding = await generateEmbedding(content);
+        await supabase
+          .from('assistant_sources')
+          .update({ embedding: JSON.stringify(embedding) } as Record<string, unknown>)
+          .eq('id', data.id);
+      } catch (embeddingError) {
+        console.error('Failed to generate embedding for source:', embeddingError);
+      }
+    }
+
     return { success: true, source: data as AssistantSource };
   } catch (error) {
     console.error('Error in createAssistantSource:', error);
@@ -154,6 +170,21 @@ export async function bulkCreateAssistantSources(
     if (error || !data) {
       console.error('Failed to bulk create assistant sources:', error);
       return { success: false, error: 'Failed to create assistant sources' };
+    }
+
+    // Generate embeddings (fail-safe — sources are still created if embeddings fail)
+    if (isEmbeddingConfigured()) {
+      for (const source of data) {
+        try {
+          const embedding = await generateEmbedding(source.content);
+          await supabase
+            .from('assistant_sources')
+            .update({ embedding: JSON.stringify(embedding) } as Record<string, unknown>)
+            .eq('id', source.id);
+        } catch (embeddingError) {
+          console.error(`Failed to generate embedding for source ${source.id}:`, embeddingError);
+        }
+      }
     }
 
     return {
@@ -319,6 +350,95 @@ export async function deleteAssistantSources(
     console.error('Error in deleteAssistantSources:', error);
     return {
       success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/** Result of backfill operation */
+export interface BackfillEmbeddingsResult {
+  success: boolean;
+  processed: number;
+  failed: number;
+  error?: string;
+}
+
+/**
+ * Backfill embeddings for existing assistant sources (admin-only)
+ *
+ * Finds all sources for the firm that don't have embeddings yet
+ * and generates them one by one.
+ */
+export async function backfillEmbeddings(): Promise<BackfillEmbeddingsResult> {
+  try {
+    const user = await getUser();
+    if (!user) {
+      return { success: false, processed: 0, failed: 0, error: 'Not authenticated' };
+    }
+
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, processed: 0, failed: 0, error: 'User profile not found' };
+    }
+
+    if (!canManageUsers(profile.role as UserRole)) {
+      return { success: false, processed: 0, failed: 0, error: 'Admin access required' };
+    }
+
+    if (!isEmbeddingConfigured()) {
+      return { success: false, processed: 0, failed: 0, error: 'OPENAI_API_KEY is not configured' };
+    }
+
+    const supabase = await createClient();
+
+    // Fetch sources without embeddings
+    // The embedding column is nullable, but we can't filter on it directly via PostgREST
+    // because vector columns aren't exposed. Instead, we use a raw filter.
+    const { data: sources, error } = await supabase
+      .from('assistant_sources')
+      .select('id, content')
+      .eq('firm_id', profile.firm_id)
+      .is('embedding', null);
+
+    if (error) {
+      console.error('Failed to fetch sources for backfill:', error);
+      return { success: false, processed: 0, failed: 0, error: 'Failed to fetch sources' };
+    }
+
+    if (!sources || sources.length === 0) {
+      return { success: true, processed: 0, failed: 0 };
+    }
+
+    let processed = 0;
+    let failed = 0;
+
+    for (const source of sources) {
+      try {
+        const embedding = await generateEmbedding(source.content);
+        const { error: updateError } = await supabase
+          .from('assistant_sources')
+          .update({ embedding: JSON.stringify(embedding) } as Record<string, unknown>)
+          .eq('id', source.id);
+
+        if (updateError) {
+          console.error(`Failed to update embedding for source ${source.id}:`, updateError);
+          failed++;
+        } else {
+          processed++;
+        }
+      } catch (embeddingError) {
+        console.error(`Failed to generate embedding for source ${source.id}:`, embeddingError);
+        failed++;
+      }
+    }
+
+    return { success: true, processed, failed };
+  } catch (error) {
+    console.error('Error in backfillEmbeddings:', error);
+    return {
+      success: false,
+      processed: 0,
+      failed: 0,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
   }
