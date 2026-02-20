@@ -15,11 +15,11 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export function canFinaliseAssessment(role: UserRole): boolean {
-  return role === 'solicitor' || role === 'mlro';
+  return role === 'solicitor' || role === 'mlro' || role === 'admin';
 }
 
 export function canCreateAssessment(role: UserRole): boolean {
-  return role === 'solicitor' || role === 'mlro';
+  return role === 'solicitor' || role === 'mlro' || role === 'admin';
 }
 
 export function canManageUsers(role: UserRole): boolean {

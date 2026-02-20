@@ -15,6 +15,7 @@ const OPTIONAL_VARS = [
   'ASSISTANT_LLM_MODEL',
   'OPENAI_API_KEY',
   'ANTHROPIC_API_KEY',
+  'COMPANIES_HOUSE_API_KEY',
 ] as const;
 
 export function validateEnv(): void {

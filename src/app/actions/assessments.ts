@@ -304,12 +304,90 @@ export async function getAssessmentsForMatter(
   }
 }
 
+/** Assessment list item with client and matter names */
+export interface AssessmentListItem {
+  id: string;
+  risk_level: string;
+  score: number;
+  created_at: string;
+  finalised_at: string | null;
+  client_name: string;
+  matter_description: string | null;
+  matter_reference: string;
+}
+
+/**
+ * Get all assessments for the current user's firm, with client and matter info.
+ * Returns newest first.
+ */
+export async function getAllAssessments(): Promise<AssessmentListItem[]> {
+  try {
+    const { supabase, error } = await getUserAndProfile();
+    if (error) return [];
+
+    const { data, error: fetchErr } = await supabase
+      .from('assessments')
+      .select('id, risk_level, score, created_at, finalised_at, matter_id')
+      .order('created_at', { ascending: false });
+
+    if (fetchErr || !data) {
+      console.error('Failed to get assessments:', fetchErr);
+      return [];
+    }
+
+    if (data.length === 0) return [];
+
+    // Fetch related matters and clients in bulk
+    const matterIds = [...new Set(data.map((a) => a.matter_id))];
+
+    const { data: matters } = await supabase
+      .from('matters')
+      .select('id, reference, description, client_id')
+      .in('id', matterIds);
+
+    if (!matters) return [];
+
+    const clientIds = [...new Set(matters.map((m) => m.client_id))];
+
+    const { data: clients } = await supabase
+      .from('clients')
+      .select('id, name')
+      .in('id', clientIds);
+
+    if (!clients) return [];
+
+    // Build lookup maps
+    const clientMap = new Map(clients.map((c) => [c.id, c]));
+    const matterMap = new Map(
+      matters.map((m) => [m.id, { ...m, client: clientMap.get(m.client_id) }])
+    );
+
+    return data.map((assessment) => {
+      const matter = matterMap.get(assessment.matter_id);
+      return {
+        id: assessment.id,
+        risk_level: assessment.risk_level,
+        score: assessment.score,
+        created_at: assessment.created_at,
+        finalised_at: assessment.finalised_at,
+        client_name: matter?.client?.name || 'Unknown',
+        matter_description: matter?.description || null,
+        matter_reference: matter?.reference || 'Unknown',
+      };
+    });
+  } catch (error) {
+    console.error('Error in getAllAssessments:', error);
+    return [];
+  }
+}
+
 /** Assessment with related client and matter data */
 export interface AssessmentWithDetails {
   assessment: Assessment;
   client: Client;
   matter: Matter;
   outputSnapshot: AssessmentOutput;
+  registeredNumber: string | null;
 }
 
 /** Result of getting assessment with details */
@@ -383,7 +461,13 @@ export async function getAssessmentWithDetails(
 
     return {
       success: true,
-      data: { assessment, client, matter, outputSnapshot },
+      data: {
+        assessment,
+        client,
+        matter,
+        outputSnapshot,
+        registeredNumber: client.registered_number || null,
+      },
     };
   } catch (error) {
     console.error('Error in getAssessmentWithDetails:', error);

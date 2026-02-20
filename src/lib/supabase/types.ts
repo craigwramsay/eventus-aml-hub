@@ -100,6 +100,35 @@ export interface UserInvitation {
   created_at: string;
 }
 
+export type EvidenceType = 'companies_house' | 'file_upload' | 'amiqus' | 'manual_record';
+
+export interface AssessmentEvidence {
+  id: string;
+  firm_id: string;
+  assessment_id: string;
+  action_id: string | null;
+  evidence_type: EvidenceType;
+  label: string;
+  source: string | null;
+  data: Json | null;
+  file_path: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  notes: string | null;
+  created_by: string;
+  created_at: string;
+}
+
+export interface CddItemProgress {
+  id: string;
+  firm_id: string;
+  assessment_id: string;
+  action_id: string;
+  completed_at: string | null;
+  completed_by: string | null;
+  created_at: string;
+}
+
 export type SourceType = 'external' | 'internal';
 
 export interface AssistantSource {
@@ -161,12 +190,23 @@ export interface Database {
         Insert: Partial<UserInvitation> & Pick<UserInvitation, 'firm_id' | 'email' | 'role' | 'invited_by'>;
         Update: Partial<UserInvitation>;
       };
+      assessment_evidence: {
+        Row: AssessmentEvidence;
+        Insert: Partial<AssessmentEvidence> & Pick<AssessmentEvidence, 'firm_id' | 'assessment_id' | 'evidence_type' | 'label' | 'created_by'>;
+        Update: never;  // Append-only — no updates allowed
+      };
+      cdd_item_progress: {
+        Row: CddItemProgress;
+        Insert: Partial<CddItemProgress> & Pick<CddItemProgress, 'firm_id' | 'assessment_id' | 'action_id'>;
+        Update: Partial<Pick<CddItemProgress, 'completed_at' | 'completed_by'>>;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: {
       risk_level: RiskLevel;
       source_type: SourceType;
+      evidence_type: EvidenceType;
     };
   };
 }

@@ -32,4 +32,5 @@ export type {
   AutomaticOutcomeSnapshot,
   EDDTriggerSnapshot,
   AssessmentWarningSnapshot,
+  EvidenceForDetermination,
 } from './types';

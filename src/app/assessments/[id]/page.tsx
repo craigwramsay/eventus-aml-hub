@@ -1,9 +1,15 @@
 import Link from 'next/link';
 import { getAssessmentWithDetails } from '@/app/actions/assessments';
+import { getEvidenceForAssessment } from '@/app/actions/evidence';
+import { getProgressForAssessment } from '@/app/actions/progress';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canFinaliseAssessment } from '@/lib/auth/roles';
 import { FinaliseButton } from './FinaliseButton';
-import type { RiskFactorResult, MandatoryAction, EDDTriggerResult, AssessmentWarning } from '@/lib/rules-engine/types';
+import { EvidenceSection } from './EvidenceSection';
+import { AssessmentDetail } from './AssessmentDetail';
+import { CDDChecklist } from './CDDChecklist';
+import { MonitoringStatement } from './MonitoringStatement';
+import type { MandatoryAction, AssessmentWarning } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
 
 interface PageProps {
@@ -20,22 +26,32 @@ function formatDate(dateString: string): string {
   });
 }
 
-function getRiskBadgeClass(riskLevel: string): string {
+/** Convert risk level to title case display */
+function riskLevelDisplay(level: string): string {
+  switch (level) {
+    case 'LOW': return 'Low Risk';
+    case 'MEDIUM': return 'Medium Risk';
+    case 'HIGH': return 'High Risk';
+    default: return level;
+  }
+}
+
+function getRiskHeroClass(riskLevel: string): string {
   switch (riskLevel) {
-    case 'LOW':
-      return styles.riskLow;
-    case 'MEDIUM':
-      return styles.riskMedium;
-    case 'HIGH':
-      return styles.riskHigh;
-    default:
-      return '';
+    case 'LOW': return styles.riskHeroLow;
+    case 'MEDIUM': return styles.riskHeroMedium;
+    case 'HIGH': return styles.riskHeroHigh;
+    default: return '';
   }
 }
 
 export default async function AssessmentViewPage({ params }: PageProps) {
   const { id } = await params;
-  const result = await getAssessmentWithDetails(id);
+  const [result, evidenceResult, progressResult] = await Promise.all([
+    getAssessmentWithDetails(id),
+    getEvidenceForAssessment(id),
+    getProgressForAssessment(id),
+  ]);
 
   if (!result.success) {
     return (
@@ -49,226 +65,134 @@ export default async function AssessmentViewPage({ params }: PageProps) {
     );
   }
 
-  const { assessment, client, matter, outputSnapshot } = result.data;
+  const { assessment, client, matter, outputSnapshot, registeredNumber } = result.data;
+  const evidence = evidenceResult.success ? evidenceResult.evidence : [];
+  const progress = progressResult.success ? progressResult.progress : [];
   const isFinalised = assessment.finalised_at !== null;
+  const isCorporate = client.client_type !== 'individual';
   const profile = await getUserProfile();
   const canFinalise = profile ? canFinaliseAssessment(profile.role) : false;
 
+  // Separate actions: non-EDD (excluding monitoring), EDD, and monitoring
+  const nonEddNonMonitoringActions = outputSnapshot.mandatoryActions.filter(
+    (a: MandatoryAction) => a.category !== 'edd' && a.category !== 'monitoring'
+  );
+  const eddActions = outputSnapshot.mandatoryActions.filter(
+    (a: MandatoryAction) => a.category === 'edd'
+  );
+  const hasEddTriggers = outputSnapshot.eddTriggers && outputSnapshot.eddTriggers.length > 0;
+
   return (
     <div className={styles.container}>
+      {/* Nav links */}
+      <nav className={styles.navRow}>
+        <Link href="/assessments" className={styles.navLink}>
+          &larr; Back to Dashboard
+        </Link>
+        <Link href={`/assessments?matter=${matter.id}`} className={styles.navLink}>
+          Back to Matter
+        </Link>
+      </nav>
+
+      {/* 1. Header */}
       <header className={styles.header}>
-        <h1 className={styles.title}>Assessment Details</h1>
-        <p className={styles.subtitle}>
-          Created {formatDate(assessment.created_at)}
-        </p>
+        <div>
+          <h1 className={styles.title}>{client.name}</h1>
+          <p className={styles.subtitle}>
+            {matter.reference} &middot; {formatDate(assessment.created_at)}
+            {' '}&middot;{' '}
+            <span className={isFinalised ? styles.statusFinalised : styles.statusDraft}>
+              {isFinalised ? 'Finalised' : 'Draft'}
+            </span>
+          </p>
+        </div>
       </header>
 
-      {isFinalised ? (
-        <div className={styles.finalisedBanner}>
-          <span className={styles.finalisedIcon}>&#10003;</span>
-          <span className={styles.finalisedText}>Assessment Finalised</span>
-          <span className={styles.finalisedDate}>
-            {formatDate(assessment.finalised_at!)}
-          </span>
-        </div>
-      ) : (
-        <div className={styles.draftBanner}>
-          <span className={styles.draftText}>Draft - Not yet finalised</span>
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className={styles.actionButtons}>
-        <Link
-          href={`/assessments/${assessment.id}/determination`}
-          className={styles.determinationButton}
-        >
-          View Risk Determination
-        </Link>
-        {!isFinalised && canFinalise && <FinaliseButton assessmentId={assessment.id} />}
-      </div>
-
-      {/* Client & Matter Section */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Client & Matter</h2>
-        <div className={styles.grid}>
-          <div className={styles.field}>
-            <div className={styles.fieldLabel}>Client Name</div>
-            <div className={styles.fieldValue}>{client.name}</div>
+      {/* 2. Risk Level Hero */}
+      <section className={`${styles.riskHero} ${getRiskHeroClass(assessment.risk_level)}`}>
+        <div className={styles.riskHeroContent}>
+          <h2 className={styles.riskHeroLevel}>{riskLevelDisplay(assessment.risk_level)}</h2>
+          <div className={styles.riskHeroScore}>
+            Score: {assessment.score}
+            <span className={styles.riskHeroThreshold}>
+              {assessment.risk_level === 'LOW' && '(0\u20134 = Low)'}
+              {assessment.risk_level === 'MEDIUM' && '(5\u20138 = Medium)'}
+              {assessment.risk_level === 'HIGH' && '(9+ = High)'}
+            </span>
           </div>
-          <div className={styles.field}>
-            <div className={styles.fieldLabel}>Client Type</div>
-            <div className={styles.fieldValue}>
-              {client.client_type === 'individual' ? 'Individual' : 'Corporate'}
+          {outputSnapshot.automaticOutcome && (
+            <div className={styles.riskHeroOutcome}>
+              {outputSnapshot.automaticOutcome.description}
             </div>
-          </div>
-          <div className={styles.field}>
-            <div className={styles.fieldLabel}>Matter Reference</div>
-            <div className={styles.fieldValue}>{matter.reference}</div>
-          </div>
-          <div className={styles.field}>
-            <div className={styles.fieldLabel}>Matter Status</div>
-            <div className={styles.fieldValue}>{matter.status}</div>
-          </div>
-          {matter.description && (
-            <div className={styles.field}>
-              <div className={styles.fieldLabel}>Description</div>
-              <div className={styles.fieldValue}>{matter.description}</div>
+          )}
+          {hasEddTriggers && (
+            <div className={styles.riskHeroEdd}>
+              Enhanced Due Diligence is required (see below).
             </div>
           )}
         </div>
       </section>
 
-      {/* Risk Assessment Section */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Risk Assessment</h2>
-        <div className={styles.grid}>
-          <div className={styles.field}>
-            <div className={styles.fieldLabel}>Risk Level</div>
-            <div className={styles.fieldValue}>
-              <span
-                className={`${styles.riskBadge} ${getRiskBadgeClass(assessment.risk_level)}`}
-              >
-                {assessment.risk_level}
-              </span>
-            </div>
-          </div>
-          <div className={styles.field}>
-            <div className={styles.fieldLabel}>Score</div>
-            <div className={styles.score}>{assessment.score}</div>
-            <div className={styles.scoreLabel}>
-              {assessment.risk_level === 'LOW' && '0-4 = Low Risk'}
-              {assessment.risk_level === 'MEDIUM' && '5-8 = Medium Risk'}
-              {assessment.risk_level === 'HIGH' && '9+ = High Risk'}
-            </div>
-          </div>
-        </div>
+      {/* 3. Interactive CDD Checklist + EDD section */}
+      <CDDChecklist
+        assessmentId={assessment.id}
+        actions={nonEddNonMonitoringActions}
+        eddActions={eddActions}
+        eddTriggers={outputSnapshot.eddTriggers || []}
+        evidence={evidence}
+        progress={progress}
+        isCorporate={isCorporate}
+        registeredNumber={registeredNumber}
+        isFinalised={isFinalised}
+      />
 
-        {outputSnapshot.automaticOutcome && (
-          <div className={styles.field} style={{ marginTop: '1rem' }}>
-            <div className={styles.fieldLabel}>Automatic Outcome Triggered</div>
-            <div className={styles.fieldValue}>
-              <strong>{outputSnapshot.automaticOutcome.outcomeId}</strong>
-              {' - '}
-              {outputSnapshot.automaticOutcome.description}
-            </div>
-          </div>
-        )}
-      </section>
+      {/* 4. Monitoring Statement */}
+      <MonitoringStatement
+        isHighRisk={assessment.risk_level === 'HIGH'}
+        hasEddTriggers={hasEddTriggers ?? false}
+      />
 
-      {/* EDD Triggers Section */}
-      {outputSnapshot.eddTriggers && outputSnapshot.eddTriggers.length > 0 && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            EDD Triggers ({outputSnapshot.eddTriggers.length})
-          </h2>
-          <ul className={styles.factorList}>
-            {outputSnapshot.eddTriggers.map((trigger: EDDTriggerResult) => (
-              <li key={trigger.triggerId} className={styles.factorItem}>
-                <div className={styles.factorHeader}>
-                  <span className={styles.factorLabel}>{trigger.description}</span>
-                </div>
-                <div className={styles.factorAnswer}>
-                  Authority: {trigger.authority}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* Warnings Section */}
+      {/* 5. Warnings (conditional) */}
       {outputSnapshot.warnings && outputSnapshot.warnings.length > 0 && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            Warnings ({outputSnapshot.warnings.length})
-          </h2>
-          <ul className={styles.actionList}>
+        <section className={`${styles.section} ${styles.warningSection}`}>
+          <h2 className={styles.sectionTitle}>Warnings</h2>
+          <ul className={styles.warningList}>
             {outputSnapshot.warnings.map((warning: AssessmentWarning) => (
-              <li key={warning.warningId} className={styles.actionItem}>
-                <span className={styles.actionIcon}>&#9888;</span>
-                <div className={styles.actionContent}>
-                  <div className={styles.actionLabel}>{warning.message}</div>
-                  <div className={styles.actionCategory}>{warning.authority}</div>
-                </div>
+              <li key={warning.warningId} className={styles.warningItem}>
+                <strong>MLRO ESCALATION REQUIRED:</strong> {warning.message}
+                <div className={styles.warningAuthority}>{warning.authority}</div>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      {/* Risk Factors Section */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>
-          Triggered Risk Factors ({outputSnapshot.riskFactors.filter((f: RiskFactorResult) => f.score > 0).length})
-        </h2>
-        {outputSnapshot.riskFactors.filter((f: RiskFactorResult) => f.score > 0).length === 0 ? (
-          <p>No risk factors triggered.</p>
-        ) : (
-          <ul className={styles.factorList}>
-            {outputSnapshot.riskFactors
-              .filter((factor: RiskFactorResult) => factor.score > 0)
-              .map((factor: RiskFactorResult) => (
-                <li key={factor.factorId} className={styles.factorItem}>
-                  <div className={styles.factorHeader}>
-                    <span className={styles.factorLabel}>{factor.factorLabel}</span>
-                    <span className={styles.factorScore}>+{factor.score}</span>
-                  </div>
-                  <div className={styles.factorAnswer}>
-                    Answer: {factor.selectedAnswer}
-                  </div>
-                  {factor.rationale && (
-                    <div className={styles.factorRationale}>{factor.rationale}</div>
-                  )}
-                </li>
-              ))}
-          </ul>
-        )}
-      </section>
+      {/* 6. General Evidence */}
+      <EvidenceSection
+        assessmentId={assessment.id}
+        evidence={evidence}
+        registeredNumber={registeredNumber}
+        isCorporate={isCorporate}
+        isFinalised={isFinalised}
+      />
 
-      {/* Mandatory Actions Section */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>
-          Mandatory Actions ({outputSnapshot.mandatoryActions.length})
-        </h2>
-        {outputSnapshot.mandatoryActions.length === 0 ? (
-          <p>No mandatory actions required.</p>
-        ) : (
-          <ul className={styles.actionList}>
-            {outputSnapshot.mandatoryActions.map((action: MandatoryAction, index: number) => (
-              <li key={`${action.actionId}-${index}`} className={styles.actionItem}>
-                <span className={styles.actionIcon}>&#9679;</span>
-                <div className={styles.actionContent}>
-                  <div className={styles.actionLabel}>{action.actionName}</div>
-                  {action.description && (
-                    <div className={styles.actionDescription}>
-                      {action.description}
-                    </div>
-                  )}
-                  <div className={styles.actionCategory}>{action.category}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* 7. Assessment Detail (collapsible) */}
+      <AssessmentDetail
+        riskFactors={outputSnapshot.riskFactors}
+        rationale={outputSnapshot.rationale}
+        assessmentId={assessment.id}
+        timestamp={outputSnapshot.timestamp}
+      />
 
-      {/* Rationale Section */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Rationale</h2>
-        <ul className={styles.rationaleList}>
-          {outputSnapshot.rationale.map((item: string, index: number) => (
-            <li key={index} className={styles.rationaleItem}>
-              {item}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Metadata */}
-      <div className={styles.metadata}>
-        <p>Assessment ID: {assessment.id}</p>
-        <p>Assessed at: {outputSnapshot.timestamp}</p>
+      {/* 8. Action buttons */}
+      <div className={styles.actionButtons}>
+        <Link
+          href={`/assessments/${assessment.id}/determination`}
+          className={styles.determinationButton}
+        >
+          View Determination
+        </Link>
+        {!isFinalised && canFinalise && <FinaliseButton assessmentId={assessment.id} />}
       </div>
     </div>
   );

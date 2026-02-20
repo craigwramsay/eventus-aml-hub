@@ -36,8 +36,8 @@ describe('RBAC Roles', () => {
       expect(canFinaliseAssessment('mlro')).toBe(true);
     });
 
-    it('does not allow admins to finalise', () => {
-      expect(canFinaliseAssessment('admin')).toBe(false);
+    it('allows admins to finalise', () => {
+      expect(canFinaliseAssessment('admin')).toBe(true);
     });
   });
 
@@ -50,8 +50,8 @@ describe('RBAC Roles', () => {
       expect(canCreateAssessment('mlro')).toBe(true);
     });
 
-    it('does not allow admins to create', () => {
-      expect(canCreateAssessment('admin')).toBe(false);
+    it('allows admins to create', () => {
+      expect(canCreateAssessment('admin')).toBe(true);
     });
   });
 

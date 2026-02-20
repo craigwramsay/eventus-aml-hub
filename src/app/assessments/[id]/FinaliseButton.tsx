@@ -2,7 +2,9 @@
 
 /**
  * Finalise Assessment Button
- * Calls the finaliseAssessment server action and handles the result
+ *
+ * Shows "Confirm all CDD completed" with an inline confirmation box
+ * instead of window.confirm().
  */
 
 import { useState } from 'react';
@@ -17,16 +19,11 @@ interface FinaliseButtonProps {
 export function FinaliseButton({ assessmentId }: FinaliseButtonProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFinalise() {
     if (isSubmitting) return;
-
-    const confirmed = window.confirm(
-      'Are you sure you want to finalise this assessment?\n\nOnce finalised, it cannot be modified.'
-    );
-
-    if (!confirmed) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -35,7 +32,7 @@ export function FinaliseButton({ assessmentId }: FinaliseButtonProps) {
       const result = await finaliseAssessment(assessmentId);
 
       if (result.success) {
-        // Refresh the page to show updated state
+        setShowConfirm(false);
         router.refresh();
       } else {
         setError(result.error);
@@ -50,14 +47,40 @@ export function FinaliseButton({ assessmentId }: FinaliseButtonProps) {
   return (
     <div className={styles.finaliseContainer}>
       {error && <div className={styles.finaliseError}>{error}</div>}
-      <button
-        type="button"
-        className={styles.finaliseButton}
-        onClick={handleFinalise}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Finalising...' : 'Finalise Assessment'}
-      </button>
+
+      {!showConfirm ? (
+        <button
+          type="button"
+          className={styles.finaliseButton}
+          onClick={() => setShowConfirm(true)}
+        >
+          Confirm all CDD completed
+        </button>
+      ) : (
+        <div className={styles.finaliseConfirmBox}>
+          <p className={styles.finaliseConfirmText}>
+            Are you sure you want to finalise this assessment? Once finalised, it cannot be modified.
+          </p>
+          <div className={styles.finaliseConfirmActions}>
+            <button
+              type="button"
+              className={styles.finaliseButton}
+              onClick={handleFinalise}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Finalising...' : 'Yes, finalise'}
+            </button>
+            <button
+              type="button"
+              className={styles.finaliseCancelButton}
+              onClick={() => setShowConfirm(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import type {
   MandatoryActionSnapshot,
   EDDTriggerSnapshot,
   AssessmentWarningSnapshot,
+  EvidenceForDetermination,
 } from './types';
 import {
   collectPolicyReferences,
@@ -35,13 +36,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 /** Category sort order */
-const CATEGORY_ORDER: string[] = ['cdd', 'edd', 'sow', 'sof', 'monitoring', 'escalation'];
+const CATEGORY_ORDER: string[] = ['cdd', 'sow', 'sof', 'monitoring', 'escalation'];
 
-/** Risk level display text */
+/** Risk level display text — title case for determination */
 const RISK_LEVEL_TEXT: Record<string, string> = {
-  LOW: 'LOW RISK',
-  MEDIUM: 'MEDIUM RISK',
-  HIGH: 'HIGH RISK',
+  LOW: 'Low Risk',
+  MEDIUM: 'Medium Risk',
+  HIGH: 'High Risk',
 };
 
 /** Threshold descriptions */
@@ -69,7 +70,7 @@ function formatTimestamp(isoString: string): string {
  * Format client type for display
  */
 function formatClientType(clientType: 'individual' | 'corporate'): string {
-  return clientType === 'individual' ? 'Individual' : 'Corporate Entity';
+  return clientType === 'individual' ? 'Individual' : 'Non-individual';
 }
 
 /**
@@ -151,6 +152,116 @@ function renderRiskDetermination(assessment: AssessmentRecord): DeterminationSec
 }
 
 /**
+ * Group actions by category
+ */
+function groupActionsByCategory(
+  actions: MandatoryActionSnapshot[]
+): Record<string, MandatoryActionSnapshot[]> {
+  const grouped: Record<string, MandatoryActionSnapshot[]> = {};
+
+  for (const action of actions) {
+    const category = action.category || 'other';
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push(action);
+  }
+
+  return grouped;
+}
+
+/**
+ * Get the display text for an action, preferring displayText over description
+ */
+function getActionDisplayText(action: MandatoryActionSnapshot): string {
+  return action.displayText || action.description;
+}
+
+/**
+ * Render the CDD requirements section (non-EDD actions, numbered)
+ */
+function renderCDDRequirements(assessment: AssessmentRecord): DeterminationSection {
+  const { output_snapshot } = assessment;
+  const { mandatoryActions } = output_snapshot;
+
+  // Separate non-EDD and EDD actions
+  const nonEddActions = mandatoryActions.filter((a) => a.category !== 'edd');
+  const eddActions = mandatoryActions.filter((a) => a.category === 'edd');
+
+  if (nonEddActions.length === 0 && eddActions.length === 0) {
+    return {
+      title: 'CDD REQUIREMENTS',
+      body: 'No CDD requirements.',
+    };
+  }
+
+  const grouped = groupActionsByCategory(nonEddActions);
+
+  // Sort categories by defined order
+  const sortedCategories = Object.keys(grouped).sort((a, b) => {
+    const aIndex = CATEGORY_ORDER.indexOf(a);
+    const bIndex = CATEGORY_ORDER.indexOf(b);
+    const aOrder = aIndex === -1 ? 999 : aIndex;
+    const bOrder = bIndex === -1 ? 999 : bIndex;
+    return aOrder - bOrder;
+  });
+
+  const lines: string[] = [];
+  let actionNumber = 0;
+
+  for (const category of sortedCategories) {
+    const label = CATEGORY_LABELS[category] || category.toUpperCase();
+    lines.push(`[${label}]`);
+
+    // Sort actions within category by actionId for determinism
+    const sortedActions = [...grouped[category]].sort((a, b) =>
+      a.actionId.localeCompare(b.actionId)
+    );
+
+    for (const action of sortedActions) {
+      actionNumber++;
+      const priorityLabel = action.priority === 'recommended' ? ' [Recommended]' : '';
+      lines.push(`${actionNumber}. ${getActionDisplayText(action)}${priorityLabel}`);
+      // Show evidence types when no displayText (backward compatibility)
+      if (!action.displayText && action.evidenceTypes && action.evidenceTypes.length > 0) {
+        lines.push('   Supporting evidence:');
+        for (const evidence of action.evidenceTypes) {
+          lines.push(`     - ${evidence}`);
+        }
+      }
+    }
+
+    lines.push('');
+  }
+
+  // EDD requirements (if present)
+  if (eddActions.length > 0) {
+    lines.push('[Enhanced Due Diligence (EDD)]');
+
+    const sortedEdd = [...eddActions].sort((a, b) =>
+      a.actionId.localeCompare(b.actionId)
+    );
+
+    for (const action of sortedEdd) {
+      actionNumber++;
+      lines.push(`${actionNumber}. ${getActionDisplayText(action)}`);
+    }
+
+    lines.push('');
+  }
+
+  // Remove trailing empty line
+  if (lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+
+  return {
+    title: 'CDD REQUIREMENTS',
+    body: lines.join('\n'),
+  };
+}
+
+/**
  * Render EDD triggers section (if any)
  */
 function renderEDDTriggers(assessment: AssessmentRecord): DeterminationSection | null {
@@ -173,127 +284,6 @@ function renderEDDTriggers(assessment: AssessmentRecord): DeterminationSection |
 
   return {
     title: 'EDD TRIGGERS',
-    body: lines.join('\n'),
-  };
-}
-
-/**
- * Render the triggered risk factors section
- */
-function renderRiskFactors(assessment: AssessmentRecord): DeterminationSection {
-  const { output_snapshot } = assessment;
-
-  // Filter to only factors that contributed to score
-  const triggeredFactors = output_snapshot.riskFactors.filter(
-    (factor: RiskFactorSnapshot) => factor.score > 0
-  );
-
-  if (triggeredFactors.length === 0) {
-    return {
-      title: 'TRIGGERED RISK FACTORS',
-      body: 'No risk factors triggered.',
-    };
-  }
-
-  // Sort by score descending, then by factorId for determinism
-  const sortedFactors = [...triggeredFactors].sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return a.factorId.localeCompare(b.factorId);
-  });
-
-  const lines: string[] = [];
-
-  for (const factor of sortedFactors) {
-    lines.push(`- ${factor.factorLabel} (+${factor.score})`);
-    lines.push(`  Answer: ${formatAnswer(factor.selectedAnswer)}`);
-  }
-
-  return {
-    title: 'TRIGGERED RISK FACTORS',
-    body: lines.join('\n'),
-  };
-}
-
-/**
- * Group actions by category
- */
-function groupActionsByCategory(
-  actions: MandatoryActionSnapshot[]
-): Record<string, MandatoryActionSnapshot[]> {
-  const grouped: Record<string, MandatoryActionSnapshot[]> = {};
-
-  for (const action of actions) {
-    const category = action.category || 'other';
-    if (!grouped[category]) {
-      grouped[category] = [];
-    }
-    grouped[category].push(action);
-  }
-
-  return grouped;
-}
-
-/**
- * Render the mandatory actions section
- */
-function renderMandatoryActions(assessment: AssessmentRecord): DeterminationSection {
-  const { output_snapshot } = assessment;
-  const { mandatoryActions } = output_snapshot;
-
-  if (mandatoryActions.length === 0) {
-    return {
-      title: 'MANDATORY ACTIONS',
-      body: 'No mandatory actions.',
-    };
-  }
-
-  const grouped = groupActionsByCategory(mandatoryActions);
-
-  // Sort categories by defined order
-  const sortedCategories = Object.keys(grouped).sort((a, b) => {
-    const aIndex = CATEGORY_ORDER.indexOf(a);
-    const bIndex = CATEGORY_ORDER.indexOf(b);
-    const aOrder = aIndex === -1 ? 999 : aIndex;
-    const bOrder = bIndex === -1 ? 999 : bIndex;
-    return aOrder - bOrder;
-  });
-
-  const lines: string[] = [];
-
-  for (const category of sortedCategories) {
-    const label = CATEGORY_LABELS[category] || category.toUpperCase();
-    lines.push(`[${label}]`);
-
-    // Sort actions within category by actionId for determinism
-    const sortedActions = [...grouped[category]].sort((a, b) =>
-      a.actionId.localeCompare(b.actionId)
-    );
-
-    for (const action of sortedActions) {
-      // Use mandatory language - no conditionals
-      const priorityLabel = action.priority === 'recommended' ? ' [Recommended]' : '';
-      lines.push(`- ${action.actionName}${priorityLabel}`);
-      if (action.description) {
-        lines.push(`  ${action.description}`);
-      }
-      if (action.evidenceTypes && action.evidenceTypes.length > 0) {
-        lines.push('  Supporting evidence:');
-        for (const evidence of action.evidenceTypes) {
-          lines.push(`    - ${evidence}`);
-        }
-      }
-    }
-
-    lines.push('');
-  }
-
-  // Remove trailing empty line
-  if (lines[lines.length - 1] === '') {
-    lines.pop();
-  }
-
-  return {
-    title: 'MANDATORY ACTIONS',
     body: lines.join('\n'),
   };
 }
@@ -322,6 +312,81 @@ function renderWarnings(assessment: AssessmentRecord): DeterminationSection | nu
 
   return {
     title: 'WARNINGS',
+    body: lines.join('\n'),
+  };
+}
+
+/**
+ * Render the verification evidence section
+ */
+function renderVerificationEvidence(evidence: EvidenceForDetermination[]): DeterminationSection | null {
+  if (!evidence || evidence.length === 0) {
+    return null;
+  }
+
+  const lines: string[] = [];
+
+  for (const item of evidence) {
+    const date = formatTimestamp(item.created_at);
+
+    if (item.evidence_type === 'companies_house') {
+      const data = item.data as {
+        profile?: { company_name?: string; company_status?: string; company_number?: string };
+        officers?: Array<unknown>;
+      } | null;
+      const companyName = data?.profile?.company_name || 'Unknown';
+      const companyStatus = data?.profile?.company_status || 'unknown';
+      const officerCount = data?.officers?.length || 0;
+      lines.push(`- Companies House Report: ${companyName} (${companyStatus}), ${officerCount} active officer(s)`);
+      lines.push(`  Looked up: ${date}`);
+    } else if (item.evidence_type === 'file_upload') {
+      lines.push(`- File: ${item.label}`);
+      lines.push(`  Uploaded: ${date}`);
+    } else {
+      lines.push(`- ${item.label}`);
+      lines.push(`  Recorded: ${date}`);
+    }
+  }
+
+  return {
+    title: 'VERIFICATION EVIDENCE',
+    body: lines.join('\n'),
+  };
+}
+
+/**
+ * Render the triggered risk factors section
+ */
+function renderRiskFactors(assessment: AssessmentRecord): DeterminationSection {
+  const { output_snapshot } = assessment;
+
+  // Filter to only factors that contributed to score
+  const triggeredFactors = output_snapshot.riskFactors.filter(
+    (factor: RiskFactorSnapshot) => factor.score > 0
+  );
+
+  if (triggeredFactors.length === 0) {
+    return {
+      title: 'RISK FACTORS',
+      body: 'No risk factors triggered.',
+    };
+  }
+
+  // Sort by score descending, then by factorId for determinism
+  const sortedFactors = [...triggeredFactors].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.factorId.localeCompare(b.factorId);
+  });
+
+  const lines: string[] = [];
+
+  for (const factor of sortedFactors) {
+    lines.push(`- ${factor.factorLabel} (+${factor.score})`);
+    lines.push(`  Answer: ${formatAnswer(factor.selectedAnswer)}`);
+  }
+
+  return {
+    title: 'RISK FACTORS',
     body: lines.join('\n'),
   };
 }
@@ -384,6 +449,7 @@ function renderRiskAppetite(assessment: AssessmentRecord): DeterminationSection 
 
 export interface RenderDeterminationOptions {
   jurisdiction?: Jurisdiction;
+  evidence?: EvidenceForDetermination[];
 }
 
 /**
@@ -395,8 +461,20 @@ export interface RenderDeterminationOptions {
  * - Does NOT call any LLM
  * - Uses UTC timestamps for timezone independence
  *
+ * Section order:
+ * 1. HEADING
+ * 2. ASSESSMENT DETAILS
+ * 3. RISK DETERMINATION
+ * 4. CDD REQUIREMENTS (numbered, with EDD sub-section)
+ * 5. EDD TRIGGERS (conditional)
+ * 6. WARNINGS (conditional)
+ * 7. VERIFICATION EVIDENCE (conditional)
+ * 8. RISK FACTORS
+ * 9. POLICY REFERENCES
+ * 10. RISK APPETITE
+ *
  * @param assessment - The assessment record with snapshots
- * @param options - Optional configuration (jurisdiction)
+ * @param options - Optional configuration (jurisdiction, evidence)
  * @returns Determination text and structured sections
  */
 export function renderDetermination(
@@ -410,6 +488,7 @@ export function renderDetermination(
     renderHeading(),
     renderDetails(assessment, jurisdiction),
     renderRiskDetermination(assessment),
+    renderCDDRequirements(assessment),
   ];
 
   // EDD triggers section (only if triggers present)
@@ -418,15 +497,21 @@ export function renderDetermination(
     sections.push(eddTriggersSection);
   }
 
-  sections.push(renderRiskFactors(assessment));
-  sections.push(renderMandatoryActions(assessment));
-
   // Warnings section (only if warnings present)
   const warningsSection = renderWarnings(assessment);
   if (warningsSection) {
     sections.push(warningsSection);
   }
 
+  // Verification evidence (only if evidence provided)
+  if (options?.evidence) {
+    const evidenceSection = renderVerificationEvidence(options.evidence);
+    if (evidenceSection) {
+      sections.push(evidenceSection);
+    }
+  }
+
+  sections.push(renderRiskFactors(assessment));
   sections.push(renderPolicyReferencesSection(assessment));
   sections.push(renderRiskAppetite(assessment));
 
@@ -436,23 +521,23 @@ export function renderDetermination(
   for (const section of sections) {
     if (section.title === 'HEADING') {
       // Heading gets special formatting
-      textParts.push('═'.repeat(70));
+      textParts.push('\u2550'.repeat(70));
       textParts.push(section.body);
-      textParts.push('═'.repeat(70));
+      textParts.push('\u2550'.repeat(70));
     } else {
       textParts.push('');
-      textParts.push('─'.repeat(70));
+      textParts.push('\u2500'.repeat(70));
       textParts.push(section.title);
-      textParts.push('─'.repeat(70));
+      textParts.push('\u2500'.repeat(70));
       textParts.push(section.body);
     }
   }
 
   // End marker
   textParts.push('');
-  textParts.push('═'.repeat(70));
+  textParts.push('\u2550'.repeat(70));
   textParts.push('END OF DETERMINATION');
-  textParts.push('═'.repeat(70));
+  textParts.push('\u2550'.repeat(70));
 
   return {
     determinationText: textParts.join('\n'),

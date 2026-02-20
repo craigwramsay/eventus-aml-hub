@@ -32,6 +32,10 @@ function mapCDDAction(
     priority,
   };
 
+  if (action.display_text) {
+    mapped.displayText = action.display_text;
+  }
+
   if (action.evidence_types && action.evidence_types.length > 0) {
     mapped.evidenceTypes = action.evidence_types;
   }

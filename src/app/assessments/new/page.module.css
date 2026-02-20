@@ -75,6 +75,18 @@
   font-weight: 500;
 }
 
+.matterInfoRef {
+  color: #6b7280;
+  font-weight: 400;
+  font-size: 0.8125rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .matterInfoRef {
+    color: #9ca3af;
+  }
+}
+
 .clientTypeSelector {
   background-color: #fef3c7;
   border: 1px solid #f59e0b;
@@ -446,6 +458,46 @@
 .emptyStateLink {
   color: #4f46e5;
   text-decoration: underline;
+}
+
+/* Pre-filled badge */
+.prefilledBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  vertical-align: middle;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prefilledBadge {
+    background-color: #1e3a5f;
+    color: #93c5fd;
+  }
+}
+
+/* Read-only input */
+.inputReadOnly {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .inputReadOnly {
+    background-color: #1f2937;
+    color: #9ca3af;
+  }
+}
+
+/* Read-only radio options */
+.radioOptionReadOnly {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Loading state */

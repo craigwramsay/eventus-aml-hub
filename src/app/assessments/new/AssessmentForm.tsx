@@ -2,7 +2,9 @@
 
 /**
  * Assessment Form Component
- * Renders dynamic CMLRA form based on config and submits via deterministic engine
+ * Renders dynamic CMLRA form based on config and submits via deterministic engine.
+ * Supports pre-populated fields (read-only), entity-type-aware labels,
+ * and currency formatting.
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -48,20 +50,71 @@ interface FormConfig {
 interface AssessmentFormProps {
   matterId: string;
   derivedClientType: 'individual' | 'corporate';
+  entityType: string;
   individualFormConfig: FormConfig;
   corporateFormConfig: FormConfig;
+  initialValues?: FormAnswers;
+  readOnlyFields?: string[];
+}
+
+/**
+ * Map entity type to the appropriate officer title.
+ */
+function getOfficerTitle(entityType: string): string {
+  switch (entityType) {
+    case 'LLP':
+      return 'members';
+    case 'Partnership':
+      return 'partners';
+    case 'Trustee(s) of a trust':
+      return 'trustees';
+    default:
+      // All company types (limited by shares, guarantee, PLC)
+      return 'directors';
+  }
+}
+
+/**
+ * Format a number string with £ and commas.
+ * Strips non-numeric chars, adds commas, prepends £.
+ */
+function formatCurrency(raw: string): string {
+  // Remove everything except digits
+  const digits = raw.replace(/[^\d]/g, '');
+  if (digits === '') return '';
+  // Add commas
+  const formatted = Number(digits).toLocaleString('en-GB');
+  return `\u00A3${formatted}`;
+}
+
+/**
+ * Strip currency formatting to get raw digits for storage.
+ */
+function stripCurrency(formatted: string): string {
+  return formatted.replace(/[^\d]/g, '');
 }
 
 export function AssessmentForm({
   matterId,
   derivedClientType,
+  entityType,
   individualFormConfig,
   corporateFormConfig,
+  initialValues = {},
+  readOnlyFields = [],
 }: AssessmentFormProps) {
   const router = useRouter();
-  const [answers, setAnswers] = useState<FormAnswers>({});
+  const [answers, setAnswers] = useState<FormAnswers>(() => ({ ...initialValues }));
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Currency field ID differs by form type: 38 (corporate), 26 (individual)
+  const currencyFieldId = derivedClientType === 'corporate' ? '38' : '26';
+  const [currencyDisplay, setCurrencyDisplay] = useState<string>(() => {
+    const raw = initialValues[currencyFieldId];
+    if (typeof raw === 'string' && raw) return formatCurrency(raw);
+    return '';
+  });
 
   const formConfig =
     derivedClientType === 'individual'
@@ -75,6 +128,9 @@ export function AssessmentForm({
     }
     return map;
   }, [formConfig.fields]);
+
+  const readOnlySet = useMemo(() => new Set(readOnlyFields), [readOnlyFields]);
+  const officerTitle = useMemo(() => getOfficerTitle(entityType), [entityType]);
 
   const shouldShowField = useCallback(
     (field: FormField): boolean => {
@@ -105,11 +161,22 @@ export function AssessmentForm({
     });
   }, []);
 
-  const getLabelText = (field: FormField): string => {
+  /**
+   * Get label text, with dynamic substitution for entity-type-aware fields.
+   */
+  const getLabelText = useCallback((field: FormField): string => {
     if (!field.label) return '';
-    if (typeof field.label === 'string') return field.label;
-    return field.label.value;
-  };
+    const raw = typeof field.label === 'string' ? field.label : field.label.value;
+
+    // Dynamic wording for ownership/control fields
+    if (field.id === '20') {
+      return `Number of ${officerTitle}`;
+    }
+    if (field.id === '22') {
+      return `In what countries are the ${officerTitle} resident?`;
+    }
+    return raw;
+  }, [officerTitle]);
 
   const getOptions = (field: FormField): string[] => {
     if (!field.label || typeof field.label === 'string') return [];
@@ -119,6 +186,10 @@ export function AssessmentForm({
   const isRequired = (field: FormField): boolean => {
     return field.validation?.includes('required') ?? false;
   };
+
+  const isReadOnly = useCallback((fieldId: string): boolean => {
+    return readOnlySet.has(fieldId);
+  }, [readOnlySet]);
 
   const getRichTextContent = (field: FormField): string => {
     if (!field.json_content?.content) return '';
@@ -137,6 +208,10 @@ export function AssessmentForm({
       case 'section':
         return renderSection(field);
       case 'text':
+        // Currency formatting for expected value field (38=corporate, 26=individual)
+        if (field.id === currencyFieldId) {
+          return renderCurrencyField(field);
+        }
         return renderTextField(field);
       case 'radio':
         return renderRadioField(field);
@@ -176,6 +251,36 @@ export function AssessmentForm({
 
   const renderTextField = (field: FormField): React.ReactNode => {
     const value = (answers[field.id] as string) || '';
+    const fieldReadOnly = isReadOnly(field.id);
+
+    return (
+      <div key={field.id} className={styles.field}>
+        <label className={styles.fieldLabel}>
+          {getLabelText(field)}
+          {isRequired(field) && (
+            <span className={styles.fieldRequired}>*</span>
+          )}
+          {fieldReadOnly && (
+            <span className={styles.prefilledBadge}>Pre-filled</span>
+          )}
+        </label>
+        <input
+          type="text"
+          className={`${styles.input} ${fieldReadOnly ? styles.inputReadOnly : ''}`}
+          value={value}
+          onChange={(e) => setAnswer(field.id, e.target.value)}
+          readOnly={fieldReadOnly}
+          tabIndex={fieldReadOnly ? -1 : undefined}
+        />
+        {field.hint && (
+          <div className={styles.fieldHint}>{field.hint}</div>
+        )}
+      </div>
+    );
+  };
+
+  const renderCurrencyField = (field: FormField): React.ReactNode => {
+    const fieldReadOnly = isReadOnly(field.id);
 
     return (
       <div key={field.id} className={styles.field}>
@@ -187,9 +292,19 @@ export function AssessmentForm({
         </label>
         <input
           type="text"
-          className={styles.input}
-          value={value}
-          onChange={(e) => setAnswer(field.id, e.target.value)}
+          inputMode="numeric"
+          className={`${styles.input} ${fieldReadOnly ? styles.inputReadOnly : ''}`}
+          value={currencyDisplay}
+          onChange={(e) => {
+            const raw = stripCurrency(e.target.value);
+            const formatted = formatCurrency(raw);
+            setCurrencyDisplay(formatted);
+            // Store raw numeric value in answers
+            setAnswer(field.id, raw);
+          }}
+          readOnly={fieldReadOnly}
+          tabIndex={fieldReadOnly ? -1 : undefined}
+          placeholder="\u00A30"
         />
         {field.hint && (
           <div className={styles.fieldHint}>{field.hint}</div>
@@ -201,6 +316,7 @@ export function AssessmentForm({
   const renderRadioField = (field: FormField): React.ReactNode => {
     const selectedValue = (answers[field.id] as string) || '';
     const options = getOptions(field);
+    const fieldReadOnly = isReadOnly(field.id);
 
     return (
       <div key={field.id} className={styles.field}>
@@ -209,16 +325,25 @@ export function AssessmentForm({
           {isRequired(field) && (
             <span className={styles.fieldRequired}>*</span>
           )}
+          {fieldReadOnly && (
+            <span className={styles.prefilledBadge}>Pre-filled</span>
+          )}
         </label>
         <div className={styles.radioGroup}>
           {options.map((option) => (
-            <label key={option} className={styles.radioOption}>
+            <label
+              key={option}
+              className={`${styles.radioOption} ${fieldReadOnly ? styles.radioOptionReadOnly : ''}`}
+            >
               <input
                 type="radio"
                 name={field.id}
                 value={option}
                 checked={selectedValue === option}
-                onChange={() => setAnswer(field.id, option)}
+                onChange={() => {
+                  if (!fieldReadOnly) setAnswer(field.id, option);
+                }}
+                disabled={fieldReadOnly}
               />
               {option}
             </label>

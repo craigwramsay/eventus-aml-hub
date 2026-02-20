@@ -310,7 +310,7 @@ describe('renderDetermination', () => {
     it('shows correct score and risk level', () => {
       const result = renderDetermination(LOW_RISK_ASSESSMENT);
       expect(result.determinationText).toContain('Total Score: 2');
-      expect(result.determinationText).toContain('Risk Level: LOW RISK');
+      expect(result.determinationText).toContain('Risk Level: Low Risk');
       expect(result.determinationText).toContain('Threshold: 0-4');
     });
 
@@ -323,7 +323,7 @@ describe('renderDetermination', () => {
     it('does not list zero-score factors as triggered', () => {
       const result = renderDetermination(LOW_RISK_ASSESSMENT);
       // Country of residence scored 0, should not appear in triggered factors
-      const triggeredSection = result.sections.find(s => s.title === 'TRIGGERED RISK FACTORS');
+      const triggeredSection = result.sections.find(s => s.title === 'RISK FACTORS');
       expect(triggeredSection?.body).not.toContain('Country of residence (+0)');
     });
 
@@ -339,8 +339,8 @@ describe('renderDetermination', () => {
         'HEADING',
         'ASSESSMENT DETAILS',
         'RISK DETERMINATION',
-        'TRIGGERED RISK FACTORS',
-        'MANDATORY ACTIONS',
+        'CDD REQUIREMENTS',
+        'RISK FACTORS',
         'POLICY REFERENCES',
         'RISK APPETITE',
       ]);
@@ -351,7 +351,7 @@ describe('renderDetermination', () => {
     it('shows correct score and risk level', () => {
       const result = renderDetermination(MEDIUM_RISK_ASSESSMENT);
       expect(result.determinationText).toContain('Total Score: 6');
-      expect(result.determinationText).toContain('Risk Level: MEDIUM RISK');
+      expect(result.determinationText).toContain('Risk Level: Medium Risk');
       expect(result.determinationText).toContain('Threshold: 5-8');
     });
 
@@ -361,9 +361,9 @@ describe('renderDetermination', () => {
       expect(result.determinationText).toContain('Finalised Date: 2025-01-17 09:30 UTC');
     });
 
-    it('shows Corporate Entity for corporate client', () => {
+    it('shows Non-individual for corporate client', () => {
       const result = renderDetermination(MEDIUM_RISK_ASSESSMENT);
-      expect(result.determinationText).toContain('Client Type: Corporate Entity');
+      expect(result.determinationText).toContain('Client Type: Non-individual');
     });
 
     it('shows Within risk appetite for MEDIUM risk', () => {
@@ -383,7 +383,7 @@ describe('renderDetermination', () => {
     it('shows correct score and risk level', () => {
       const result = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
       expect(result.determinationText).toContain('Total Score: 3');
-      expect(result.determinationText).toContain('Risk Level: HIGH RISK');
+      expect(result.determinationText).toContain('Risk Level: High Risk');
       expect(result.determinationText).toContain('Threshold: 9+');
     });
 
@@ -404,13 +404,13 @@ describe('renderDetermination', () => {
     it('includes EDD actions', () => {
       const result = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
       expect(result.determinationText).toContain('[Enhanced Due Diligence (EDD)]');
-      expect(result.determinationText).toContain('Conduct Enhanced Due Diligence');
+      expect(result.determinationText).toContain('MLRO approval required before matter proceeds');
     });
 
     it('includes monitoring actions', () => {
       const result = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
       expect(result.determinationText).toContain('[Ongoing Monitoring]');
-      expect(result.determinationText).toContain('Apply enhanced ongoing monitoring');
+      expect(result.determinationText).toContain('Monitor throughout retainer with increased frequency');
     });
   });
 
@@ -470,27 +470,27 @@ describe('renderDetermination', () => {
   });
 
   describe('Category Ordering', () => {
-    it('orders categories correctly: CDD, EDD, SoW, SoF, Monitoring', () => {
+    it('orders categories correctly: CDD, SoW, SoF, Monitoring, EDD', () => {
       const result = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
       const text = result.determinationText;
 
       const cddIndex = text.indexOf('[Customer Due Diligence (CDD)]');
-      const eddIndex = text.indexOf('[Enhanced Due Diligence (EDD)]');
       const sowIndex = text.indexOf('[Source of Wealth (SoW)]');
       const sofIndex = text.indexOf('[Source of Funds (SoF)]');
       const monitoringIndex = text.indexOf('[Ongoing Monitoring]');
+      const eddIndex = text.indexOf('[Enhanced Due Diligence (EDD)]');
 
-      expect(cddIndex).toBeLessThan(eddIndex);
-      expect(eddIndex).toBeLessThan(sowIndex);
+      expect(cddIndex).toBeLessThan(sowIndex);
       expect(sowIndex).toBeLessThan(sofIndex);
       expect(sofIndex).toBeLessThan(monitoringIndex);
+      expect(monitoringIndex).toBeLessThan(eddIndex);
     });
   });
 
   describe('Risk Factor Ordering', () => {
     it('orders risk factors by score descending', () => {
       const result = renderDetermination(MEDIUM_RISK_ASSESSMENT);
-      const factorsSection = result.sections.find(s => s.title === 'TRIGGERED RISK FACTORS');
+      const factorsSection = result.sections.find(s => s.title === 'RISK FACTORS');
       const body = factorsSection?.body || '';
 
       // +2 factors should come before +1 factors
@@ -650,13 +650,13 @@ describe('renderDetermination', () => {
       expect(result.determinationText).not.toContain('EDD TRIGGERS');
     });
 
-    it('places EDD TRIGGERS after RISK DETERMINATION', () => {
+    it('places EDD TRIGGERS after CDD REQUIREMENTS and before RISK FACTORS', () => {
       const result = renderDetermination(ASSESSMENT_WITH_TRIGGERS);
       const text = result.determinationText;
-      const riskDetIndex = text.indexOf('RISK DETERMINATION');
+      const cddReqIndex = text.indexOf('CDD REQUIREMENTS');
       const eddTriggersIndex = text.indexOf('EDD TRIGGERS');
-      const riskFactorsIndex = text.indexOf('TRIGGERED RISK FACTORS');
-      expect(eddTriggersIndex).toBeGreaterThan(riskDetIndex);
+      const riskFactorsIndex = text.indexOf('RISK FACTORS');
+      expect(eddTriggersIndex).toBeGreaterThan(cddReqIndex);
       expect(eddTriggersIndex).toBeLessThan(riskFactorsIndex);
     });
   });
@@ -720,14 +720,14 @@ describe('renderDetermination', () => {
       expect(result.determinationText).not.toContain('WARNINGS');
     });
 
-    it('places WARNINGS after MANDATORY ACTIONS', () => {
+    it('places WARNINGS after CDD REQUIREMENTS and before RISK FACTORS', () => {
       const result = renderDetermination(ASSESSMENT_WITH_WARNINGS);
       const text = result.determinationText;
-      const actionsIndex = text.indexOf('MANDATORY ACTIONS');
+      const cddReqIndex = text.indexOf('CDD REQUIREMENTS');
       const warningsIndex = text.indexOf('WARNINGS');
-      const policyIndex = text.indexOf('POLICY REFERENCES');
-      expect(warningsIndex).toBeGreaterThan(actionsIndex);
-      expect(warningsIndex).toBeLessThan(policyIndex);
+      const riskFactorsIndex = text.indexOf('RISK FACTORS');
+      expect(warningsIndex).toBeGreaterThan(cddReqIndex);
+      expect(warningsIndex).toBeLessThan(riskFactorsIndex);
     });
   });
 
@@ -766,6 +766,168 @@ describe('renderDetermination', () => {
       const lines = result.determinationText.split('\n');
       const sowFormLine = lines.find(l => l.includes('Source of Wealth') && !l.includes('Evidence'));
       expect(sowFormLine).not.toContain('[Recommended]');
+    });
+  });
+
+  describe('displayText Support', () => {
+    const ASSESSMENT_WITH_DISPLAY_TEXT: AssessmentRecord = {
+      ...LOW_RISK_ASSESSMENT,
+      output_snapshot: {
+        ...LOW_RISK_ASSESSMENT.output_snapshot,
+        mandatoryActions: [
+          {
+            actionId: 'identify_client',
+            actionName: 'Identify the client',
+            description: 'Record full legal name, date of birth, and residential address',
+            displayText: 'Identify the client by recording their full legal name, date of birth, and residential address.',
+            category: 'cdd',
+            priority: 'required',
+          },
+          {
+            actionId: 'verify_identity',
+            actionName: 'Verify identity',
+            description: 'Verify using approved method',
+            displayText: 'Verify the client\'s identity using one approved verification method.',
+            category: 'cdd',
+            priority: 'required',
+          },
+        ],
+      },
+    };
+
+    it('uses displayText when available', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_DISPLAY_TEXT);
+      expect(result.determinationText).toContain(
+        'Identify the client by recording their full legal name, date of birth, and residential address.'
+      );
+      expect(result.determinationText).toContain(
+        'Verify the client\'s identity using one approved verification method.'
+      );
+    });
+
+    it('renders numbered format with displayText', () => {
+      const result = renderDetermination(ASSESSMENT_WITH_DISPLAY_TEXT);
+      expect(result.determinationText).toContain('1. Identify the client by recording');
+      expect(result.determinationText).toContain('2. Verify the client\'s identity');
+    });
+
+    it('falls back to description when displayText is absent', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      // LOW_RISK_ASSESSMENT has no displayText, should use description
+      expect(result.determinationText).toContain('Record full legal name');
+    });
+
+    it('suppresses evidence types when displayText is present', () => {
+      const assessmentWithDisplayAndEvidence: AssessmentRecord = {
+        ...MEDIUM_RISK_ASSESSMENT,
+        output_snapshot: {
+          ...MEDIUM_RISK_ASSESSMENT.output_snapshot,
+          mandatoryActions: [
+            {
+              actionId: 'obtain_evidence',
+              actionName: 'Obtain Evidence',
+              description: 'Obtain supporting evidence',
+              displayText: 'Obtain supporting evidence (payslips, bank statements).',
+              category: 'sow',
+              priority: 'required',
+              evidenceTypes: ['payslips', 'bank statements'],
+            },
+          ],
+        },
+      };
+      const result = renderDetermination(assessmentWithDisplayAndEvidence);
+      // Should use displayText, not show separate evidence types block
+      expect(result.determinationText).toContain('Obtain supporting evidence (payslips, bank statements).');
+      expect(result.determinationText).not.toContain('Supporting evidence:');
+    });
+  });
+
+  describe('Verification Evidence Section', () => {
+    it('includes VERIFICATION EVIDENCE section when evidence provided', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT, {
+        evidence: [
+          {
+            evidence_type: 'companies_house',
+            label: 'CH Report - 12345678',
+            source: 'Companies House',
+            data: {
+              profile: {
+                company_name: 'Test Company Ltd',
+                company_status: 'active',
+                company_number: '12345678',
+              },
+              officers: [{ name: 'John Smith' }, { name: 'Jane Doe' }],
+            },
+            created_at: '2025-01-20T12:00:00.000Z',
+          },
+        ],
+      });
+      expect(result.determinationText).toContain('VERIFICATION EVIDENCE');
+      expect(result.determinationText).toContain('Test Company Ltd');
+      expect(result.determinationText).toContain('active');
+      expect(result.determinationText).toContain('2 active officer(s)');
+    });
+
+    it('shows file uploads in evidence', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT, {
+        evidence: [
+          {
+            evidence_type: 'file_upload',
+            label: 'passport_scan.pdf',
+            source: 'Manual',
+            data: null,
+            created_at: '2025-01-21T14:30:00.000Z',
+          },
+        ],
+      });
+      expect(result.determinationText).toContain('VERIFICATION EVIDENCE');
+      expect(result.determinationText).toContain('File: passport_scan.pdf');
+      expect(result.determinationText).toContain('Uploaded: 2025-01-21 14:30 UTC');
+    });
+
+    it('shows manual records in evidence', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT, {
+        evidence: [
+          {
+            evidence_type: 'manual_record',
+            label: 'Passport verified in person',
+            source: 'Manual',
+            data: null,
+            created_at: '2025-01-22T09:00:00.000Z',
+          },
+        ],
+      });
+      expect(result.determinationText).toContain('Passport verified in person');
+      expect(result.determinationText).toContain('Recorded: 2025-01-22 09:00 UTC');
+    });
+
+    it('omits VERIFICATION EVIDENCE section when no evidence', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT);
+      expect(result.determinationText).not.toContain('VERIFICATION EVIDENCE');
+    });
+
+    it('omits VERIFICATION EVIDENCE section with empty array', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT, { evidence: [] });
+      expect(result.determinationText).not.toContain('VERIFICATION EVIDENCE');
+    });
+
+    it('places VERIFICATION EVIDENCE before RISK FACTORS', () => {
+      const result = renderDetermination(LOW_RISK_ASSESSMENT, {
+        evidence: [
+          {
+            evidence_type: 'file_upload',
+            label: 'test.pdf',
+            source: 'Manual',
+            data: null,
+            created_at: '2025-01-22T09:00:00.000Z',
+          },
+        ],
+      });
+      const text = result.determinationText;
+      const evidenceIndex = text.indexOf('VERIFICATION EVIDENCE');
+      const riskFactorsIndex = text.indexOf('RISK FACTORS');
+      expect(evidenceIndex).toBeGreaterThan(-1);
+      expect(evidenceIndex).toBeLessThan(riskFactorsIndex);
     });
   });
 });

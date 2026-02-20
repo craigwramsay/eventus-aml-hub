@@ -7,8 +7,9 @@
 
 import Link from 'next/link';
 import { getAssessment } from '@/app/actions/assessments';
+import { getEvidenceForAssessment } from '@/app/actions/evidence';
 import { renderDetermination } from '@/lib/determination';
-import type { AssessmentRecord, InputSnapshot, OutputSnapshot } from '@/lib/determination';
+import type { AssessmentRecord, InputSnapshot, OutputSnapshot, EvidenceForDetermination } from '@/lib/determination';
 import { CopyButton } from './CopyButton';
 import styles from './page.module.css';
 
@@ -18,7 +19,10 @@ interface PageProps {
 
 export default async function DeterminationPage({ params }: PageProps) {
   const { id } = await params;
-  const assessment = await getAssessment(id);
+  const [assessment, evidenceResult] = await Promise.all([
+    getAssessment(id),
+    getEvidenceForAssessment(id),
+  ]);
 
   if (!assessment) {
     return (
@@ -49,11 +53,22 @@ export default async function DeterminationPage({ params }: PageProps) {
   // Read jurisdiction from snapshot (stored at assessment creation time)
   const jurisdiction = assessmentRecord.input_snapshot.jurisdiction;
 
+  // Build evidence for determination
+  const evidence: EvidenceForDetermination[] = evidenceResult.success
+    ? evidenceResult.evidence.map((e) => ({
+        evidence_type: e.evidence_type,
+        label: e.label,
+        source: e.source,
+        data: e.data,
+        created_at: e.created_at,
+      }))
+    : [];
+
   // Render the determination (jurisdiction from snapshot, or options override)
-  const determination = renderDetermination(
-    assessmentRecord,
-    jurisdiction ? { jurisdiction } : undefined
-  );
+  const determination = renderDetermination(assessmentRecord, {
+    ...(jurisdiction ? { jurisdiction } : {}),
+    ...(evidence.length > 0 ? { evidence } : {}),
+  });
 
   const isFinalised = assessment.finalised_at !== null;
 

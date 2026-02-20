@@ -42,9 +42,19 @@ export interface MandatoryActionSnapshot {
   actionId: string;
   actionName: string;
   description: string;
+  displayText?: string;
   category: 'cdd' | 'edd' | 'sow' | 'sof' | 'monitoring' | 'escalation';
   priority: 'required' | 'recommended';
   evidenceTypes?: string[];
+}
+
+/** Evidence record for determination rendering */
+export interface EvidenceForDetermination {
+  evidence_type: string;
+  label: string;
+  source: string | null;
+  data: unknown;
+  created_at: string;
 }
 
 /** EDD trigger from output snapshot */

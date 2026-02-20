@@ -41,20 +41,24 @@
             {
               "action": "identify_client",
               "description": "Identify the client by recording:",
-              "requirements": ["full legal name", "date of birth", "residential address"]
+              "requirements": ["full legal name", "date of birth", "residential address"],
+              "display_text": "Identify the client by recording their full legal name, date of birth, and residential address."
             },
             {
               "action": "verify_identity",
-              "description": "Verify the client's identity using one approved verification method (see General Rules)"
+              "description": "Verify the client's identity using one approved verification method (see General Rules)",
+              "display_text": "Verify the client's identity using one approved verification method."
             },
             {
               "action": "record_matter_info",
               "description": "Obtain and retain information on:",
-              "requirements": ["the nature and purpose of the matter"]
+              "requirements": ["the nature and purpose of the matter"],
+              "display_text": "Record the nature and purpose of the matter."
             },
             {
               "action": "ongoing_monitoring",
-              "description": "Ongoing monitoring to be applied throughout the retainer"
+              "description": "Ongoing monitoring to be applied throughout the retainer",
+              "display_text": "Apply ongoing monitoring throughout the retainer."
             }
           ],
           "edd": { "required": false },
@@ -72,20 +76,24 @@
             {
               "action": "identify_client",
               "description": "Identify the client by recording:",
-              "requirements": ["full legal name", "date of birth", "residential address"]
+              "requirements": ["full legal name", "date of birth", "residential address"],
+              "display_text": "Identify the client by recording their full legal name, date of birth, and residential address."
             },
             {
               "action": "verify_identity",
-              "description": "Verify the client's identity using one approved verification method"
+              "description": "Verify the client's identity using one approved verification method",
+              "display_text": "Verify the client's identity using one approved verification method."
             },
             {
               "action": "record_matter_info",
               "description": "Obtain and record information on:",
-              "requirements": ["the nature and purpose of the matter"]
+              "requirements": ["the nature and purpose of the matter"],
+              "display_text": "Record the nature and purpose of the matter."
             },
             {
               "action": "ongoing_monitoring",
-              "description": "Apply ongoing monitoring throughout the retainer"
+              "description": "Apply ongoing monitoring throughout the retainer",
+              "display_text": "Apply ongoing monitoring throughout the retainer."
             }
           ],
           "sow": {
@@ -93,7 +101,8 @@
             "actions": [
               {
                 "action": "complete_form",
-                "description": "Source of Wealth Form must be completed and retained"
+                "description": "Source of Wealth Form must be completed and retained",
+                "display_text": "Complete and retain a Source of Wealth Form."
               },
               {
                 "action": "obtain_evidence",
@@ -103,7 +112,8 @@
                   "bank statements (savings)",
                   "sale documentation (asset or business sale)",
                   "inheritance documentation (where applicable)"
-                ]
+                ],
+                "display_text": "Obtain supporting evidence aligned to the declared source of wealth (payslips, tax returns, bank statements, sale documentation, or inheritance documentation)."
               }
             ]
           },
@@ -112,12 +122,14 @@
             "actions": [
               {
                 "action": "complete_form",
-                "description": "Source of Funds Form must be completed and retained"
+                "description": "Source of Funds Form must be completed and retained",
+                "display_text": "Complete and retain a Source of Funds Form."
               },
               {
                 "action": "obtain_evidence",
                 "description": "Obtain bank statement(s) evidencing:",
-                "requirements": ["origin of funds", "availability of funds for the transaction"]
+                "requirements": ["origin of funds", "availability of funds for the transaction"],
+                "display_text": "Obtain bank statement(s) evidencing the origin and availability of funds for the transaction."
               }
             ]
           },
@@ -128,7 +140,8 @@
           "cdd_actions": [
             {
               "action": "all_medium_risk_actions",
-              "description": "All actions listed for Medium Risk individuals"
+              "description": "All actions listed for Medium Risk individuals",
+              "display_text": "Complete all actions listed for Medium Risk individuals."
             }
           ],
           "edd": {
@@ -136,15 +149,18 @@
             "actions": [
               {
                 "action": "senior_management_approval",
-                "description": "senior management / MLRO approval"
+                "description": "senior management / MLRO approval",
+                "display_text": "Obtain MLRO approval before proceeding."
               },
               {
                 "action": "enhanced_sow_sof_scrutiny",
-                "description": "enhanced scrutiny of Source of Wealth and Source of Funds"
+                "description": "enhanced scrutiny of Source of Wealth and Source of Funds",
+                "display_text": "Apply enhanced scrutiny of Source of Wealth and Source of Funds."
               },
               {
                 "action": "corroborative_documentation",
-                "description": "corroborative documentation where available"
+                "description": "corroborative documentation where available",
+                "display_text": "Obtain corroborative documentation where available."
               }
             ]
           },
@@ -164,38 +180,45 @@
             {
               "action": "obtain_documents",
               "description": "Obtain and retain:",
-              "requirements": ["certificate of incorporation", "articles of association"]
+              "requirements": ["certificate of incorporation", "articles of association"],
+              "display_text": "Obtain and retain the certificate of incorporation and articles of association."
             },
             {
               "action": "companies_house_search",
               "description": "Carry out and retain a Companies House search showing:",
-              "requirements": ["registered name and number", "registered office", "current directors", "PSC register"]
+              "requirements": ["registered name and number", "registered office", "current directors", "PSC register"],
+              "display_text": "Carry out and retain a Companies House search confirming the registered name and number, registered office, current directors, and PSC register."
             },
             {
               "action": "verify_consistency",
-              "description": "Record confirmation that Companies House information is consistent with client-provided information"
+              "description": "Record confirmation that Companies House information is consistent with client-provided information",
+              "display_text": "Confirm that Companies House information is consistent with client-provided information."
             }
           ],
           "directors": [
             {
               "action": "identify_directors",
               "description": "Identify all directors by recording:",
-              "requirements": ["full legal name", "date of birth", "service address", "role as director"]
+              "requirements": ["full legal name", "date of birth", "service address", "role as director"],
+              "display_text": "Identify all directors by recording their full legal name, date of birth, service address, and role."
             },
             {
               "action": "verify_directors",
-              "description": "Verify the identity of each director using one approved verification method"
+              "description": "Verify the identity of each director using one approved verification method",
+              "display_text": "Verify the identity of each director using one approved verification method."
             }
           ],
           "beneficial_ownership": [
             {
               "action": "identify_beneficial_owners",
               "description": "Identify all individuals who:",
-              "criteria": ["hold more than 25% of shares or voting rights", "otherwise exercise control"]
+              "criteria": ["hold more than 25% of shares or voting rights", "otherwise exercise control"],
+              "display_text": "Identify all individuals who hold more than 25% of shares or voting rights or who otherwise exercise control."
             },
             {
               "action": "verify_beneficial_owners",
-              "description": "Verify the identity of each beneficial owner using one approved verification method"
+              "description": "Verify the identity of each beneficial owner using one approved verification method",
+              "display_text": "Verify the identity of each beneficial owner using one approved verification method."
             }
           ],
           "ongoing_monitoring": {
@@ -216,17 +239,20 @@
           "cdd_actions": [
             {
               "action": "all_low_risk_actions",
-              "description": "All actions listed for Low Risk UK private limited companies"
+              "description": "All actions listed for Low Risk UK private limited companies",
+              "display_text": "Complete all actions listed for Low Risk UK private limited companies."
             }
           ],
           "ownership_control": [
             {
               "action": "obtain_structure_chart",
-              "description": "Obtain and retain an ownership and control structure chart"
+              "description": "Obtain and retain an ownership and control structure chart",
+              "display_text": "Obtain and retain an ownership and control structure chart."
             },
             {
               "action": "confirm_transparency",
-              "description": "Record confirmation that ownership and control are understood and not opaque"
+              "description": "Record confirmation that ownership and control are understood and not opaque",
+              "display_text": "Confirm that ownership and control are understood and not opaque."
             }
           ],
           "sow": {
@@ -234,7 +260,8 @@
             "actions": [
               {
                 "action": "complete_form",
-                "description": "Source of Wealth Form must be completed and retained"
+                "description": "Source of Wealth Form must be completed and retained",
+                "display_text": "Complete and retain a Source of Wealth Form."
               },
               {
                 "action": "obtain_evidence",
@@ -244,7 +271,8 @@
                   "dividend vouchers",
                   "business sale documentation",
                   "loan agreements (where applicable)"
-                ]
+                ],
+                "display_text": "Obtain supporting evidence aligned to the declared source of wealth (statutory accounts, dividend vouchers, business sale documentation, or loan agreements)."
               }
             ]
           },
@@ -253,12 +281,14 @@
             "actions": [
               {
                 "action": "complete_form",
-                "description": "Source of Funds Form must be completed and retained"
+                "description": "Source of Funds Form must be completed and retained",
+                "display_text": "Complete and retain a Source of Funds Form."
               },
               {
                 "action": "obtain_evidence",
                 "description": "Obtain bank statement(s) evidencing:",
-                "requirements": ["origin of funds", "availability of funds for the transaction"]
+                "requirements": ["origin of funds", "availability of funds for the transaction"],
+                "display_text": "Obtain bank statement(s) evidencing the origin and availability of funds for the transaction."
               }
             ]
           },
@@ -269,7 +299,8 @@
           "cdd_actions": [
             {
               "action": "all_medium_risk_actions",
-              "description": "All actions listed for Medium Risk UK private limited companies"
+              "description": "All actions listed for Medium Risk UK private limited companies",
+              "display_text": "Complete all actions listed for Medium Risk UK private limited companies."
             }
           ],
           "edd": {
@@ -277,19 +308,23 @@
             "actions": [
               {
                 "action": "mlro_approval",
-                "description": "MLRO approval prior to proceeding"
+                "description": "MLRO approval prior to proceeding",
+                "display_text": "Obtain MLRO approval before proceeding."
               },
               {
                 "action": "enhanced_ownership_scrutiny",
-                "description": "enhanced scrutiny of ownership and control"
+                "description": "enhanced scrutiny of ownership and control",
+                "display_text": "Apply enhanced scrutiny of ownership and control."
               },
               {
                 "action": "enhanced_sow_sof_scrutiny",
-                "description": "enhanced scrutiny of Source of Wealth and Source of Funds"
+                "description": "enhanced scrutiny of Source of Wealth and Source of Funds",
+                "display_text": "Apply enhanced scrutiny of Source of Wealth and Source of Funds."
               },
               {
                 "action": "corroborative_documentation",
-                "description": "corroborative documentation where available"
+                "description": "corroborative documentation where available",
+                "display_text": "Obtain corroborative documentation where available."
               }
             ]
           },
@@ -309,37 +344,44 @@
             {
               "action": "obtain_documents",
               "description": "Obtain and retain:",
-              "requirements": ["LLP incorporation certificate or partnership agreement", "constitutional or governing documents (where applicable)"]
+              "requirements": ["LLP incorporation certificate or partnership agreement", "constitutional or governing documents (where applicable)"],
+              "display_text": "Obtain and retain the LLP incorporation certificate or partnership agreement and any constitutional or governing documents."
             },
             {
               "action": "registry_search",
               "description": "Carry out and retain a Companies House search (LLP) or equivalent reliable source (partnership) showing:",
-              "requirements": ["registered name and number (if applicable)", "registered or principal place of business", "members or partners"]
+              "requirements": ["registered name and number (if applicable)", "registered or principal place of business", "members or partners"],
+              "display_text": "Carry out and retain a Companies House search (LLP) or equivalent reliable source (partnership) confirming the registered name and number, registered or principal place of business, and members or partners."
             },
             {
               "action": "verify_consistency",
-              "description": "Record confirmation that public record information is consistent with client-provided information"
+              "description": "Record confirmation that public record information is consistent with client-provided information",
+              "display_text": "Confirm that public record information is consistent with client-provided information."
             }
           ],
           "members_partners": [
             {
               "action": "identify",
               "description": "Identify all members or partners by recording:",
-              "requirements": ["full legal name", "date of birth", "residential or service address", "role as member or partner"]
+              "requirements": ["full legal name", "date of birth", "residential or service address", "role as member or partner"],
+              "display_text": "Identify all members or partners by recording their full legal name, date of birth, residential or service address, and role."
             },
             {
               "action": "verify",
-              "description": "Verify the identity of each member or partner using one approved verification method"
+              "description": "Verify the identity of each member or partner using one approved verification method",
+              "display_text": "Verify the identity of each member or partner using one approved verification method."
             }
           ],
           "beneficial_ownership": [
             {
               "action": "confirm_bo",
-              "description": "Confirm that the members or partners identified constitute the beneficial owners of the LLP or partnership"
+              "description": "Confirm that the members or partners identified constitute the beneficial owners of the LLP or partnership",
+              "display_text": "Confirm that the members or partners identified constitute the beneficial owners of the LLP or partnership."
             },
             {
               "action": "identify_controllers",
-              "description": "Where any individual exercises control by other means, identify and verify that individual"
+              "description": "Where any individual exercises control by other means, identify and verify that individual",
+              "display_text": "Identify and verify any individual who exercises control by other means."
             }
           ],
           "ongoing_monitoring": {
@@ -360,18 +402,21 @@
           "cdd_actions": [
             {
               "action": "all_low_risk_actions",
-              "description": "All actions listed for Low Risk UK LLPs / Partnerships"
+              "description": "All actions listed for Low Risk UK LLPs / Partnerships",
+              "display_text": "Complete all actions listed for Low Risk UK LLPs / Partnerships."
             }
           ],
           "ownership_control": [
             {
               "action": "obtain_structure",
               "description": "Obtain and retain a clear description or diagram of:",
-              "requirements": ["ownership", "management / control arrangements"]
+              "requirements": ["ownership", "management / control arrangements"],
+              "display_text": "Obtain and retain a clear description or diagram of ownership and management or control arrangements."
             },
             {
               "action": "confirm_transparency",
-              "description": "Record confirmation that ownership and control are understood and not opaque"
+              "description": "Record confirmation that ownership and control are understood and not opaque",
+              "display_text": "Confirm that ownership and control are understood and not opaque."
             }
           ],
           "sow": {
@@ -379,7 +424,8 @@
             "actions": [
               {
                 "action": "complete_form",
-                "description": "Source of Wealth Form must be completed and retained"
+                "description": "Source of Wealth Form must be completed and retained",
+                "display_text": "Complete and retain a Source of Wealth Form."
               },
               {
                 "action": "obtain_evidence",
@@ -389,7 +435,8 @@
                   "profit share or capital contribution records",
                   "business sale documentation",
                   "loan agreements (where applicable)"
-                ]
+                ],
+                "display_text": "Obtain supporting evidence aligned to the declared source of wealth (partnership accounts, profit share or capital contribution records, business sale documentation, or loan agreements)."
               }
             ]
           },
@@ -398,12 +445,14 @@
             "actions": [
               {
                 "action": "complete_form",
-                "description": "Source of Funds Form must be completed and retained"
+                "description": "Source of Funds Form must be completed and retained",
+                "display_text": "Complete and retain a Source of Funds Form."
               },
               {
                 "action": "obtain_evidence",
                 "description": "Obtain bank statement(s) evidencing:",
-                "requirements": ["origin of funds", "availability of funds for the transaction"]
+                "requirements": ["origin of funds", "availability of funds for the transaction"],
+                "display_text": "Obtain bank statement(s) evidencing the origin and availability of funds for the transaction."
               }
             ]
           },
@@ -414,7 +463,8 @@
           "cdd_actions": [
             {
               "action": "all_medium_risk_actions",
-              "description": "All actions listed for Medium Risk UK LLPs / Partnerships"
+              "description": "All actions listed for Medium Risk UK LLPs / Partnerships",
+              "display_text": "Complete all actions listed for Medium Risk UK LLPs / Partnerships."
             }
           ],
           "edd": {
@@ -422,19 +472,23 @@
             "actions": [
               {
                 "action": "mlro_approval",
-                "description": "MLRO approval prior to proceeding"
+                "description": "MLRO approval prior to proceeding",
+                "display_text": "Obtain MLRO approval before proceeding."
               },
               {
                 "action": "enhanced_ownership_scrutiny",
-                "description": "enhanced scrutiny of ownership and control"
+                "description": "enhanced scrutiny of ownership and control",
+                "display_text": "Apply enhanced scrutiny of ownership and control."
               },
               {
                 "action": "enhanced_sow_sof_scrutiny",
-                "description": "enhanced scrutiny of Source of Wealth and Source of Funds"
+                "description": "enhanced scrutiny of Source of Wealth and Source of Funds",
+                "display_text": "Apply enhanced scrutiny of Source of Wealth and Source of Funds."
               },
               {
                 "action": "corroborative_documentation",
-                "description": "corroborative documentation where available"
+                "description": "corroborative documentation where available",
+                "display_text": "Obtain corroborative documentation where available."
               }
             ]
           },

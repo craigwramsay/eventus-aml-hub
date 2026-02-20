@@ -40,6 +40,7 @@ export interface MandatoryAction {
   actionId: string;
   actionName: string;
   description: string;
+  displayText?: string;
   category: 'cdd' | 'edd' | 'sow' | 'sof' | 'monitoring' | 'escalation';
   priority: 'required' | 'recommended';
   evidenceTypes?: string[];
@@ -177,6 +178,7 @@ export interface CDDAction {
   description: string;
   requirements?: string[];
   evidence_types?: string[];
+  display_text?: string;
 }
 
 export interface CDDRiskLevelConfig {
