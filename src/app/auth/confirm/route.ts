@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=missing_token', request.url));
   }
 
-  let response = NextResponse.redirect(new URL(next, request.url));
+  const response = NextResponse.redirect(new URL(next, request.url));
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -115,7 +115,7 @@ function checkAutomaticOutcomes(
   config: RiskScoringConfig,
   clientType: ClientType,
   formAnswers: FormAnswers,
-  factorResults: RiskFactorResult[]
+  _factorResults: RiskFactorResult[]
 ): AutomaticOutcomeResult | null {
   const sections =
     clientType === 'corporate'
