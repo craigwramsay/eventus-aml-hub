@@ -1,0 +1,81 @@
+---
+source_name: Law Society of Scotland Rule B9
+section_ref: Rule B9
+topics: [scotland, rule-b9, compliance, supervision, lss, practice-rules, record-keeping, mlro]
+effective_date: 2023-11-01
+---
+Rule B9: Money Laundering & Terrorist Financing
+
+Definitions and Interpretation
+
+9.1 In this rule 9, unless the context otherwise requires, terms listed in the first column of rule 9.1 shall have the meanings respectively ascribed to them in the second column of that rule:
+
+Term | Definition
+Certificate | a certificate in such form as the Council may from time to time prescribe and different forms may be prescribed for different circumstances;
+durable medium | any method by which information is stored in a way accessible for future reference for no less than the period required to procure and evidence compliance with this rule 9 and which allows the unchanged reproduction of the information stored by visual record and by immediately available print-out;
+print-out | a printed or typewritten copy of any information stored in a durable medium;
+records | all documents or permanent records held on a durable medium (whether manual, mechanical or computerised) produced or obtained for the purposes of procuring or evidencing compliance with the Money Laundering Regulations,
+relevant person | as defined in regulation 3(1) of the Money Laundering Regulations
+reporting period | the 12 month period running from 1 January to 31 December (or such other period as the Council may prescribe)
+supervised person | a relevant person for which the Society is the supervisory authority in terms of the Money Laundering Regulations
+
+Application of rules
+
+9.2 Where any of the provisions of rule 9 apply to a practice unit:
+(a) they shall also apply to the managers of the practice unit; and
+(b) no regulated person within the practice unit shall cause or knowingly permit the practice unit not to comply with any such provision.
+
+Duty to comply with Money Laundering Regulations
+
+9.3 Every supervised person shall:
+(a) comply with the provisions of the Money Laundering Regulations;
+(b) demonstrate such compliance to the Society on request;
+(c) report any breach of the Money Laundering Regulations to the Society as soon as practicable after discovery;
+(d) remedy any such breach, which is capable of remedy, as soon as practicable after discovery;
+(e) timeously provide all such information, records and co-operation as the Society may require to enable the Society to properly exercise and fulfil its supervisory functions in terms of the Money Laundering Regulations.
+
+Records required to be kept
+
+9.4 Every supervised person shall at all times keep such records as are necessary to demonstrate compliance with the Money Laundering Regulations and these rules.
+
+Obligation to deliver a Certificate
+
+9.5 A supervised person shall deliver to the Council within one calendar month (or within such other period as the Council may prescribe) of the completion of each reporting period a Certificate in respect of that reporting period.
+
+9.6 The Council shall be entitled to use the information contained in the Certificate to monitor compliance by the supervised person with rule 9, and to assess levels of risk in order to allow the Society effectively to target its supervisory activity. The Council may request a supervised person to provide a Certificate on a more frequent basis than provided for in terms of rule 9.5, and/or a Certificate containing more or less detailed information, according to its assessment of that supervised person's risk profile.
+
+9.7 The Council may, in any case on cause satisfactory to it being shown, extend the period within which a Certificate is required to be delivered, but such extension shall in no case exceed three months from the date on which the Certificate should have been delivered.
+
+Who may sign a Certificate
+
+9.8 All sections of a Certificate required under rule 9 must be signed by the responsible officer of the supervised person (if appointed) or, failing such appointment, by the nominated officer of the supervised person.
+
+Reviews, inspections and investigations on behalf of the Council
+
+9.9 The Council may carry out:
+(a) such thematic and/or desk-based reviews and risk assessments as the Council considers necessary or desirable, referred to in rule 9 as a review;
+(b) a routine investigation, referred to in rule 9 as an inspection; and
+(c) a non-routine investigation, referred to in rule 9 as an investigation.
+all for the purposes of enabling the Society to properly exercise its functions and discharge its duties as supervisory authority under the Money Laundering Regulations.
+
+9.10 The Council may, by giving notice, require any supervised person to produce records for the inspection or review of a person authorised by the Council and at a date, time and place to be fixed by the Council. If the place fixed by the Council for the inspection or review requires the transfer to that place of records in physical form, the Council shall, on such conditions as to the cost and distance of such transfer as it may from time to time prescribe, pay the reasonable expenses incurred by the supervised person in respect of such transfer.
+
+9.11 If at any time there is a reasonable apprehension on the part of the Council that a supervised person has not complied with or is not complying with rule 9, the Council may authorise a person to conduct such investigation of the supervised person as the Council may consider appropriate. The Council shall give notice of its authorisation of such a person to conduct such investigation and of the date, time and place of such investigation.
+
+9.12 The Council may, in any case on cause satisfactory to it being shown, extend the period within which a supervised person may produce records as required by a person authorised by the Council under rule 9, but such extension shall in no case exceed three months from the date on which records should have been produced.
+
+9.13 A supervised person shall provide a person authorised by the Council under rule 9 reasonable co-operation in the conduct of that person's review, inspection or investigation (as the case may be) including, without prejudice to the foregoing generality, the production of records as such person may reasonably require and, in the case of an investigation, the granting of authorisation (including by way of mandate) to contact clients or third parties for the production by such clients or third parties of documents, records and other information as such person may reasonably require.
+
+9.14 Any person authorised by the Council under rule 9.10 shall report to the Council on the result of his or her review or inspection to the extent he or she considers it necessary to do so. Any person authorised by the Council under rule 9.11 shall report to the Council on the result of his or her investigation.
+
+9.15 Where, following a review or inspection in terms of rule 9.10, or an investigation in terms of rule 9.11, or following any further review, inspection, or investigation in terms of this rule 9.15, it appears to the Council that the supervised person has not complied with rule 9 or that the practice of the supervised person has been or is being carried on in such a manner as may put at risk the interests of the public or the interests of the profession, the Council may by giving notice instruct a further review, inspection, or investigation of the supervised person.
+
+9.16 If the Council instructs a further review, inspection, or investigation under rule 9.15 the Council may by giving notice, require the regulated person which is the subject of such further review, inspection or investigation to pay the reasonable costs of any such further review, inspection or investigation.
+
+9.17 The costs referred to in rule 9.16 shall be determined by reference to a fair and proportionate charging approach which shall be prescribed by the Council from time to time. The amount of any such costs shall be intimated to the regulated person following such further review, inspection, or investigation.
+
+9.18 It shall be the duty of any regulated person upon which a notice in terms of rule 9.16 has been served to make payment of the amount of costs intimated in terms of rule 9.17 in accordance with the payment terms stated in the invoice issued by the Society in respect of such costs.
+
+9.19 Any sum paid in terms of rule 9.18 shall accrue to the Society.
+
+9.20 A regulated person shall not act, or omit to act, in a manner which is dishonest, reckless or intentionally misleading in respect of the regulated person's (a) compliance with the Money Laundering Regulations and rule 9; or (b) provision of information required by the Society in fulfilling its functions as a supervisory authority in terms of the Money Laundering Regulations.

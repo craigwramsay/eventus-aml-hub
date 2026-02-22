@@ -1,0 +1,164 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 5.6.3
+topics: [risk-assessment, legal-sector, conveyancing, trusts, corporate-structures, client-account, product-service-risk]
+effective_date: 2025-04-23
+---
+# LSAG AML Guidance 2025 - Corporate Structures Risk Factors
+# Sections 5.6.3 (Product/Service Risks), 6.14.12 (Trusts CDD), 6.14.13 (Partnerships CDD)
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+5.6.3 Product or Service Risks 
+ 
+You should consider the following questions:  
+ 
+• Does the practice offer any services which may attract a higher level of risk such as 
+large volume/high value conveyancing, corporate acquisitions, tax mitigation 
+strategies, work involving high-risk jurisdictions or the creation and/or management of 
+specialist entities? 
+• Does the practice have the necessary expertise and experience to undertake the 
+work requested? 
+• Does the practice undertake work which may be of lower AML risk (e.g., 
+executorship, wills, litigation)? 
+ 
+ 
+The National Risk Assessment highlights that independent legal professionals face the 
+greatest potential risks in the following areas: 
+• misuse of client accounts; 
+• sale/purchase of real property; 
+• creation of trusts, companies and charities; 
+• management of trusts and companies; and 
+• sham litigation. 
+ 
+Consideration should be given to whether the practice undertakes work with exposure to 
+these risks and this should be documented in your PWRA accordingly.  
+ 
+Other factors to consider are the value, complexity and nature of work in these areas in the 
+context of the client and/or the nature of the work that your practice normally undertakes.  
+ 
+5.6.3.1 Sale/purchase of real property 
+ 
+According to law enforcement authorities and the national risk assessment, the sale and 
+purchase of real estate is a common method for disposing of or converting criminal 
+proceeds. 
+ 
+Real estate is generally an appreciating asset and the subsequent sale of the asset can 
+provide an apparently legitimate reason for the existence of the funds. Property matters are 
+an attractive method of laundering criminal proceeds because: 
+• Property is often a high value asset – it offers the opportunity to legitimatise large 
+amounts of money in one go; 
+• The value of property generally appreciates – this is unusual for criminals who 
+usually lose money when laundering; 
+
+ 
+ 
+• The nature of conveyancing means that matters/transactions often happen extremely 
+quickly – and therefore it is easier to hide behind a complicated money trail which 
+can be constructed very quickly, and the onward sale of a property can give the 
+appearance of a legitimate income stream; 
+• Property can be used to generate additional quasi-legitimate income streams e.g., 
+rental; and 
+• Property can be used by the money launderer or an associate as a residence.  
+ 
+Transfers of real estate from one owner to another without the exchange of funds, may 
+present an equal risk to the purchase of property. 
+5.6.3.2 Client accounts and payments 
+ 
+You should consider the risk that criminals may attempt to misuse your client account. 
+Putting the proceeds of crime through your client account can give funds the appearance of 
+legitimacy, as the subsequent transfer will show as having originated from a regulated legal 
+practice. It will also help obscure the audit trail of funds whether the money is sent back to 
+the client, on to a third party, or invested in some way. 
+ 
+Introducing cash into the banking system can be part of the placement stage of money 
+laundering. The risk of this occurring, along with the controls in place at the practice to 
+prevent this happening, should form part of your PWRA. 
+ 
+Generally speaking, you should avoid accepting cash payments to your client account in 
+relation to transactions. If you do choose to accept these as a policy of your practice, it 
+should be considered high risk within the PWRA particularly where large in size (e.g., above 
+£1,000). At a client or matter level, you should establish Source of funds for any cash 
+payments and treat the funds on a risk sensitive basis. There may be valid reasons for 
+accepting cash into the client account (e.g., access to justice or in cases of domestic 
+disputes) – reasons for accepting any cash payment should be clearly documented. 
+ 
+5.6.3.3 Formation and management of trusts and companies  
+ 
+Company and trust structures may be exploited by criminals who wish to retain control over 
+criminally derived assets while creating impediments to law enforcement agencies in tracing 
+the origin and ownership of assets. Criminals may ask legal professionals to create 
+companies and trusts and/or to manage companies and trusts, to provide greater 
+respectability and legitimacy to the entities and their activities. 
+Your PWRA should consider the practice’s exposure to this type of work, and the risks 
+involved– especially where the practice undertakes complex company or trust work for 
+clients involving higher risk jurisdictions. This is particularly important where beneficial 
+ownership or nature of business can be obscured or anonymised, or the use of nominees or 
+bearer shares is permitted. 
+ 
+Shell companies are corporate entities that do not have any business activities or assets. 
+They may be used for legitimate purposes such as serving as a temporary transaction 
+vehicle. However, they can also be an easy and inexpensive way to disguise beneficial 
+ownership and the flow of illegitimate funds and so are attractive to criminals engaged in 
+money laundering. You should consider it as high risk if a client engages your services only 
+in connection with the routine aspects of forming an entity, without seeking further legal 
+advice on the appropriateness of the corporate structure and related matters. In jurisdictions 
+where members of the public may register companies themselves with the company registry, 
+
+ 
+ 
+the engagement of a legal professional to register the company (or to use the practice’s 
+address) may indicate that the client is seeking to add the appearance of legitimacy to a 
+company. 
+ 
+5.6.3.4 Other Services 
+ 
+Other services to consider in risk assessments are: 
+• Services where legal professionals may represent or assure the client’s standing, 
+reputation and credibility to third parties, without a commensurate knowledge of the 
+client’s affairs; 
+• Acquisitions of businesses in liquidation; and 
+• Services offered to clients in the context of trade based or trade-finance 
+arrangements. 
+5.6.3.5 Risk of offering both in-scope and out-of-scope services 
+ 
+Many practices have both an AML-compliant client onboarding (take-on) process and a 
+separate process for those areas of activity outside the scope of the Regulations. This is 
+permissible, but it does create a risk. 
+ 
+The risk is that if a client is onboarded via an AML non-compliant process for out-of-scope 
+work, and then transferred over to AML in-scope services, there is likely to be a need to 
+apply further due diligence, in order to bring the original due diligence up to the required 
+standard. 
+ 
+To mitigate this risk practices may either have clear and robust PCPs in place to manage 
+the transition or conduct full AML-compliant CDD regardless of the nature of the matter. 
+This would enable a client to be transferred more easily between a practice’s out-of-scope 
+and in-scope services. 
+ 
+5.6.3.6 Dealing with payments credited to your client account without permission 
+ 
+Legal professionals may receive funds that are either overpayments, or completely 
+unasked for deposits. You should give consideration to the possibility that any unsolicited 
+payment or unexpected overpayment may have been engineered for the purposes of 
+money laundering and treat these instances appropriately (including consideration of the 
+submission of a SAR as appropriate). A repayment of funds from a legal professional’s 
+account may help to legitimise the proceeds of crime. 
+ 
+Such instances should be recorded in an appropriate place, for example in a client or 
+matter risk assessment, or in the records of the MLRO. 
+ 
+One way to deal with such matters is to set an internal value threshold, beyond which, 
+greater consideration must be given to whether the circumstances prompt suspicion and a 
+subsequent disclosure to the NCA. Except in exceptional circumstances funds received in 
+such a manner should only be returned to the source from which they were received.   
+ 
+
+ 
+ 
+R31(2) confirms that you are not prevented from repaying money deposited in your client 
+account, provided that, if you have suspicion of money laundering, you obtain 
+consent/DAML from NCA for the transaction. 
+ 
+If you display your client account details freely, for example, on your letterhead or a 
+website, the risk of them being abused by criminals is greatly increased. This is something 
+you should avoid.

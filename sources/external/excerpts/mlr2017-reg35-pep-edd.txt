@@ -1,0 +1,132 @@
+---
+source_name: Money Laundering Regulations 2017
+section_ref: reg. 35
+topics: [pep, edd, enhanced-due-diligence, high-risk, politically-exposed-person]
+effective_date: 2017-06-26
+---
+Enhanced customer due diligence: politically exposed persons
+35.—(1)    A  relevant  person  must  have  in  place  appropriate  risk-management  systems  and
+procedures to determine whether a customer or the beneficial owner of a customer is—
+(a)a politically exposed person (a “PEP”); or
+(b)a family member or a known close associate of a PEP,
+and  to  manage  the  enhanced  risks  arising  from  the  relevant  person's  business  relationship  or
+transactions with such a customer.
+(2)    In  determining  what  risk-management  systems  and  procedures  are  appropriate  under
+paragraph (1), the relevant person must take account of—
+(a)the risk assessment it carried out under regulation 18(1);
+(b)the level of risk of money laundering and terrorist financing inherent in its business;
+(c)the extent to which that risk would be increased by its business relationship or transactions
+with a PEP, or a family member or known close associate of a PEP, and
+(d)any relevant information made available to the relevant person under regulations 17(9)
+and 47.
+(3)  If a relevant person has determined that a customer or a potential customer is a PEP, or a
+family member or known close associate of a PEP, the relevant person must assess—
+(a)the level of risk associated with that customer, and
+(b)the extent of the enhanced customer due diligence measures to be applied in relation to
+that customer.
+[
+F165
+(3A)    For  the  purpose  of  the  relevant  person’s  assessment  under  paragraph  (3),  where  a
+customer or potential customer is a domestic PEP, or a family member or a known close associate
+of a domestic PEP—
+(a)the starting point for the assessment is that the customer or potential customer presents a
+lower level of risk than a non-domestic PEP, and
+(b)if  no  enhanced  risk  factors  are  present,  the  extent  of  enhanced  customer  due  diligence
+measures to be applied in relation to that customer or potential customer is less than the
+extent to be applied in the case of a non-domestic PEP.]
+
+(4)  In assessing the extent of the enhanced customer due diligence measures to be taken in relation
+to any particular person (which may differ from case to case), a relevant person—
+(a)must take account of any relevant information made available to the relevant person under
+regulations 17(9) and 47; and
+(b)may take into account any guidance which has been—
+(i)issued by the FCA; or
+(ii)issued by any other supervisory authority or appropriate body and approved by the
+Treasury.
+(5)  A relevant person who proposes to have, or to continue, a business relationship with a PEP,
+or a family member or a known close associate of a PEP, must, in addition to the measures required
+by regulation 33—
+(a)have  approval  from  senior  management  for  establishing  or  continuing  the  business
+relationship with that person;
+(b)take adequate measures to establish the source of wealth and source of funds which are
+involved in the proposed business relationship or transactions with that person; and
+(c)where the business relationship is entered into, conduct enhanced ongoing monitoring of
+the business relationship with that person.
+(6)    A  relevant  person  which  is  providing  a  customer  with  a  contract  of  long-term  insurance
+(an “insurance policy”) must take reasonable measures to determine whether one or more of the
+beneficiaries of the insurance policy or the beneficial owner of a beneficiary of such an insurance
+policy are—
+(a)PEPs, or
+(b)family members or known close associates of PEPs.
+(7)  The measures required under paragraph (6) must be taken before—
+(a)any payment is made under the insurance policy, or
+(b)the benefit of the insurance policy is assigned in whole or in part to another person.
+(8)  A relevant person must, in addition to the measures required by regulation 33, ensure that—
+(a)its senior management is informed before it pays out any sums under an insurance policy
+the beneficiary of which is a PEP or a person who comes within paragraph (6)(b) in relation
+to a PEP, and
+(b)its entire business relationship with the holder of the insurance policy (“the policy holder”)
+is scrutinised on an ongoing basis in accordance with enhanced procedures, whether or
+not the policy holder is a PEP or a family member or known close associate of a PEP.
+(9)  Where a person who was a PEP is no longer entrusted with a prominent public function,
+a relevant person must continue to apply the requirements in paragraphs (5) and (8) in relation to
+that person—
+(a)for a period of at least 12 months after the date on which that person ceased to be entrusted
+with that public function; or
+(b)for  such  longer  period  as  the  relevant  person  considers  appropriate  to  address  risks  of
+money laundering or terrorist financing in relation to that person.
+(10)  Paragraph (9) does not apply in relation to a person who—
+(a)was not a politically exposed person within the meaning of regulation 14(5) of the Money
+Laundering Regulations 2007 
+M76
+, when those Regulations were in force; and
+(b)ceased to be entrusted with a prominent public function before the date on which these
+Regulations come into force.
+
+(11)  When a person who was a PEP is no longer entrusted with a prominent public function, the
+relevant person is no longer required to apply the requirements in paragraphs (5) and (8) in relation
+to a family member or known close associate of that PEP (whether or not the period referred to in
+paragraph (9) has expired).
+(12)  In this regulation—
+(a)“politically  exposed  person”  or  “PEP”  means  an  individual  who  is  entrusted  with
+prominent public functions, other than as a middle-ranking or more junior official;
+(b)“family member” of a politically exposed person includes—
+(i)a spouse or civil partner of the PEP;
+(ii)children of the PEP and the spouses or civil partners of the PEP's children;
+(iii)parents of the PEP;
+(c)“known close associate” of a PEP means—
+(i)an individual known to have joint beneficial ownership of a legal entity or a legal
+arrangement or any other close business relations with a PEP;
+(ii)an  individual  who  has  sole  beneficial  ownership  of  a  legal  entity  or  a  legal
+arrangement which is known to have been set up for the benefit of a PEP;
+[
+F166
+(d)
+“domestic  PEP”  means  a  politically  exposed  person  entrusted  with  prominent  public
+functions by the United Kingdom;
+(e)“non-domestic PEP” means a politically exposed person who is not a domestic PEP;
+(f)“enhanced risk factors”, in relation to a customer or potential customer who is a domestic
+PEP or a family member or a known close associate of that domestic PEP, mean risk factors
+other than the customer’s or potential customer’s position as a domestic PEP or as a family
+member or a known close associate of that domestic PEP.]
+(13)  For the purposes of paragraph (5), a reference to a business relationship with an individual
+includes a reference to a business relationship with a person of which the individual is a beneficial
+owner.
+(14)  For the purposes of paragraphs (9), (11) and [
+F167
+(12)], individuals entrusted with prominent
+public functions include—
+(a)heads of state, heads of government, ministers and deputy or assistant ministers;
+(b)members of parliament or of similar legislative bodies;
+(c)members of the governing bodies of political parties;
+(d)members of supreme courts, of constitutional courts or of any judicial body the decisions
+of which are not subject to further appeal except in exceptional circumstances;
+(e)members of courts of auditors or of the boards of central banks;
+(f)ambassadors, charges d'affaires and high-ranking officers in the armed forces;
+(g)members  of  the  administrative,  management  or  supervisory  bodies  of  State-owned
+enterprises;
+(h)directors,  deputy  directors  and  members  of  the  board  or  equivalent  function  of  an
+international organisation.
+(15)  For the purpose of deciding whether a person is a known close associate of a politically
+exposed person, a relevant person need only have regard to information which is in its possession,
+or to credible information which is publicly available.

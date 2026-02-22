@@ -23,6 +23,7 @@ import {
   SCORING_MODEL_AUTHORITY,
 } from './policy-references';
 import { getJurisdictionConfig } from './jurisdiction';
+import { getRiskScoringConfig } from '@/lib/rules-engine/config-loader';
 import type { Jurisdiction } from '@/lib/supabase/types';
 
 /** Category display labels */
@@ -45,12 +46,17 @@ const RISK_LEVEL_TEXT: Record<string, string> = {
   HIGH: 'High Risk',
 };
 
-/** Threshold descriptions */
-const THRESHOLD_TEXT: Record<string, string> = {
-  LOW: '0-4',
-  MEDIUM: '5-8',
-  HIGH: '9+',
-};
+/**
+ * Format threshold text from scoring config.
+ * e.g. { min: 0, max: 4 } → "0-4", { min: 9, max: null } → "9+"
+ */
+function getThresholdText(riskLevel: string): string {
+  const config = getRiskScoringConfig();
+  const threshold = config.thresholds[riskLevel as keyof typeof config.thresholds];
+  if (!threshold) return '';
+  if (threshold.max === null) return `${threshold.min}+`;
+  return `${threshold.min}-${threshold.max}`;
+}
 
 /**
  * Format a timestamp to a fixed format: YYYY-MM-DD HH:MM UTC
@@ -129,7 +135,7 @@ function renderDetails(assessment: AssessmentRecord, jurisdiction?: Jurisdiction
 function renderRiskDetermination(assessment: AssessmentRecord): DeterminationSection {
   const { output_snapshot } = assessment;
   const riskText = RISK_LEVEL_TEXT[output_snapshot.riskLevel] || output_snapshot.riskLevel;
-  const thresholdText = THRESHOLD_TEXT[output_snapshot.riskLevel] || '';
+  const thresholdText = getThresholdText(output_snapshot.riskLevel);
 
   const lines: string[] = [];
 

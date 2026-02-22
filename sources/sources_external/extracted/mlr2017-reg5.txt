@@ -1,0 +1,32 @@
+Meaning of beneficial owner: bodies corporate or partnership
+5.—(1)  In these Regulations, “beneficial owner”, in relation to a body corporate which is not a
+company whose securities are listed on a regulated market, means—
+(a)any individual who exercises ultimate control over the management of the body corporate;
+(b)any  individual  who  ultimately  owns  or  controls  (in  each  case  whether  directly  or
+indirectly), including through bearer share holdings or by other means, more than 25% of
+the shares or voting rights in the body corporate; or
+(c)an individual who controls the body corporate.
+(2)  For the purposes of paragraph (1)(c), an individual controls a body corporate if—
+(a)the  body  corporate  is  a  company  or  a  limited  liability  partnership  and  that  individual
+satisfies one or more of the conditions set out in Part 1 of Schedule 1A to the Companies
+Act 2006 (people with significant control over a company) 
+M10
+; or
+(b)the body corporate would be a subsidiary undertaking of the individual (if the individual
+was  an  undertaking)  under  section  1162  (parent  and  subsidiary  undertakings)  of  the
+Companies Act 2006 read with Schedule 7 to that Act.
+(3)  In these Regulations, “beneficial owner”, in relation to a partnership (other than a limited
+liability partnership), means any individual who—
+(a)ultimately is entitled to or controls (in each case whether directly or indirectly) more than
+25% share of the capital or profits of the partnership or more than 25% of the voting rights
+in the partnership;
+(b)satisfies  one  or  more  the  conditions  set  out  in  Part  1  of  Schedule  1  to  the  Scottish
+Partnerships (Register of People with Significant Control) Regulations 2017 (references
+to people with significant control over an eligible Scottish partnership) 
+M25
+; or
+(c)otherwise exercises ultimate control over the management of the partnership.
+(4)  In this regulation “limited liability partnership” has the meaning given by the Limited Liability
+Partnerships Act 2000 
+M26
+.

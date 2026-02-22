@@ -1,0 +1,155 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.18
+topics: [edd, enhanced-due-diligence, source-of-wealth, enhanced-monitoring, hrtc]
+effective_date: 2025-04-23
+---
+# LSAG AML Guidance 2025 - Enhanced Due Diligence (EDD)
+# Sections 6.18 - 6.19
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+6.18 Enhanced Due Diligence 
+ 
+R33 provides that you must apply enhanced due diligence (EDD) and enhanced ongoing 
+monitoring in addition to the CDD measures required in R28, where: 
+• the case has been identified as one where there is a high risk of money laundering or 
+terrorist financing in your risk assessment or in the information made available to you 
+by your supervisor under R17(9) and R47; 
+• you carry out an occasional transaction and either party to the transaction is 
+established in a high-risk third country; 
+• the client is a politically exposed person (PEP), or a family member or known close 
+associate of a PEP; 
+• the client is established in a high-risk third country; 
+• the client has provided false or stolen identification documentation or information on 
+establishing the relationship and you have decided to continue dealing with the client; 
+• there is any other situation which you have assessed as presenting a higher risk of 
+money laundering or terrorist financing; or 
+• wherever the transaction: 
+o is complex 
+o unusually large 
+o there is an unusual pattern of transactions, or 
+o the transaction or transactions have no apparent economic or legal purpose. 
+6.18.1 Enhanced Due Diligence and the Beneficial Ownership Threshold 
+ 
+In high-risk situations warranting the application of enhanced due diligence, it may be 
+appropriate to examine beneficial owners with  25% ownership if you have concerns 
+regarding the ownership structure or feel that the ownership structure is a pertinent risk 
+factor, to fully understand control and ownership interests in the client. 
+ 
+6.18.2 What is EDD? 
+ 
+The Regulations specify that you must take measures to examine the background and 
+purpose of the transaction and to increase the monitoring of the business relationship 
+where enhanced due diligence is required. The Regulations are not prescriptive about 
+exactly what must be included in EDD, with the exception of clients that are PEPs. 
+ 
+As per R33(5), EDD may include (while not being restricted to): 
+o seeking additional independent, reliable sources to verify information provided or 
+made available to you; 
+o taking additional measures to understand better the background, ownership and 
+financial situation of the customer, and other parties to the transaction; 
+o taking further steps to be satisfied that the transaction is consistent with the purpose 
+and intended nature of the business relationship; or 
+o increasing the monitoring of the business relationship, including greater scrutiny of 
+transactions. 
+In the case of a High Risk Third Country (HRTC), EDD is more restrictive. 
+ 
+If you are establishing a business relationship with a client in a HRTC, you will need to 
+apply the EDD including the steps below. You will also need to apply the steps below when 
+
+ 
+ 
+either your client or the counterparty is established in a HRTC where you are undertaking 
+an occasional transaction (within the meanings of R27(1)(b) and (2)). 
+ 
+In these circumstances, EDD must include: 
+o obtaining additional information on the client and on the client’s beneficial owner; 
+o obtaining additional information on the intended nature of the business relationship; 
+o obtaining information on the source of funds and the source of wealth of the client 
+and the client’s beneficial owner; 
+o obtaining information on the reasons for the transactions; 
+o obtaining the approval of senior management for establishing or continuing the 
+business relationship; and 
+o conducting enhanced monitoring of the business relationship including increasing the 
+frequency and number of checks or other controls applied; and selecting patterns of 
+transactions that trigger a requirement of further explanation to your practice.  
+If a client with whom you have a business relationship (not in a HRTC) is engaging in a 
+transaction where the counterparty is based in a HRTC, you should consider the risks this 
+presents and whether it is appropriate to apply EDD to the transaction. 
+ 
+You should also consider whether it is appropriate to go beyond the above minimum 
+requirements, particularly in circumstances of higher risk or where you have identified red 
+flags. This may include for example seeking greater verification of the client’s identity, 
+background and circumstances from independent and reliable information sources. It may 
+also mean lowering beneficial ownership thresholds to 25% or less or conducting further 
+screening or adverse media searches on directors or beneficial owners of the client. 
+ 
+6.18.3 Establishing source of wealth 
+(Please also see 16.7.3) 
+An important additional EDD measure should include understanding the financial situation of 
+the client – in practice this means taking additional measures to understand the SoW as well 
+as the SoF of the client.  
+  
+You should consider the level and nature of verification required in light of the risks posed by 
+the client, transaction and/or business relationship. 
+ 
+As part of your EDD process you should verify the SoW with evidence obtained from the client 
+and/or independent sources until you are comfortable that you understand where the client's  
+overall wealth has been derived from and (to the best of your knowledge) that it is legitimate. 
+You should document your rationale in a file note. 
+When addressing SoW, you should consider whether the SoW is commensurate to your client 
+in general i.e., does it make sense that the client in front of you obtained their wealth in the 
+way that they have advised you? 
+ 
+The SoW refers to the origin of a client’s entire body of wealth (i.e., total assets). This 
+information will usually give an indication as to the volume of wealth the client would be 
+expected to have, and a picture of how the person acquired such wealth. 
+ 
+It does not however require you to account for all of a client’s assets, but to build a rationale 
+and reasoning as to why they have such wealth and to provide assurance that it was 
+
+ 
+ 
+obtained through legal means. This will help you to establish whether the transaction makes 
+sense. 
+ 
+In many complex scenarios it may be difficult to determine original sources of wealth, 
+possibly accrued many years ago. In such scenarios, reasonable efforts must be 
+undertaken to obtain relevant information from the client, and this must be reviewed in light 
+of other risk factors, such as jurisdictional/geographic risk, adverse media, PEP status and 
+transaction type (especially transactions which may help obscure the ownership or transfer 
+of assets). 
+ 
+Although a practice may not have specific information about assets not deposited or 
+processed by them, it may be possible to gather general information from commercial 
+databases or other open sources. 
+ 
+Where the client’s SoW is not readily apparent, the first step in establishing either SoF 
+or SoW is asking questions of your client and where appropriate seeking independent 
+verification and corroboration of information across a variety of sources, to build a 
+picture of the client’s background and circumstance which may require asking questions 
+of the client. 
+ 
+Actions taken, documentation and materials reviewed, and decisions taken (including 
+rationale) must be clearly recorded. These may be reviewed at a later date by your 
+supervisor or other relevant authorities. 
+ 
+Where you cannot successfully establish the SoW in higher risk situations, you should 
+consider ceasing to act for the client and whether you need to submit a report to the 
+NCA. 
+6.18.4 Enhanced monitoring 
+Enhanced ongoing monitoring is automatically required whenever EDD is applied. 
+ 
+One aspect of keeping transactions under review is to ensure they are still in line with the 
+CDD information held on the client, and information contained in the client and matter risk 
+assessments. Whatever controls you have in place to monitor other business 
+relationships, may be intensified in order to apply enhanced monitoring.  
+ 
+This may include: 
+• requiring a greater level of information and explanation from the client when 
+activity diverts from that addressed in their client risk assessment;  
+• greater frequency of checks on transactions, particularly SoF; or 
+• undertaking more frequent due diligence checks on your client. 
+You should ensure that funds paid into your client account come from an expected source 
+and are for an amount commensurate with the client's known wealth and with what is 
+expected to be deposited in relation to the matters on which you act for them.

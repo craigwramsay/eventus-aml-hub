@@ -60,12 +60,13 @@ export function buildSystemPrompt(
 
   // Response requirements
   lines.push('## Response Requirements');
-  lines.push('1. Answer ONLY based on the Provided Materials below.');
-  lines.push('2. If the answer is not contained in the Provided Materials, respond EXACTLY:');
+  lines.push('1. Answer based on the Provided Materials below. You may interpret, summarise, and explain what the materials say in plain language.');
+  lines.push('2. Recognise standard AML/legal abbreviations (CDD, EDD, KYC, SoF, SoW, PEP, SAR, MLR, MLRO, HRTC, FATF, LSAG, POCA, etc.) as references to their full terms in the materials.');
+  lines.push('3. If the Provided Materials do not contain information that can reasonably answer the question, respond EXACTLY:');
   lines.push(`   "${NOT_FOUND_RESPONSE}"`);
-  lines.push('3. Cite sources using the format: [Source Name, Section Ref]');
-  lines.push('4. Be concise and factual.');
-  lines.push('5. Do not elaborate beyond what the materials state.');
+  lines.push('4. Cite sources using the format: [Source Name, Section Ref]');
+  lines.push('5. Be concise and factual.');
+  lines.push('6. Do not speculate or add requirements beyond what the materials state.');
   lines.push('');
 
   // UI context if provided

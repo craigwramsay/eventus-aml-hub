@@ -1,0 +1,145 @@
+---
+source_name: Law Society of Scotland AML/CTF Sectoral Risk Assessment
+section_ref: Key Findings
+topics: [scotland, sectoral-risk, soc, organised-crime, conveyancing, risk-assessment, pwra, law-society-scotland]
+effective_date: 2022-02-01
+---
+
+
+ 
+ 
+ 
+Law Society of Scotland AML/CTF Sectoral Risk Assessment 
+ 
+Assessment of international and domestic risks of money laundering and terrorist financing affecting Scottish 
+solicitors February 2022 
+ 
+Introduction, Background & Purpose: 
+ 
+Under Regulation 17 of the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) 
+Regulations 2017, the Law Society of Scotland must identify and assess the international and domestic risks of money 
+laundering to which its members are subject. 
+ 
+Where appropriate, the supervisory authority should make this assessment available to its supervised population, where this 
+might assist relevant persons in undertaking their own money laundering and terrorist financing risk assessment. 
+ 
+In carrying out such a risk assessment supervisors should consider various reports and guidelines issued by authorities such 
+as the European Supervisory Authorities, HM Treasury and Home Office. The supervisory authority must also keep an up-to-
+date record in writing of the steps it has taken under r.17 
+ 
+We have therefore identified the below publications as important points of reference for identifying and assessing the 
+AML/CTF risks to which Scottish solicitors are subject: 
+ 
+• HM Treasury/Home Office UK National Risk Assessment of Money Laundering and Terrorist Financing (NRA) 
+(December 2020)  
+• Financial Action Task Force (FATF) – Money Laundering Vulnerabilities of Legal Professionals (2013) (link) 
+• Guidance for a Risk-Based Approach - Guidance for Legal Professionals (June 2019) 
+• European Supra-National AML/CTF Risk Assessment Report 2019  
+• National Crime Agency – National Strategic Assessment of Serious & Organised Crime 2021  
+• Scottish Government Serious & Organised Crime in Scotland: A Summary of Evidence (2017)  
+• Scottish Government Serious & Organised Crime Progress Report (2020) 
+ 
+ 
+Who should use this sectoral risk assessment/who is it aimed at? 
+ 
+This risk assessment is primarily intended to be used by Scottish solicitors and legal practices who are supervised for AML 
+purposes by the Law Society of Scotland 
+ 
+What should Practices do with this information? 
+ 
+A core principle of AML compliance is taking a risk-based approach (RBA).  
+ 
+In short, an RBA refers to adjusting the level and type of compliance work done (frequency, intensity and/or amount), to the 
+risks present. In order to apply a RBA, it is necessary then to have information on the risks inherent to your practice and in 
+any particular client or matter – and the pertinence of these risks - which is why robust risk assessments are so important.  
+ 
+If you have not fully assessed the risks present across your business or in any particular client or matter, you cannot then 
+apply appropriate controls to mitigate those risks adequately and effectively.  
+ 
+The resulting benefits of this approach include:  
+ 
+• More efficient and effective use of resources, proportionate to the risks faced.  
+• Minimising compliance costs and administrative burdens on practices and clients; and  
+• Greater flexibility to respond to emerging risks as money laundering and terrorist financing methods change. 
+ 
+Fundamental to this is the undertaking and embedding of a Practice-Wide Risk Assessment (PWRA) into your business, as 
+prescribed under r.18 of the Money Laundering Regulations. 
+ 
+PWRAs should be comprehensive in identifying and assessing all the money laundering and terrorist financing risks your 
+practice faces. The PWRA is central and fundamental to the AML controls implemented across your business and needs to 
+address certain issues, prescribed by the Regulations. 
+ 
+Further information regarding PWRA’s can be found in s.5 of the UK Legal Sector Affinity Group (LSAG) Guidance 
+ 
+This document (along with other resources on our website including the UK Legal Sector AML Guidance) is aimed at 
+providing information to Scottish solicitors to support in the implementation of robust, risk-based and proportionate 
+AML measures. 
+ 
+As per r.18(2a) the information contained in this document must be used to inform your r.18 Practice-Wide Risk 
+Assessment (PWRA) 
+ 
+
+ 
+ 
+Scottish Legal Sectoral Overview: Key Demographics & Stats: 
+The Law Society of Scotland is the Professional Body AML Supervisor for Scottish solicitors.  Of the 1250 practices regulated 
+by the Law Society of Scotland, c. 696 currently operate within the scope of the MLRs.  
+ 
+Our AML Certificate Process 
+The Society’s AML Certificate is an annual compulsory questionnaire issued to in-
+scope practice  units,  consisting  of  c.  50  questions  relating  to  inherent  AML  risk 
+factors. In line with the MLRs and the UK National Risk Assessment, it focuses on a 
+practice’s inherent exposure to higher risk clients and areas of practice such as 
+conveyancing,  trust  and  company  provision,  along  with  geographic  and  delivery 
+channel risk.  
+Once  analysed,  the  data  collected  is  used  to  build  a  risk  profile  of  our  supervised 
+population, and can also allow us to  
+understand specific risks, trends, or issues across individual practices.  
+This profiling mechanism allows the Society to satisfy requirements of r.46 – i.e., to 
+adopt a risk-based approach by basing the frequency and intensity of our supervision 
+according to the risk profile of our supervised population.  
+The  Society  also  sets  out  our  approach  to  risk-based  supervision  and  associated 
+outcomes in a Risk Appetite Statement published in February 2021 
+ 
+ 
+Through the analysis of our 2020/21 AML Certificate returns, we have built a risk 
+profile of our in-scope supervised population – we believe that 280 practice units 
+represent an inherently lower risk of handling the proceeds of crime, 362 are at 
+medium inherent risk and 54 pose an inherently higher risk given the type of 
+business activities they undertake, the types of clients they hold and their 
+geographical reach. 
+It is important to note that the risks described in this document may affect all in-
+scope Practices (to a greater or lesser extent) no matter what their risk profile is. 
+ 
+The analysis of AML certificate information also gives us the ability to identify 
+specific risks within our supervised population and has been used to inform this 
+sectoral risk assessment. 
+ 
+ 
+Snapshot: The Nature and Scale of Serious Organised Crime (SOC), and Associated Money Laundering
+ 
+ 
+UK: 
+• >70,000 individuals involved in SOC throughout the UK 
+• £12bn criminal cash generated annually in UK. 
+• The total estimated social and economic cost of SOC each year to the UK is at least £24 billion 
+• Scale of ML impacting on the UK hundreds of billions of pounds annually. 
+Scotland: 
+• c. 2,400 individuals involved in SOC in Scotland 
+• 112 SOC Groups 
+• 72% of SOCGs are located in the West of Scotland, 18% in the East and 10% in the North.  
+• In Scotland, it is estimated that SOC costs the Scottish economy alone (i.e., excluding the social cost) £2 billion per year. 
+• 72% of SOCGs are involved in the use of seemingly legitimate businesses. The most common business types are 
+licensed premises, taxis, restaurants, shops, garage repairs and vehicle maintenance, property development, care 
+homes, waste/recycling. 
+ 
+Predicate Crime: 
+Money Laundering is not victimless – it is a serious crime which underpins almost all criminal activity, and the 
+effects are felt across Society, and in each and every local community across Scotland: 
+ 
+• 69% of SOCGs are involved in drug crime; heroin is the most popular commodity, followed by cocaine, cannabis, 
+amphetamine, and tranquilisers.  
+• Other crime types include violence; money laundering; various forms of fraud including cigarette smuggling, counterfeiting 
+and tax fraud; human trafficking; acquisitive crime such as vehicle and metal theft; environmental crime such as illegal 
+dumping of hazardous materials and cybercrime. 
+• Human trafficking (including female and child se

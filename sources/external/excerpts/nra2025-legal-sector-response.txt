@@ -1,0 +1,100 @@
+---
+source_name: UK National Risk Assessment of Money Laundering and Terrorist Financing 2025
+section_ref: Chapter 2 (paras 2.14-2.25)
+topics: [nra, legal-sector, supervision, enforcement, sra, opbas, professional-enablers, economic-crime, sar-reform, asset-recovery]
+effective_date: 2025-01-01
+---
+ebook 
+for Professional Body Anti-Money Laundering Supervisors, which was 
+published in January 2023 and aims to deliver a stronger and more consistent 
+standard of supervision of the accountancy and legal sectors.  
+ 
+2.15 The FCA’s risk-based supervisory approach has undergone significant 
+enhancements to become more proactive and data-led since 2020. Fighting 
+crime is one of the FCA’s four strategic priorities for 2025-2030 demonstrating 
+the focus on this area.  
+ 
+2.16 The Economic Crime and Corporate Transparency Act 2023 created a new 
+regulatory objective in the Legal Services Act 2007 focusing on promoting the 
+prevention and detection of economic crime. The Act also removed the 
+statutory cap on financial penalties for the Solicitors Regulation Authority 
+(SRA) to ensure the SRA has the necessary enforcement powers and can levy 
+financial penalties that act as a credible deterrent in relation to economic 
+crime matters. 
+Combat criminal use of cryptoassets  
+2.17 Several changes have been made to the MLRs to enhance oversight and 
+control of cryptoasset firms since the 2020 NRA. In 2023 the scope of the wire 
+transfer information-sharing regime was extended to cryptoassets (the ‘travel 
+rule’) for both domestic and cross-border transfers. Further, since 2023, the 
+promotion of certain cryptoassets to UK consumers is subject to the FCA’s 
+financial promotion rules. In the first year, the FCA issued 1,702 consumer 
+alerts about illegal promotions, over 900 scam websites were taken down and 
+56 apps removed from UK app stores. 
+ 
+2.18 The Economic Crime and Corporate Transparency Act introduced 
+additional powers for law enforcement, so they are able to more quickly and 
+easily seize and recover cryptoassets which are the proceeds of crime or 
+associated with illicit activity such as money laundering, terrorist financing, 
+fraud and ransomware attacks. 
+ 
+2.19 Law enforcement has invested in improving both their capacity and 
+capability to investigate the criminal use of cryptoassets. This includes the 
+
+ 
+ 
+rolling out of new training and upskilling to improve law enforcement officers’ 
+understanding of cryptoassets, supported by the provision of specialist tooling 
+(i.e. blockchain analytics tools) and the building of a new crypto-specific 
+public-private partnership within the existing Joint Money Laundering 
+Intelligence Taskforce (JMLIT), which brings together law enforcement and 
+members of the regulated sector structure. This public-private partnership has 
+helped develop our understanding of the threat and fomented various joint 
+initiatives (including around data sharing).    
+ 
+Improve intelligence, analysis and feedback through SARs Reform 
+2.20 Suspicious Activity Reports (SARs) intelligence is a critical tool in our ability 
+to identify and disrupt criminal activity and recover criminal assets. The SARs 
+Reform Programme is delivering a new SARs Digital Service (SDS) and has 
+provided an uplift of staff to Regional Organised Crime Units (ROCUs) and the 
+UK Financial Intelligence Unit (UKFIU). The delivery of the new SDS will enable 
+the enhancement of data exploitation, improve feedback and engagement to 
+the regulated sector, enable timelier intelligence sharing with law 
+enforcement agencies, improve capacity and capability across HMG and 
+provide more efficient and effective reporting by the regulated sector. 
+ 
+Recover more criminal assets  
+2.21 In addition to the new cryptoassets measures, reforms have been made to 
+the unexplained wealth order (UWO) regime. These amendments extended 
+the class of persons who may be subject to an UWO, amended the income 
+requirement provisions, increased the maximum statutory time period 
+afforded to law enforcement to review material, and reformed the cost rules.  
+ 
+2.22 Further, the Anti-Money Laundering and Asset Recovery (AMLAR) 
+Programme (2023-2026) has been established, funded by the economic crime 
+levy, increasing law enforcement capacity and capabilities.  
+ 
+2.23 Since 2020, there has been a sustained level of assets recovered with 
+£358.4 million recovered in 2021/22, £341.5 million recovered in 2022/23 and 
+£243.3 million recovered in 2023/24.  
+ 
+Lead the cross-system operational response to money laundering and 
+terrorist financing  
+ 
+2.24 The NECC continues to be the operational cross-system leaders. For 
+example, in 2024 the NECC, NCA and OPBAS published the Cross System 
+Professional Enablers Strategy. The aim of the strategy is to galvanise a whole 
+system response to deliver a step-change in reducing the threat posed by 
+professional enablers. 
+
+ 
+ 
+Funding and law enforcement capability  
+2.25 The Economic Crime (Anti-Money Laundering) Levy was introduced 
+through the Finance Act 2022. Following changes to levy rates in the Spring 
+Budget 2024, it is now expected to raise around £115 million per year from 
+April 2024 onwards to spend on measures designed to tackle money 
+laundering and economic crime. For the first three years of the levy this 
+included:  
+• £100 million for state-of-the-art technology to analyse and share data on 
+threats in real time, giving law enforcement the tools it needs to stay 
+ahead of

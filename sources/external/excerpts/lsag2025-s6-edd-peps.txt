@@ -1,0 +1,227 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.19.3
+topics: [edd, pep, politically-exposed-person, family-member, close-associate, senior-management]
+effective_date: 2025-04-23
+---
+6.19.3 Screening, Due Diligence & Other Control Measures - Politically-Exposed Persons 
+ 
+Politically Exposed Persons (PEPs) present risks as they have the opportunity to use 
+their political position to enrich themselves through corrupt activities. In order to treat 
+PEPs in a risk-based way, it is a precondition that you can correctly identify them.  
+6.19.3.1 Who is a PEP? 
+ 
+A PEP is a person who has been entrusted within the last year (or for a longer period if 
+you consider it appropriate to address the risks in relation to that person) with one of the 
+following prominent public functions by a public institution, an international body, or a 
+state, including the UK. 
+ 
+Listing of PEP roles R35(14) 
+• heads of state, heads of government, ministers and deputy or assistant 
+ministers; 
+• members of parliament or similar legislative bodies; 
+• members of governing bodies of political parties; 
+• members of supreme courts, of constitutional courts, or any judicial body 
+whose decisions are not subject to further appeal, except in exceptional 
+circumstances; 
+• members of courts of auditors or of the boards of central banks; 
+• ambassadors, charges d'affaires and high-ranking officers in the armed forces; 
+• members of the administrative, management or supervisory bodies of 
+state-owned enterprises; or 
+• directors, deputy directors and members of the board of equivalent function of 
+an international organisation. 
+ 
+In addition to the primary PEPs listed above, a PEP also includes (R35(12)): 
+• family members of a PEP – spouse, civil partner, children, their spouses or 
+partners, and parents; and 
+• known close associates of a PEP – persons with whom joint beneficial 
+ownership of a legal entity or legal arrangement is held, with whom there are 
+close business relationships, or who is a sole beneficial owner of a legal entity 
+or arrangement set up by the primary PEP. 
+ 
+ 
+Middle ranking and junior officials are not PEPs. In the UK, only those who hold truly 
+prominent positions should be treated as PEPs and the definition should not be applied to 
+local government, more junior members of the civil service or military officials other than 
+
+ 
+ 
+those holding the most senior ranks. This should be borne in mind as many commercially 
+available PEP checking tools may have a much lower threshold for considering an 
+individual a PEP. 
+ 
+In the Government consultation on 5MLD, it was strongly suggested that the FCA’s 
+guidance on PEPs should be the standard across the board.  
+ 
+Section FCA guidance sets out the FCA’s view of what categories of person should be 
+treated as PEPs in the UK (building on the above). 
+ 
+6.19.3.2 Identifying a PEP 
+ 
+R35(1) requires you to have appropriate risk management systems and procedures to 
+determine whether a client or beneficial owner is a PEP. 
+ 
+Practices must take a risk-based approach to identifying PEPs. 
+ 
+To assess your risk of encountering a PEP, you must consider your PWRA, the level of 
+risk of money laundering or terrorist financing inherent in your business and the extent 
+to which that risk would be increased by a business relationship with a PEP. 
+ 
+In larger or more specialist practices where it may be reasonably expected to undertake 
+work on behalf of PEPs in the normal or regular course of business, frequency and 
+intensity of PEP screening should be increased (potentially using an established 
+commercial provider), both at the outset of the matter and an ongoing basis. Many 
+practices use services that can run checks against PEP databases which they maintain.  
+ 
+Where you have a higher risk of having PEPs as clients or you have reason to suspect that 
+a person may actually be a PEP contrary to earlier information, you should consider 
+conducting some form of electronic verification.  
+ 
+The range of PEPs is wide and constantly changing, so any EID&V will not give you total 
+certainty. You should have reference to Section 7 when considering the possible 
+confidence you may place in the abilities of any EID&V tool. 
+ 
+Regardless of the result of any single check you should consider the wider possibility that 
+your client is a PEP. 
+ 
+Questions you should ask with regard to PEP Status 
+• What role(s) does the individual hold? 
+• What is the nature and context of business relationship?  
+• What services or products does the PEP wish to use?  
+• What is the potential for the product to be misused for the purposes of 
+corruption? 
+• Do you know if they have close family members or known associates and if so, 
+what roles do they hold? 
+• What level of public scrutiny, exposure, governance, disclosures or accountability 
+in their role is the PEP subject to? 
+• Are their accompanying geographic risks associated with the PEP relationship? 
+• If you have identified a PEP, were they helpful in providing this information and if 
+not, should and how would this impact my assessment of the risk present? 
+
+ 
+ 
+• Does the nature of their PEP status impact in the level of EDD that needs to be 
+applied, and if so, how? 
+ 
+In practices where undertaking work on behalf of PEPs is unlikely or a very rare 
+occurrence, it may be acceptable to use publicly available or open sources. Checking for 
+PEP status should be undertaken on a risk-based approach, in light of other CDD 
+information held (such as employment) which may lead to the practice suspecting PEP 
+status.  
+ 
+Simple measures may include: 
+• asking the client or their representative (as appropriate) whether the person is a 
+PEP, as a part of client onboarding; 
+• performing an internet search in order to check whether the individual may hold 
+any position that qualifies them as a PEP; or 
+• reviewing the information, they submit to you carefully to determine whether any 
+information you have access to, suggests they may be a PEP. 
+ 
+ 
+Other indicators that may indicate your client is a PEP include: 
+ 
+• receiving funds from a government account; 
+• correspondence on official letterhead from the client or a related person; 
+• information from the client or person related to the matter linking the client to a PEP; 
+and 
+• any information which comes to your attention suggesting your client is actually 
+a PEP or linked to one. 
+ 
+Where you suspect a client is a PEP but cannot establish that for certain, you should 
+consider what steps you could take in order to resolve this uncertainty. If you are not able to 
+resolve the issue to your satisfaction, you may consider (on a risk-based approach) 
+applying aspects of enhanced due diligence procedures (as a lack of clarity as to whether 
+a person is a PEP could, in and of itself, be indicative of a heightened risk of money 
+laundering). 
+ 
+It is worth reiterating from the outset that family members of PEPs, and known close 
+associates of PEPs, must be treated as PEPs in terms of the due diligence you apply.   
+You should apply the same standard of investigation when identifying whether someone is 
+a family member of a PEP, as you do for a PEP. 
+ 
+R35(15) sets out a different process for “known close associates.” 
+ 
+“For the purpose of deciding whether a person is a known close associate of a politically 
+exposed person, a relevant person need only have regard to information which is in its 
+possession, or to credible information which is publicly available.” This means that you are 
+only expected to be able to identify a known close associate where the information you 
+already hold tells you that this is what they are, or if it is publicly available. 
+ 
+6.19.3.3 Mitigation of PEP Risk 
+ 
+In deciding what risk mitigation to apply you must (R35(2)) take account of: 
+
+ 
+ 
+• your PWRA; 
+• the client or matter risk assessment; and 
+• any information published by your supervisor. 
+PEPs may pose a higher risk, by virtue of having a greater potential opportunity to be 
+involved in corruption, due to the positions or access to public funds they hold. Being a 
+PEP should not, preclude access to legal services, provided the practice undertakes the 
+necessary enhanced due diligence measures. 
+ 
+Since 10 January 2024 the regulations state that in relation to domestic PEPs, that is, 
+those entrusted with prominent public functions by the United Kingdom: 
+• the starting point for the assessment is that the client or potential client presents a 
+lower level of risk than a non-domestic PEP, and 
+• if no enhanced risk factors are present, the extent of EDD measures to be applied 
+in relation to that client or potential client is less than the extent to be applied in the 
+case of a non-domestic PEP. 
+When there is a PEP relationship (including where a PEP is a beneficial owner of a 
+client and where a client or its beneficial owner is a family member or known close 
+associate of a PEP), the Regulations specify that you must take the following steps to 
+deal with the heightened risk: 
+ 
+• have senior management approval for establishing a business relationship 
+with a PEP or an entity beneficially owned by a PEP; 
+• take adequate measures to establish the SoF and SoW which are involved in the 
+business relationship or occasional transaction; 
+• conduct closer ongoing monitoring of the business relationship; and 
+• consider which aspects of your EDD protocol are appropriate for the PEP in 
+question. 
+ 
+Where you have a beneficial owner who you know to be a PEP, you should consider on a 
+risk-based approach what extra EDD measures, you need to take when dealing with that 
+client. 
+ 
+Where the client is a state-owned entity and the PEP in question is only a PEP due to 
+their position in the State-Owned Entity, you may consider whether this mitigates the risks 
+present. 
+ 
+A useful source of further information is the FCA's guidance on the treatment of politically 
+exposed persons for anti-money laundering purposes. The guidance is aimed at practices 
+supervised by the FCA, but you should take it into account in accordance with 
+R35(4)(b)(i). 
+ 
+6.19.3.4 Senior management approval for onboarding a PEP 
+ 
+R3(1) defines 'senior management' as: 
+ 
+An  officer  or  employee  of  the  relevant  person  with sufficient  knowledge  of  the  relevant 
+person's money laundering and terrorist financing risk exposure, and of sufficient authority to 
+take decisions affecting its risk exposure. 
+ 
+
+ 
+ 
+The FCA guidance referred to above sets out their view as to who, for the purposes of the 
+Regulations, should be treated as coming within the definition of senior management. 
+ 
+For legal practices, senior management may be: 
+• a member of the board of directors or equivalent senior management team; 
+• the head of a practice group or department or function; 
+• a senior or managing partner; or 
+• the MLRO or, if different, the MLCO. 
+ 
+Other individuals may fall into this category depending on the nature and structure of your 
+practice. 
+ 
+Senior Management may delegate the application of their roles to other suitably senior 
+and competent individuals however they remain ultimately responsible and accountable. 
+You should advise those responsible for monitoring risk assessments that a business 
+relationship with a PEP has begun, to help their overall monitoring of the practice's risk 
+profile and compliance. 
+ 
+For sole practitioners, you should appropriately record your decision e.g., as a conclusion 
+to the client or matter risk assessment.

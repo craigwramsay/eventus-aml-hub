@@ -1,0 +1,45 @@
+Requirement to cease transactions etc
+31.—(1)  Where, in relation to any customer, a relevant person is unable to apply customer due
+diligence measures as required by regulation 28, that person—
+(a)must not carry out any transaction through a bank account with the customer or on behalf
+of the customer;
+(b)must  not  establish  a  business  relationship  or  carry  out  a  transaction  with  the  customer
+otherwise than through a bank account;
+(c)must terminate any existing business relationship with the customer;
+(d)must consider whether the relevant person is required to make a disclosure (or to make
+further disclosure) by—
+(i)
+Part 3 of the Terrorism Act 2000 
+M68
+; or
+(ii)
+Part 7 of the Proceeds of Crime Act 2002 
+M69
+.
+(2)  Paragraph (1)(a) does not prevent money deposited in an account being repaid to the person
+who deposited it, provided that, in any case where a disclosure is required by the legislation referred
+in paragraph (1)(d), the relevant person has—
+(a)consent (within the meaning of section 21ZA of the Terrorism Act 2000 (arrangements
+with prior consent)) 
+M70
+ to the transaction, or
+(b)the appropriate consent (within the meaning of section 335 of the Proceeds of Crime Act
+2002 (appropriate consent)) to the transaction.
+(3)  Paragraph (1) does not apply where an independent legal professional or other professional
+adviser  is  in  the  course  of  ascertaining  the  legal  position  for  a  client  or  performing  the  task  of
+defending or representing that client in, or concerning, legal proceedings, including giving advice
+on the institution or avoidance of proceedings.
+(4)  In paragraph (3), “other professional adviser” means an auditor, external accountant or tax
+adviser who is a member of a professional body which is established for any such persons and which
+makes provision for—
+
+(a)testing the competence of those seeking admission to membership of such a body as a
+condition for such admission; and
+(b)imposing and maintaining professional and ethical standards for its members, as well as
+imposing sanctions for non-compliance with those standards.
+(5)  Paragraph (1)(a) to (c) does not apply where an insolvency practitioner has been appointed
+by the court as administrator or liquidator of a company, provided that—
+(a)the insolvency practitioner has taken all reasonable steps to satisfy the requirements set
+out in regulation 28(2) and (10), and
+(b)the resignation of the insolvency practitioner would be prejudicial to the interests of the
+creditors of the company.

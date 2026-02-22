@@ -1,0 +1,75 @@
+# LSAG AML Guidance 2025 - Ongoing Monitoring
+# Section 6.21
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+6.21 Ongoing Monitoring 
+R28(11) requires that you conduct ongoing monitoring of business relationships.  
+Ongoing monitoring is defined as: 
+• scrutiny of transactions undertaken throughout the course of the relationship, 
+(including where necessary, the source of funds), to ensure that the 
+transactions are consistent with your knowledge of the client, their business and 
+their risk profile; and 
+• undertaking reviews of existing records and keeping the documents, or 
+information obtained for the purpose of applying CDD, up to date. 
+You must also be aware of obligations to keep clients' personal data updated under the 
+Data Protection Act 1998 and the GDPR or their equivalent. 
+In order to comply, you may: 
+
+103 
+ 
+ 
+• renew and re-evaluate CDD at appropriate intervals (including during the course 
+of a given transaction), noting that as outlined in R27(8), this is mandatory in 
+certain circumstances;  
+• suspend or terminate a business relationship until you have updated information 
+or documents, though this may be excessive if you are satisfied you know who 
+your client is, and keep under review any request you have made for 
+information or documents; or 
+• use technology to aid your ongoing monitoring. 
+You should operate a system of regular review and renewal of CDD and take a risk-based 
+approach to such activity. You should consider reviewing (although not necessarily redoing) 
+the CDD upon each new matter. Where there has been a significant gap between 
+instructions (anything above a year may be considered a significant gap in relation to those 
+clients or transactions assessed as higher-risk), you should consider refreshing the CDD.  
+You must update the CDD when you become aware of any changes to the client’s 
+identification information. This would include change of name, address, beneficial owner or 
+business. 
+In accordance with R27(9) you must apply (or reapply) CDD to existing clients on a risk-
+based approach and when you become aware that the circumstances of the existing client 
+have changed. 
+ 
+In determining this, you must consider: 
+ 
+• any indication that the identity of the client, or beneficial owner has changed; 
+• any transactions which are not reasonably consistent with your knowledge of the 
+client; 
+• any change in the purpose or nature of the relationship; and 
+• any other matter which may affect your assessment of the money laundering or 
+terrorist financing risk in relation to the client. 
+ 
+It may also be necessary to undertake ongoing monitoring through the course of a single 
+matter – particularly where there is an element of duration to the matter, and parties to the 
+matter, or the SoW/SoF involved may have changed. 
+ 
+Each time a practice engages in ongoing monitoring (which may or may not include full 
+reverification) it should record: 
+ 
+• what aspects of the issue they considered; 
+• action taken (if any); 
+• the reasons for that decision; and 
+• who undertook the monitoring and the date on which it was undertaken?  
+ 
+Bear in mind also that the Regulations as amended prescribe further situations where you 
+must re-apply CDD for existing clients – these being when a practice has any legal duty in 
+the course of the calendar year to contact a client under the International Tax Compliance 
+Regulations 2015 or to review information: 
+• relevant to their client risk assessment (or where appropriate practice-wide/matter 
+risk assessment as appropriate); and 
+
+104 
+ 
+ 
+• concerning beneficial ownership information of the customer, including information 
+which helps them understand the ownership or control structure of any entity that is 
+the beneficial owner of the client. 
+ 

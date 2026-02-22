@@ -1,0 +1,49 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 5.6.4
+topics: [delivery-channel, risk-assessment, non-face-to-face, cmlra, methodology]
+effective_date: 2025-04-23
+---
+# LSAG AML Guidance 2025 - Delivery Channel Risk
+# Section 5.6.4
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+5.6.4 Delivery Channel Risk 
+ 
+Questions to ask when assessing 
+inherent delivery channel risk for your 
+PWRA. 
+What % of its business is conducted on a 
+non-face to face basis?  
+Does the practice undertake work which 
+is conducted through intermediaries or 
+other 3rd parties? 
+ 
+ 
+How you deliver your services must be considered in your PWRA. You should consider this 
+along the following lines: 
+• The proportion and characteristics of clients you do not meet face to face or do not 
+verify with robust electronic identification and verification; (EID&V) 
+• How many of your matters rely on indirect contact with your client (e.g., via a 
+representative or agent) rather than holding a direct relationship with the client; 
+• How much of your activity is delivered online or via any other channel that may 
+facilitate anonymity; and 
+• The methods used to undertake identification and verification and general due 
+diligence requirements. 
+5.6.4.1 Acting for individual clients without meeting them 
+ 
+You should consider this as a risk factor when you carry out your PWRA. You should also 
+consider how you mitigate the risk, for example by using an EID&V platform. It may also 
+extend to the remote methods (e.g., telephone, email, live video) you use to contact your 
+client, as not all methods provide the same level of anonymity. Contact that is limited to text-
+only should be considered as higher risk. 
+ 
+When you act for clients without meeting them you must be satisfied that it makes sense in 
+all the circumstances that you have not met the client and you should be comfortable that 
+you can mitigate the risks of identity fraud. You should consider whether any form of 
+Enhanced Due Diligence may be appropriate. 
+ 
+Use of an appropriate EID&V platform to mitigate the risks of not being able to meet a client 
+can be helpful but is not in itself a guaranteed or automatic solution to these challenges. A 
+clear understanding of the limitations of such tools is needed if they are to be used correctly. 
+See Section 7 for more information on this.

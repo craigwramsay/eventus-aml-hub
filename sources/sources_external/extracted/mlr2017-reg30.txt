@@ -1,0 +1,132 @@
+Timing of verification
+30.—(1)  This regulation applies when a relevant person is required to take any measures under
+regulation 27, 28 or 29.
+(2)  Subject to paragraph (3) or (4), a relevant person must comply with the requirement to verify
+the identity of the customer, any person purporting to act on behalf of the customer and any beneficial
+owner of the customer before the establishment of a business relationship or the carrying out of the
+transaction.
+(3)    Provided  that  the  verification  is  completed  as  soon  as  practicable  after  contact  is  first
+established, the verification of the customer, any person purporting to act on behalf of the customer
+and  the  customer's  beneficial  owner,  may  be  completed  during  the  establishment  of  a  business
+relationship if—
+(a)this is necessary not to interrupt the normal conduct of business; and
+(b)there is little risk of money laundering and terrorist financing.
+(4)  The verification by a credit institution or a financial institution of the identity of a customer
+opening an account, any person purporting to act on behalf of the customer and any beneficial owner
+of the customer, may take place after the account has been opened provided that there are adequate
+safeguards in place to ensure that no transactions are carried out by or on behalf of the customer
+before verification has been completed.
+(5)  For the purposes of paragraph (4) “account” includes an account which permits transactions
+in transferable securities.
+
+(6)  Paragraph (7) applies if—
+(a)the relevant person is required to apply customer due diligence measures in the case of
+a trust, a legal entity (other than a body corporate) or a legal arrangement (other than a
+trust); and
+(b)the  beneficiaries  of  that  trust,  entity  or  arrangement  are  designated  as  a  class,  or  by
+reference to particular characteristics.
+(7)  If this paragraph applies, the relevant person must establish and verify the identity of any
+beneficiary before—
+(a)any payment is made to the beneficiary; or
+(b)the beneficiary exercises its vested rights in the trust, legal entity or legal arrangement.
+[
+F132
+Requirement to report discrepancies in registers
+30A.—(1)  Before establishing a business relationship with—
+(a)a company which is subject to the requirements of Part 21A of the Companies Act 2006
+(information about people with significant control);
+(b)an  unregistered  company  which  is  subject  to  the  requirements  of  the  Unregistered
+Companies Regulations 2009;
+(c)a limited liability partnership which is subject to the requirements of the Limited Liability
+Partnerships (Application of Companies Act 2006) Regulations 2009;
+(d)an  eligible  Scottish  partnership  which  is  subject  to  the  requirements  of  the  Scottish
+Partnerships (Register of People with Significant Control) Regulations 2017, 
+F133
+...
+(e)
+a trust which is subject to registration under Part 5 of these Regulations, [
+F134
+or]
+[
+F135
+(f)
+an overseas entity which is subject to registration under Part 1 of the Economic Crime
+(Transparency and Enforcement) Act 2022,]
+[
+F136
+a  relevant  person  must  collect  an  excerpt  of  the  register  which  contains  full  details  of  any
+information specified in paragraph (1A) held on the register at the relevant time before the business
+relationship is established, or must establish from its inspection of the register that there is no such
+information held on the register at that time.]
+[
+F137
+(1A)  The information specified in this paragraph is as follows—
+(a)in relation to a firm of a type described in paragraphs (1)(a) to (e), information relating to
+beneficial owners of the customer; and
+(b)in  relation  to  an  overseas  entity  of  a  type  described  in  paragraph  (1)(f),  required
+information  relating  to  registrable  beneficial  owners  specified  under  Schedule  1  to  the
+Economic Crime (Transparency and Enforcement) Act 2022.]
+(2)  The relevant person must report to the person mentioned in paragraph (3) [
+F138
+any material
+discrepancy] the relevant person finds between information relating to the beneficial ownership of
+the customer—
+(a)which the relevant person collects under paragraph (1), and
+(b)which otherwise becomes available to the relevant person in the course of carrying out
+its  duties  under  these  Regulations  when  establishing  a  business  relationship  with  the
+customer.
+[
+F139
+(2A)    When  taking  measures  to  fulfil  the  duties  to  carry  out  customer  due  diligence  and
+ongoing  monitoring  of  a  business  relationship  (including  enhanced  customer  due  diligence  and
+enhanced ongoing monitoring) under Part 3 of these Regulations after a business relationship with a
+customer of a type described in paragraph (1)(a) to (f) has been established, a relevant person must
+
+also collect an excerpt of the register which contains full details of any information specified in
+paragraph (1A) which is held on the register at that time, or must establish from its inspection of the
+register that there is no such information held on the register at that time.
+(2B)    The  relevant  person  must  report  to  the  person  mentioned  in  paragraph  (3)  any  material
+discrepancy the relevant person finds between information relating to the beneficial ownership of
+the customer—
+(a)which the relevant person collects under paragraph (2A), and
+(b)which otherwise becomes available to the relevant person in the course of carrying out its
+duties under these Regulations.]
+(3)  [
+F140
+A material discrepancy referred to in paragraphs (2) and (2B)] must be reported—
+(a)
+if it relates to a company, an unregistered company, a limited liability partnership [
+F141
+, an
+eligible Scottish partnership or an overseas entity,] to the registrar; or
+(b)if it relates to a trust, to the Commissioners.
+(4)  The relevant person is not required under paragraph (2) [
+F142
+or (2B)] to report information
+which that person would be entitled to refuse to provide on grounds of legal professional privilege
+in the High Court (or in Scotland, on the ground of confidentiality of communications in the Court
+of Session).
+(5)  The person to whom [
+F143
+a material discrepancy] is reported must take such action as that
+person considers appropriate to investigate and, if necessary, resolve the discrepancy in a timely
+manner.
+[
+F144
+(6)  A discrepancy which is reported to the registrar under paragraph (3) is material excluded
+from public inspection for the purposes of—
+(a)section 1087 of the Companies Act 2006 (material not available for public inspection),
+including for the purposes of that section as applied—
+(i)to  unregistered  companies  by  paragraph  20  of  Schedule  1  to  the  Unregistered
+Companies Regulations 2009;
+(ii)to limited liability partnerships by regulation 66 of the Limited Liability Partnerships
+(Application of Companies Act 2006) Regulations 2009; and
+(iii)to  eligible  Scottish  partnerships  by  regulation  61  of  the  Scottish  Partnerships
+(Register of People with Significant Control) Regulations 2017; and
+(b)section 22 of the Economic Crime (Transparency and Enforcement) Act 2022 (material
+unavailable for inspection).]
+(7)    A  reference  to  the  registrar  in  this  regulation  is  to  the  registrar  of  companies  within  the
+meaning of section 1060(3) of the Companies Act 2006.
+[
+F145
+(8)  In this regulation, a “material discrepancy” is one described in Schedule 3AZA.]]

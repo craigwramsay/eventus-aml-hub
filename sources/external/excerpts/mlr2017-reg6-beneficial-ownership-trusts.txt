@@ -1,0 +1,74 @@
+---
+source_name: Money Laundering Regulations 2017
+section_ref: reg. 6
+topics: [beneficial-ownership, trusts, cdd, verification, identity]
+effective_date: 2017-06-26
+---
+Meaning of beneficial owner: trusts, similar arrangements and others
+6.—(1)    In  these  Regulations,  “beneficial  owner”,  in  relation  to  a  trust,  means  each  of  the
+following—
+(a)the settlor;
+(b)the trustees;
+(c)the beneficiaries;
+(d)where the individuals (or some of the individuals) benefiting from the trust have not been
+determined, the class of persons in whose main interest the trust is set up, or operates;
+(e)any individual who has control over the trust.
+(2)  In paragraph (1)(e), “control” means a power (whether exercisable alone, jointly with another
+person or with the consent of another person) under the trust instrument or by law to—
+(a)dispose of, advance, lend, invest, pay or apply trust property;
+(b)vary or terminate the trust;
+(c)add or remove a person as a beneficiary or to or from a class of beneficiaries;
+(d)appoint or remove trustees or give another individual control over the trust;
+(e)direct, withhold consent to or veto the exercise of a power mentioned in sub-paragraphs
+(a) to (d).
+(3)  In these Regulations, “beneficial owner”, in relation to a foundation or other legal arrangement
+similar to a trust, means those individuals who hold equivalent or similar positions to those set out
+in paragraph (1).
+(4)  For the purposes of paragraph (1)—
+(a)where  an  individual  is  the  beneficial  owner  of  a  body  corporate  which  is  entitled  to  a
+specified interest in the capital of the trust property or which has control over the trust, the
+individual is to be regarded as entitled to the interest or having control over the trust; and
+(b)an individual (“P”) does not have control solely as a result of—
+(i)P's  consent  being  required  in  accordance  with  section  32(1)(c)  (power  of
+advancement) of the Trustee Act 1925 
+M27
+;
+(ii)any discretion delegated to P under section 34 (power of investment and delegation)
+of the Pensions Act 1995 
+M28
+;
+(iii)the  power  to  give  a  direction  conferred  on  P  by  section  19(2)  (appointment
+and  retirement  of  trustee  at  instance  of  beneficiaries)  of  the  Trusts  of  Land  and
+Appointment of Trustees Act 1996 
+M29
+; or
+(iv)the power exercisable collectively at common law to vary or extinguish a trust where
+the beneficiaries under the trust are of full age and capacity and (taken together)
+absolutely entitled to the property subject to the trust (or, in Scotland, have a full
+and unqualified right to the fee).
+(5)  For the purposes of paragraph (4), “specified interest” means a vested interest which is—
+(a)in possession or in remainder or reversion (or in Scotland, in fee); and
+(b)defeasible or indefeasible.
+(6)  In these Regulations, “beneficial owner”, in relation to an estate of a deceased person in the
+course of administration, means—
+(a)in England and Wales and Northern Ireland, the executor, original or by representation, or
+administrator for the time being of a deceased person;
+
+(b)
+in Scotland, the executor for the purposes of the Executors (Scotland) Act 1900 
+M30
+.
+(7)  In these Regulations, “beneficial owner”, in relation to a legal entity or legal arrangement
+which does not fall within regulation 5 or paragraphs (1), (3) or (6) of this regulation, means—
+(a)any individual who benefits from the property of the entity or arrangement;
+(b)where  the  individuals  who  benefit  from  the  entity  or  arrangement  have  yet  to  be
+determined, the class of persons in whose main interest the entity or arrangement is set
+up or operates;
+(c)any individual who exercises control over the property of the entity or arrangement.
+(8)  For the purposes of paragraph (7), where an individual is the beneficial owner of a body
+corporate which benefits from or exercises control over the property of the entity or arrangement,
+the individual is to be regarded as benefiting from or exercising control over the property of the
+entity or arrangement.
+(9)    In  these  Regulations,  “beneficial  owner”,  in  any  other  case,  means  the  individual  who
+ultimately  owns  or  controls  the  entity  or  arrangement  or  on  whose  behalf  a  transaction  is  being
+conducted.

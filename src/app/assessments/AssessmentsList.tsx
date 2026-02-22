@@ -42,11 +42,20 @@ function getRiskLabel(level: string): string {
 }
 
 export function AssessmentsList({ assessments }: AssessmentsListProps) {
+  const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
 
   const filtered = assessments.filter((a) => {
-    if (filter === 'draft') return a.finalised_at === null;
-    if (filter === 'finalised') return a.finalised_at !== null;
+    if (filter === 'draft' && a.finalised_at !== null) return false;
+    if (filter === 'finalised' && a.finalised_at === null) return false;
+    if (search) {
+      const term = search.toLowerCase();
+      return (
+        a.client_name.toLowerCase().includes(term) ||
+        a.matter_reference.toLowerCase().includes(term) ||
+        (a.matter_description && a.matter_description.toLowerCase().includes(term))
+      );
+    }
     return true;
   });
 
@@ -55,6 +64,16 @@ export function AssessmentsList({ assessments }: AssessmentsListProps) {
 
   return (
     <>
+      <div className={styles.searchBar}>
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="Search assessments..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       <div className={styles.filters}>
         <button
           type="button"

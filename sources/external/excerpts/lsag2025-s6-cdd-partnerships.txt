@@ -1,0 +1,160 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.14.13-6.14.14
+topics: [cdd, partnerships, llp, limited-partnership, slp, foundations, verification]
+effective_date: 2025-04-23
+---
+ 
+6.14.13 Partnerships, limited partnerships, Scottish limited partnerships and UK LLPs 
+A partnership, other than in Scotland, is not a separate legal entity, so you must 
+obtain information on the constituent individuals. 
+
+ 
+ 
+ 
+Where partnerships or unincorporated businesses are well-known, reputable organisations, 
+with long histories in their industries and with substantial public information about them, their 
+principals, and controllers the following information may be sufficient: 
+ 
+• name; 
+• registered address, if any; 
+• trading address; and 
+• nature of business. 
+ 
+You must still verify the identity of the partnership’s beneficial owners. 
+ 
+R5(3) provides that in the case of a partnership (but not a limited liability partnership) 
+the following individuals are beneficial owners: 
+ 
+• any individual ultimately entitled to or who controls, (whether directly or 
+indirectly), more than 25 per cent of the capital or profits of the partnership or 
+more than 25 per cent of the voting rights in the partnership; or 
+• any individual who otherwise exercises control over the management of the 
+partnership. 
+ 
+Relevant points to consider when applying R5(3) are: 
+ 
+• the property of the entity includes its capital and its profits; and 
+• control involves the ability to manage the use of funds or transactions outside of 
+the normal management structure and control mechanisms 
+ 
+You should also consider whether there are any other registries on which you may be able 
+to verify the details of the partnership.  
+ 
+Other partnerships and unincorporated businesses which are small and have few partners 
+should be treated for identification and verification purposes in the same way as private 
+individuals (i.e., identifying and verifying each partner). Where the numbers are larger, 
+they should be treated for identification and verification purposes in the same way as 
+private companies. 
+ 
+Where a partnership is made up of regulated professionals, it may be sufficient to confirm 
+the practice's existence and the trading address from a reputable professional directory or 
+search facility with the relevant professional body. Otherwise, you should obtain evidence 
+on the identity of at least two partners and evidence of the practice's trading address. You 
+must still verify the identity of the partnership’s beneficial owners. 
+ 
+For a UK LLP or SLP, you should obtain information in accordance with the requirements 
+for companies as outlined above as these are treated as corporate entities. 
+ 
+Careful consideration should be made regarding clients where partners themselves are 
+overseas entities, particularly where these overseas entities are located in jurisdictions 
+where no publicly available corporate registers are available, or ownership can be 
+otherwise concealed through the use of nominees or similar structures. This is particularly 
+relevant where the vehicle is used to hold assets or is involved in transactional or other 
+potentially high-risk activities, or conversely, where no discernible business activity can be 
+determined, from internet searches or other sources. Such factors may be indicative of 
+shell companies and are likely to be indicative of higher ML risk. You should give 
+
+ 
+ 
+consideration to why the use of such structures may not be legitimate and the nature and 
+purpose of the business. Your client may be able to help you understand this. Information 
+obtained should be considered in light of other CDD information available.  
+ 
+Where you have assessed the client risk to be higher risk because of its structure or 
+factors as above, then you must put in place enhanced due diligence and ongoing 
+monitoring. 
+ 
+
+
+6.14.13 Partnerships, limited partnerships, Scottish limited partnerships and UK LLPs 
+A partnership, other than in Scotland, is not a separate legal entity, so you must 
+obtain information on the constituent individuals. 
+
+ 
+ 
+ 
+Where partnerships or unincorporated businesses are well-known, reputable organisations, 
+with long histories in their industries and with substantial public information about them, their 
+principals, and controllers the following information may be sufficient: 
+ 
+• name; 
+• registered address, if any; 
+• trading address; and 
+• nature of business. 
+ 
+You must still verify the identity of the partnership’s beneficial owners. 
+ 
+R5(3) provides that in the case of a partnership (but not a limited liability partnership) 
+the following individuals are beneficial owners: 
+ 
+• any individual ultimately entitled to or who controls, (whether directly or 
+indirectly), more than 25 per cent of the capital or profits of the partnership or 
+more than 25 per cent of the voting rights in the partnership; or 
+• any individual who otherwise exercises control over the management of the 
+partnership. 
+ 
+Relevant points to consider when applying R5(3) are: 
+ 
+• the property of the entity includes its capital and its profits; and 
+• control involves the ability to manage the use of funds or transactions outside of 
+the normal management structure and control mechanisms 
+ 
+You should also consider whether there are any other registries on which you may be able 
+to verify the details of the partnership.  
+ 
+Other partnerships and unincorporated businesses which are small and have few partners 
+should be treated for identification and verification purposes in the same way as private 
+individuals (i.e., identifying and verifying each partner). Where the numbers are larger, 
+they should be treated for identification and verification purposes in the same way as 
+private companies. 
+ 
+Where a partnership is made up of regulated professionals, it may be sufficient to confirm 
+the practice's existence and the trading address from a reputable professional directory or 
+search facility with the relevant professional body. Otherwise, you should obtain evidence 
+on the identity of at least two partners and evidence of the practice's trading address. You 
+must still verify the identity of the partnership’s beneficial owners. 
+ 
+For a UK LLP or SLP, you should obtain information in accordance with the requirements 
+for companies as outlined above as these are treated as corporate entities. 
+ 
+Careful consideration should be made regarding clients where partners themselves are 
+overseas entities, particularly where these overseas entities are located in jurisdictions 
+where no publicly available corporate registers are available, or ownership can be 
+otherwise concealed through the use of nominees or similar structures. This is particularly 
+relevant where the vehicle is used to hold assets or is involved in transactional or other 
+potentially high-risk activities, or conversely, where no discernible business activity can be 
+determined, from internet searches or other sources. Such factors may be indicative of 
+shell companies and are likely to be indicative of higher ML risk. You should give 
+
+ 
+ 
+consideration to why the use of such structures may not be legitimate and the nature and 
+purpose of the business. Your client may be able to help you understand this. Information 
+obtained should be considered in light of other CDD information available.  
+ 
+Where you have assessed the client risk to be higher risk because of its structure or 
+factors as above, then you must put in place enhanced due diligence and ongoing 
+monitoring. 
+ 
+6.14.14 Foundations 
+ 
+Foundations may or may not have legal personality. You should investigate whether this 
+is the case and whether it is appropriate to take on the foundation as your client or 
+whether your client should be the board of trustees or another party involved with the 
+foundation. 
+ 
+If the foundation lacks legal personality, you should approach CDD, as you would where 
+you act for a client in relation to a trust. R6(5) provides that ‘beneficial owner’ in relation to 
+a foundation or other legal arrangement similar to a trust, means those individuals who 
+hold equivalent or similar positions to the (defined) beneficial owners of trusts.

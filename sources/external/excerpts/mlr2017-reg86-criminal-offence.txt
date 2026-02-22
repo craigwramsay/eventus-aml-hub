@@ -1,0 +1,30 @@
+---
+source_name: Money Laundering Regulations 2017
+section_ref: reg. 86
+topics: [offence, criminal, compliance, enforcement, penalty]
+effective_date: 2017-06-26
+---
+Criminal offences
+86.—(1)  A person who contravenes a relevant requirement imposed on that person is guilty of
+an offence and liable—
+(a)on summary conviction—
+(i)in England and Wales, to imprisonment for a term not exceeding three months, to
+a fine or to both;
+(ii)in  Scotland  or  Northern  Ireland,  to  imprisonment  for  a  term  not  exceeding  three
+months, to a fine not exceeding the statutory maximum or to both;
+(b)on conviction on indictment, to imprisonment for a term not exceeding two years, to a
+fine, or to both.
+(2)  In deciding whether a person has committed an offence under paragraph (1), the court must
+decide whether that person followed—
+F347
+(a)
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+(b)any relevant guidance which was at the time—
+(i)issued by the FCA; or
+(ii)issued by any other supervisory authority or appropriate body and approved by the
+Treasury.
+
+(3)  A person is not guilty of an offence under this regulation if that person took all reasonable
+steps and exercised all due diligence to avoid committing the offence.
+(4)  Where a person has been convicted of an offence under this regulation, that person is not also
+to be liable to a sanction under Chapter 2 of this Part.

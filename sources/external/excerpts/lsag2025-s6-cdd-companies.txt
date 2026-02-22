@@ -1,0 +1,226 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.14.11
+topics: [cdd, companies, corporate, public-companies, private-companies, overseas-entities, verification]
+effective_date: 2025-04-23
+---
+6.14.11 Companies – General Requirements 
+ 
+You must identify and verify 
+• the name of the company; 
+• its company number or other registration number; and 
+• the address of its registered office, and if different, its principal place of business. 
+ 
+Furthermore, the practice must take reasonable measures to determine and verify the law to 
+which the company is subject, and its constitution (whether set out in its articles of association 
+or other governing documents) and the full names of the board of directors (or if there is no 
+board, the members of the equivalent management body) and the senior persons responsible 
+for the operations of the body corporate.  
+A practice must collect proof of registration (e.g., via the client) or an excerpt from the 
+relevant register before establishing a business relationship with a:  
+• UK company (registered or unregistered as defined in the Unregistered Companies 
+Regulations 2009(1)); 
+
+ 
+ 
+• UK Limited Liability Partnership; or  
+• Scottish Partnership. 
+You must collect proof of registration (e.g., via the client) or an excerpt from the relevant 
+register.  
+ 
+Discrepancies in this information must be reported to the registrar, see Section 12 for more 
+details. 
+Where the client is beneficially owned by another person, the practice must also: 
+• identify the beneficial owner; and 
+• take reasonable measures to verify the identity of the beneficial owner, along with the 
+ownership and control structure of the non-natural person R28(4)(c). 
+These reasonable measures for verifying the identity of a non-natural person, may be 
+easier to undertake for smaller entities where the beneficial owners may be more 
+accessible. For larger entities where the beneficial owners may be more difficult to contact 
+directly, EID&V may be of significant help when verifying their identities. 
+ 
+Where a company is well-known or regulated for AML to a standard equivalent to which 
+you are subject to in the UK you may consider that the level of money laundering and 
+terrorist financing risks are low and apply CDD on a risk-based approach. For listed 
+companies see below. 
+ 
+Where you commence acting for a wholly owned subsidiary of an existing client, you may 
+refer to the CDD file for your existing client for verification of details of the subsidiary, 
+provided that the existing client has been identified to the standards of the Regulations or 
+to a similar standard in another jurisdiction. 
+ 
+6.14.11.1 Public companies listed on Regulated Markets 
+ 
+You must obtain and verify the: 
+ 
+• company name; 
+• company number or other registration number; and 
+• address of the registered office and, if different, principal place of business. 
+ 
+In accordance with R28(5), if the company is listed on a regulated market it is not 
+necessary to: 
+ 
+• obtain information about the beneficial owners of the company; or 
+• take  reasonable  measures  to  determine  and  verify  the  law  to  which  it  is 
+subject or the names of its directors and senior persons. 
+ 
+This may also be applied to a majority-owned subsidiary of such a company 
+where you have established the nature of ownership via an independent and 
+reliable source. 
+ 
+For a wholly owned subsidiary of a listed company, you will also require 
+evidence of the parent/subsidiary relationship. Such evidence may be: 
+ 
+• the subsidiary's last filed annual return/confirmation; 
+
+ 
+ 
+• a note in the parent's or subsidiary's last audited accounts or annual report; 
+• information  from  a reputable  electronic  verification  service  provider  or  online 
+registry; or 
+• information from the parent company’s published reports, for example, from their 
+website. 
+ 
+“Regulated market” is defined as follows: 
+• Within  the  EEA,  the  meaning  given  by  Article  4.1  (14)  of  the  Markets  in 
+Financial Instruments Directive; and 
+• Outside the EEA, a regulated financial market which subjects’ companies 
+whose securities are admitted to trading to disclosure obligations which are 
+equivalent to the specified disclosure obligations. 
+ 
+“specified disclosure obligations” means— 
+ 
+(a)disclosure obligations set out in Articles 17 and 19 of Regulation (EU) No 596/2014 
+of the European Parliament and of the Council of 16th April 2014 on market abuse 
+(22); 
+(b)disclosure obligations consistent with Articles 3, 5, 7, 8, 10, 14 and 16 of Directive 
+2003/71/EC of the European Parliament and of the Council of 4th November 2003 on 
+the prospectuses to be published when securities are offered to the public or admitted 
+to trading(23); 
+(c)disclosure obligations consistent with Articles 4 to 6, 14, 16 to 19 and 30 of 
+Directive 2004/109/EC of the European Parliament and of the Council of 15th 
+December 2004 on the harmonisation of transparency requirements in relation to 
+information about issuers whose securities are admitted to trading on a regulated 
+market(24); and 
+(d)disclosure requirements consistent with EU legislation made under the provisions 
+mentioned in sub-paragraphs (a) to (c); 
+ 
+ 
+If a regulated market is located within the EEA there is no requirement to undertake 
+checks on the market itself. Under a risk-based approach you may wish to simply record 
+the steps taken to ascertain the status of the market. 
+ 
+Consider a similar approach for non-EEA markets that subject companies to disclosure 
+obligations which are contained in international standards equivalent to specified 
+disclosure obligations in the EU. Jurisdictional AML risks should also be considered – 
+see the risk assessment section of this guidance for further information. 
+ 
+Consult the register on the European Securities and Markets Authority website. 
+Following an assessment that the client is low risk it will be sufficient, for a listed 
+company, to obtain confirmation of the company's listing on the regulated market.  
+ 
+Such evidence may be: 
+ 
+• a copy of the dated page of the website of the relevant stock exchange 
+showing the listing; 
+• a photocopy of the listing in a reputable newspaper; or 
+• information  from  a  reputable  electronic  verification  service  provider  or  online 
+registry. 
+ 
+
+ 
+ 
+Where a listed company is owned by multiple parties that are themselves held on a 
+regulated market(s), this does not need to be treated differently to a listed company that 
+is a wholly owned subsidiary of one, except that you need to collect the details of all 
+owners as above. 
+ 
+When assessing a listed company’s relationship with a market, you should have regard to 
+whether a company’s ownership is only partially available on a market i.e., only a 
+percentage is publicly held. In this context, you should consider seeking further 
+information about any owners whose relationship is not through a regulated market on a 
+risk sensitive basis. In other words, a company having any proportion of a listing on a 
+regulated market however small, does not mean you do not need to check other owners. 
+ 
+The regulated market in the UK is the London Stock Exchange. You may consider whether 
+it is appropriate to treat companies listed on other markets in the same way as those 
+meeting the definition of “regulated markets” on a risk sensitive basis. For example, AIM is 
+not a ‘regulated market’, but you may consider, on a risk-based approach, treating it as 
+such. 
+ 
+Where further CDD is required for a listed company (i.e., when it is not on a regulated 
+market or where you otherwise deem it necessary) consider the nature of the risks 
+presented and obtain additional information/comforts to address those risks.  This may 
+include obtaining relevant information or particulars of the company's identity or business 
+practices. 
+ 
+Verification sources may include: 
+ 
+• a search of the relevant company registry (such as Companies House); 
+• a copy of the company's certificate of incorporation; 
+• a copy of their audited accounts; or 
+• information from a reputable electronic verification service provider. 
+ 
+You are still required to conduct ongoing monitoring of the business relationship with a publicly 
+listed company to enable you to spot suspicious activity. 
+ 
+Companies whose listing does not fall within the above requirements should be identified in 
+accordance with the provisions for private companies. 
+ 
+6.14.11.2 Private and unlisted companies in the UK 
+ 
+Private companies are generally subject to a lower level of public disclosure than 
+public companies. In general, however, the structure, ownership, purposes and 
+activities of many private companies will be clear and understandable. 
+ 
+Sources for verifying corporate identification may include: 
+ 
+• certificate of incorporation; 
+• articles of association (or equivalent formation documents); 
+• details from the relevant company registry, confirming details of the company and 
+of the director/s and their addresses; 
+• filed audited accounts; or 
+• information from a reputable electronic verification service provider. 
+
+ 
+ 
+ 
+R43 requires UK companies not listed on a regulated market to provide information 
+about their identity on request, including their articles of association or other governing 
+documents and information about beneficial owners. 
+ 
+6.14.11.3 Private and unlisted overseas companies 
+ 
+Obtaining CDD material for these companies may be more difficult, particularly 
+regarding beneficial ownership where ownership is held in jurisdictions where no 
+publicly available corporate registers are available, or ownership can be otherwise 
+concealed through the use of nominees. If this is the case, it should be taken as an 
+increased risk factor and may warrant the application of enhanced due diligence 
+measures. 
+ 
+The company's identity should be established in the same way as for UK private and 
+unlisted companies. 
+Where you are not obtaining original documentation, you should consider the need for 
+further comfort on authenticity on a risk-based approach. Certification of documents does 
+not automatically guarantee documentation is genuine.  
+ 
+6.14.11.4 The Register of Overseas Entities 
+ 
+Overseas entities wishing to buy, sell or transfer property or land in the UK must now 
+register with Companies House. An overseas entity is defined as a legal entity governed 
+by the law of a country or territory outside the UK. 
+ 
+This requirement applies to overseas entities who own real property in the UK and have 
+done so since:  
+ 
+• in England and Wales, on or since 1 January 1999 
+• in Scotland, on or since 8 December 2014 
+• in Northern Ireland, on or since 5 September 2022. 
+Regulation 28(9) does not exclude the ROE as a register on which you can rely on for the 
+purposes of verification under 28(4). Nonetheless, it is important not to rely solely on this or 
+any other register. Regulation 30A, for example, introduced a discrepancy reporting 
+requirement for the ROE which indicates that inconsistency may occur. The information 
+provided by such registers should be verified independently. 
+Entries on the Register of Overseas Interests are not public but copies may be obtained on 
+application to Companies House. 
+More information is available here.

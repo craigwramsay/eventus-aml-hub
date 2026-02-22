@@ -1,0 +1,146 @@
+# LSAG AML Guidance 2025 - Geographic Risk / High-Risk Third Countries
+# Section 5.6.2
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+5.6.2 Geographic Risk 
+ 
+Geographic risk refers to the countries or geographic areas in which your business operates, 
+receives funds from or where clients reside. It may also extend to considering any social, 
+cultural or language ties which might increase a link to a known high risk jurisdiction country 
+or geographic area. 
+In assessing this risk at PWRA level, you may want to consider the following questions: 
+ 
+• Does the practice operate outside of the UK/EU or equivalent jurisdictions 
+(i.e., those where AML regulation may not be comparable) and/or in areas 
+with potentially higher levels of corruption? 
+• Does the practice receive funds from jurisdictions outside the UK/EU or 
+equivalent jurisdictions (i.e., those where AML regulation may not be 
+comparable? 
+• Does the practice have a specific client-base, niche or undertake work for 
+clients from outside of the UK/EU or equivalent jurisdictions (i.e., those where 
+AML regulation may not be comparable)? 
+ 
+5.6.2.1 Higher Risk Jurisdictions 
+ 
+ R33(3)(a) defines high-risk third countries (HRTCs) as those which appear on the following 
+lists maintained by the Financial Action Task Force (FATF): 
+• Jurisdictions under Increased Monitoring 
+• High-Risk Jurisdictions subject to a Call for Action. 
+These lists are set out here. 
+
+42 
+ 
+ 
+You will need to make sure that you stay up to date with these lists. Any amendments will be 
+made in February, June or October each year at the conclusion of a FATF plenary session. 
+You can check and diarise the exact dates on FATF’s events calendar. LSAG members may 
+also alert their regulated populations to changes.  
+The Regulations mandate prescriptive steps where your client is established in a HRTC or in 
+relation to any relevant transaction, as defined at R33(3)(b), where either of the parties to the 
+transaction is established in a HRTC. Please see Section 6 for more on this.  
+You should note that there may be other jurisdictions that present a high risk of money 
+laundering that are not on this list. 
+ 
+Resources to help you consider whether a country is high risk include:  
+• FATF and HM Treasury statements on unsatisfactory money laundering controls in 
+overseas jurisdictions; 
+• Transparency International's corruption perception index;   
+• The Basel AML Index; 
+• CIA World Factbook; 
+• U.S. International Narcotics Control Strategy Reports (INSCR); 
+• FATF Jurisdictional Information; and 
+• The Know Your Country rating table. 
+ 
+FATF in particular provides a source of valuable information on the relative risks associated 
+with particular jurisdictions in its system of mutual evaluations, which provide an in-depth 
+description and analysis of each country’s system for preventing criminal abuse of the 
+financial system. It also produces a list of jurisdictions with ‘strategic deficiencies’ in their 
+money laundering initiatives and a list of jurisdictions with 'low capacity', the latter being 
+countries which have economic or sociological constraints preventing them from 
+implementing AML/CTF measures effectively. 
+ 
+In addition, information is publicly available regarding countries that present bribery and 
+corruption risks and those regarded as secrecy jurisdictions or jurisdictions that permit the 
+use of nominee shareholders.  
+ 
+The consolidated sanctions list, also details the countries in which sanctioned individuals 
+and organisations are based, which may also provide an indication of the relative risk of 
+each jurisdiction.  
+ 
+You should list all of the countries to which your practice is exposed in your PWRA and give 
+a risk rating to each one. Being exposed to a country includes offering services, facilitating a 
+matter involving or having clients established in that country. 
+ 
+For the avoidance of doubt, prohibiting clients from outside of the UK or that are not UK-
+nationals, is not a requirement of the Regulations. Geographic risk is primarily associated 
+with jurisdiction, which may or may not extend to a client that has exposure to that 
+jurisdiction, depending on the circumstances.  
+ 
+It is important to consider the levels of exposure your practice and any clients may have to 
+higher risk jurisdictions. For example, a practice that has a significant proportion of its 
+business connected to or in association with a country of higher risk, may have a greater risk 
+exposure than a practice that only has one client, who uses only some ancillary services 
+from that same jurisdiction. Practices should consider this along with the relative risks posed 
+
+43 
+ 
+ 
+by the legal services offered to clients from such jurisdictions. On the other hand, experience 
+of working in a high-risk jurisdiction can help practices to identify risks, while those with only 
+a minor exposure may lack such experience and may struggle to correctly identify risks. 
+ 
+Increasing globalisation means the likelihood that the work you do will involve other 
+jurisdictions and the international dimension may not always be obvious. You should bear 
+this in mind when assessing geographic risks and whether a client or matter may involve a 
+higher risk jurisdiction. 
+ 
+Country risk factors should feature prominently in a practice-wide risk assessment. Key 
+issues to consider are whether the jurisdictions in which your clients, or the beneficial 
+owners of your clients, are based or operate their businesses. 
+ 
+5.6.2.2 Indicators of lower risk: 
+ 
+• has stable, strong and independent political and legal systems, with legally 
+protected commitments to transparency, accountability and integrity across the 
+key institutions of government; 
+• has compulsory suspicious activity reporting requirements in the regulated 
+sector; 
+• money laundering is criminalised, on a wide basis (e.g., all-crimes approach or 
+a specific list), and an effective sanctions regime is in place; or 
+• the country has transparency of beneficial ownership disclosure requirements 
+and an established financial intelligence unit. 
+ 
+5.6.2.3 Indicators of higher risk: 
+ 
+• has deficient anti-money laundering legislation, systems and practices and/or 
+inadequate AML supervision; 
+• has high levels of acquisitive crime or higher levels of corruption; 
+• are a jurisdiction where the production of drugs, drug trafficking/trade, terrorism 
+or corruption is prevalent; 
+• are considered to be 'offshore financial centres' or tax havens; 
+• permit nominee shareholders to appear on the share certificate or register of 
+owners; or 
+• local requirements around company structure or equivalent governance are 
+unclear or otherwise make it challenging to understand the control structure of 
+an entity. 
+Where your clients or the beneficial owners of your clients are based or operate their 
+business in low-risk jurisdictions this should also be reflected in the PWRA. 
+ 
+It is also important to consider whether your practice is involved in multi-jurisdictional 
+matters. Money launderers are commonly attracted to matters which move money or value 
+across borders, in order to obscure ownership and frustrate investigations.  
+If you do not have the ability or expertise to effectively assess the risk posed by a particular 
+jurisdiction, you should consider whether it is appropriate to continue to act in relation to 
+clients or matters associated to those jurisdictions.  Please note that jurisdictional risk is not 
+an assessment of a client’s nationality. Not accepting business solely due to a client’s 
+
+44 
+ 
+ 
+nationality is unacceptable and may lead to charges of discrimination and/or create access 
+to justice issues for your practice. 
+ 
+It may also be necessary to consider risks posed by non-nations that for whatever reason 
+may pose a different risk to the nation within which they sit, e.g., regional jurisdictions such 
+as Darfur in Sudan. 
+ 

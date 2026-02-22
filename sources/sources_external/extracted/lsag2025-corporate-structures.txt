@@ -1,0 +1,538 @@
+# LSAG AML Guidance 2025 - Corporate Structures Risk Factors
+# Sections 5.6.3 (Product/Service Risks), 6.14.12 (Trusts CDD), 6.14.13 (Partnerships CDD)
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+5.6.3 Product or Service Risks 
+ 
+You should consider the following questions:  
+ 
+• Does the practice offer any services which may attract a higher level of risk such as 
+large volume/high value conveyancing, corporate acquisitions, tax mitigation 
+strategies, work involving high-risk jurisdictions or the creation and/or management of 
+specialist entities? 
+• Does the practice have the necessary expertise and experience to undertake the 
+work requested? 
+• Does the practice undertake work which may be of lower AML risk (e.g., 
+executorship, wills, litigation)? 
+ 
+ 
+The National Risk Assessment highlights that independent legal professionals face the 
+greatest potential risks in the following areas: 
+• misuse of client accounts; 
+• sale/purchase of real property; 
+• creation of trusts, companies and charities; 
+• management of trusts and companies; and 
+• sham litigation. 
+ 
+Consideration should be given to whether the practice undertakes work with exposure to 
+these risks and this should be documented in your PWRA accordingly.  
+ 
+Other factors to consider are the value, complexity and nature of work in these areas in the 
+context of the client and/or the nature of the work that your practice normally undertakes.  
+ 
+5.6.3.1 Sale/purchase of real property 
+ 
+According to law enforcement authorities and the national risk assessment, the sale and 
+purchase of real estate is a common method for disposing of or converting criminal 
+proceeds. 
+ 
+Real estate is generally an appreciating asset and the subsequent sale of the asset can 
+provide an apparently legitimate reason for the existence of the funds. Property matters are 
+an attractive method of laundering criminal proceeds because: 
+• Property is often a high value asset – it offers the opportunity to legitimatise large 
+amounts of money in one go; 
+• The value of property generally appreciates – this is unusual for criminals who 
+usually lose money when laundering; 
+
+45 
+ 
+ 
+• The nature of conveyancing means that matters/transactions often happen extremely 
+quickly – and therefore it is easier to hide behind a complicated money trail which 
+can be constructed very quickly, and the onward sale of a property can give the 
+appearance of a legitimate income stream; 
+• Property can be used to generate additional quasi-legitimate income streams e.g., 
+rental; and 
+• Property can be used by the money launderer or an associate as a residence.  
+ 
+Transfers of real estate from one owner to another without the exchange of funds, may 
+present an equal risk to the purchase of property. 
+5.6.3.2 Client accounts and payments 
+ 
+You should consider the risk that criminals may attempt to misuse your client account. 
+Putting the proceeds of crime through your client account can give funds the appearance of 
+legitimacy, as the subsequent transfer will show as having originated from a regulated legal 
+practice. It will also help obscure the audit trail of funds whether the money is sent back to 
+the client, on to a third party, or invested in some way. 
+ 
+Introducing cash into the banking system can be part of the placement stage of money 
+laundering. The risk of this occurring, along with the controls in place at the practice to 
+prevent this happening, should form part of your PWRA. 
+ 
+Generally speaking, you should avoid accepting cash payments to your client account in 
+relation to transactions. If you do choose to accept these as a policy of your practice, it 
+should be considered high risk within the PWRA particularly where large in size (e.g., above 
+£1,000). At a client or matter level, you should establish Source of funds for any cash 
+payments and treat the funds on a risk sensitive basis. There may be valid reasons for 
+accepting cash into the client account (e.g., access to justice or in cases of domestic 
+disputes) – reasons for accepting any cash payment should be clearly documented. 
+ 
+5.6.3.3 Formation and management of trusts and companies  
+ 
+Company and trust structures may be exploited by criminals who wish to retain control over 
+criminally derived assets while creating impediments to law enforcement agencies in tracing 
+the origin and ownership of assets. Criminals may ask legal professionals to create 
+companies and trusts and/or to manage companies and trusts, to provide greater 
+respectability and legitimacy to the entities and their activities. 
+Your PWRA should consider the practice’s exposure to this type of work, and the risks 
+involved– especially where the practice undertakes complex company or trust work for 
+clients involving higher risk jurisdictions. This is particularly important where beneficial 
+ownership or nature of business can be obscured or anonymised, or the use of nominees or 
+bearer shares is permitted. 
+ 
+Shell companies are corporate entities that do not have any business activities or assets. 
+They may be used for legitimate purposes such as serving as a temporary transaction 
+vehicle. However, they can also be an easy and inexpensive way to disguise beneficial 
+ownership and the flow of illegitimate funds and so are attractive to criminals engaged in 
+money laundering. You should consider it as high risk if a client engages your services only 
+in connection with the routine aspects of forming an entity, without seeking further legal 
+advice on the appropriateness of the corporate structure and related matters. In jurisdictions 
+where members of the public may register companies themselves with the company registry, 
+
+46 
+ 
+ 
+the engagement of a legal professional to register the company (or to use the practice’s 
+address) may indicate that the client is seeking to add the appearance of legitimacy to a 
+company. 
+ 
+5.6.3.4 Other Services 
+ 
+Other services to consider in risk assessments are: 
+• Services where legal professionals may represent or assure the client’s standing, 
+reputation and credibility to third parties, without a commensurate knowledge of the 
+client’s affairs; 
+• Acquisitions of businesses in liquidation; and 
+• Services offered to clients in the context of trade based or trade-finance 
+arrangements. 
+5.6.3.5 Risk of offering both in-scope and out-of-scope services 
+ 
+Many practices have both an AML-compliant client onboarding (take-on) process and a 
+separate process for those areas of activity outside the scope of the Regulations. This is 
+permissible, but it does create a risk. 
+ 
+The risk is that if a client is onboarded via an AML non-compliant process for out-of-scope 
+work, and then transferred over to AML in-scope services, there is likely to be a need to 
+apply further due diligence, in order to bring the original due diligence up to the required 
+standard. 
+ 
+To mitigate this risk practices may either have clear and robust PCPs in place to manage 
+the transition or conduct full AML-compliant CDD regardless of the nature of the matter. 
+This would enable a client to be transferred more easily between a practice’s out-of-scope 
+and in-scope services. 
+ 
+5.6.3.6 Dealing with payments credited to your client account without permission 
+ 
+Legal professionals may receive funds that are either overpayments, or completely 
+unasked for deposits. You should give consideration to the possibility that any unsolicited 
+payment or unexpected overpayment may have been engineered for the purposes of 
+money laundering and treat these instances appropriately (including consideration of the 
+submission of a SAR as appropriate). A repayment of funds from a legal professional’s 
+account may help to legitimise the proceeds of crime. 
+ 
+Such instances should be recorded in an appropriate place, for example in a client or 
+matter risk assessment, or in the records of the MLRO. 
+ 
+One way to deal with such matters is to set an internal value threshold, beyond which, 
+greater consideration must be given to whether the circumstances prompt suspicion and a 
+subsequent disclosure to the NCA. Except in exceptional circumstances funds received in 
+such a manner should only be returned to the source from which they were received.   
+ 
+
+47 
+ 
+ 
+R31(2) confirms that you are not prevented from repaying money deposited in your client 
+account, provided that, if you have suspicion of money laundering, you obtain 
+consent/DAML from NCA for the transaction. 
+ 
+If you display your client account details freely, for example, on your letterhead or a 
+website, the risk of them being abused by criminals is greatly increased. This is something 
+you should avoid. 
+ 
+
+---
+
+6.14.12 Trusts 
+ 
+These obligations set out below, apply to all trusts including will trusts and personal injury 
+trusts.  
+ 
+
+76 
+ 
+ 
+6.14.12.1 Who is the client? 
+ 
+In the UK, trusts do not have legal personality. As such, a trust cannot be your client. 
+When advising in relation to a trust, your client may be: 
+ 
+• the settlor; 
+• the trustee(s); 
+• the protector(s); or 
+• one or more of the beneficiaries. 
+ 
+Your client(s) will be the person to whom you owe your duty of care and who will receive 
+the benefit of your advice. 
+ 
+Where an express trust has yet to be established and you are providing tax or 
+transactional advice to a prospective settlor in anticipation of creating a trust, your client 
+will usually be the settlor. Your responsibilities to verify the identity of the client and their 
+source of funds, is then no different to any other client, except that you will also need to 
+understand the nature and extent of the assets that will be settled on the trust. 
+ 
+6.14.12.2 Specific CDD requirements when instructed in relation to an existing trust 
+ 
+Where you are instructed in relation to an existing trust, when applying CDD: you must 
+obtain and verify the identity of your client including beneficial owners where applicable: 
+ 
+• where you act for several beneficiaries (subject to conflicts issues), you must 
+obtain and verify the identity of each of them, unless you are acting for them as 
+a class (in which case you should identify the class by its name); 
+• you must, where your client has had a trust funding role, understand your client’s 
+source of wealth and the source of funds which were contributed (or which were 
+used to acquire assets which were contributed) to the trust; 
+• you must understand the nature and extent of the assets settled on the trust; and 
+• you must understand and record the identity of the (non-client) settlor, trustee(s), 
+protector(s), and/or beneficiary(is) and any person who otherwise has control of 
+the trust, as trust beneficial owners. 
+ 
+If the trust is a relevant trust for registration, you must also identify potential 
+beneficiaries. 
+ 
+If, when you carried out CDD in relation to a trust (or legal entity/arrangement other 
+than a body corporate) the beneficiaries were designated as a class you must 
+establish and verify the identity of any beneficiary before you are involved in the 
+payment to, or exercising of rights of, a specified beneficiary.  
+ 
+When applying CDD to a trust, or any other legal arrangement/entity which is not a 
+company, involving a class of beneficiaries, you must always verify the identity of the 
+beneficiary or beneficiaries before any payment is made to them or they exercise their 
+vested rights in the trust or legal entity/arrangement (R 30 (7)). 
+ 
+
+77 
+ 
+ 
+6.14.12.3 CDD where the identified client (i.e., the trustee or the settlor) of a trust is an entity  
+ 
+If the identified beneficial owner is an entity, you may need to understand who its 
+ultimate beneficial owners are, depending on the entity's status (e.g., whether it is a 
+company or some other type of entity).  
+ 
+The extent of the measures you take to identify the ultimate beneficial owner of one of the 
+trust’s defined ‘beneficial owners’ will depend on its role in relation to the trust. The ultimate 
+beneficial owner of a settlor, protector or sole beneficiary entity should be fully identified. 
+ 
+6.14.12.4 Who is a ‘beneficiary’ for the purposes of CDD where you act in relation to trusts? 
+ 
+R6(1) implies that individual beneficiaries need not be identified in CDD unless it has been 
+determined that they will benefit from the trust. That is, unless and until they have a vested 
+interest in the capital of the trust. 
+ 
+If you do not note all individual beneficiaries named in the trust deed or any associated 
+document on the basis that their benefit from the trust has not yet been determined, you 
+must identify any named class of beneficiaries, by its description. For example: 
+ 
+• grandchildren of [X]; or 
+• charity [Y]. 
+ 
+As CDD can only take account of circumstances at a point in time, you should note the 
+names of all discretionary beneficiaries (including those who have yet to acquire determined 
+interests) named in the trust deed and any document from the settlor relating to the trust, 
+such as a letter of wishes. Their interests may vest (or otherwise be determined) while you 
+are acting in relation to the trust, thus bringing them within the group of individuals who need 
+to be noted in CDD as beneficiaries, as defined in R6(1)(c). 
+ 
+When considering the identity of those in whose main interest a trust is set up or 
+operates and there are several classes of beneficiary, consider which class is most 
+likely to receive most of the trust property. For example: 
+ 
+• where a trust is for the issue of [X], then the class is the issue of [X] as there is only 
+one class; 
+• where a trust is for the children of [X], if they all die, for the grandchildren of [X] 
+and if they all die for charity [Y], then the class is likely to be the children of [X] as 
+it is unlikely that they will all die before the funds are disbursed; or 
+• where a discretionary trust allows for payments to the widow, the children, their 
+spouses and civil partners, the grandchildren and their spouses and civil partners 
+then all interests are equal, and all classes will need to be identified. 
+ 
+When in doubt about which class has the main interest, you should identity all 
+classes. 
+ 
+However, where you act in relation to a discretionary trust, if you decide against noting in 
+your CDD the names of individual beneficiaries who are named in the trust deed or any 
+associated document on the basis that their benefitting from the trust has not yet been 
+determined, you will need to seek regular updates from your client, as part of your on-going 
+
+78 
+ 
+ 
+monitoring measures on a risk-based approach. This may include when and whether 
+beneficiaries’ interests in the trust will be or have been determined. 
+ 
+The wider approach, involving noting all beneficiaries and potential beneficiaries named 
+in the trust deed and any associated document at CDD outset, may therefore be 
+preferable from the outset. 
+6.14.12.5 What does ‘an individual who has control over the trust’ mean? 
+R6(1)(e) brings any individual who has control over the trust within the definition of 
+the beneficial owners of a trust and they will therefore need to be identified when you 
+act in relation to a trust. 
+ 
+R6(2) defines control as a power, whether exercisable alone, jointly or with the consent of 
+another, under the trust instrument or by law to: 
+ 
+• dispose of, advance, lend, invest, pay or apply trust property; 
+• vary or terminate the trust; 
+• add or remove a person as a beneficiary or to or from a class of beneficiaries; 
+• appoint or remove trustees or give another individual control over the trust; or 
+• direct, withhold consent to or veto the exercise of one of the above powers. 
+ 
+R6(4)(b) specifically excludes from the definition of an individual who has control over a 
+trust an individual ('P') who has control solely as a result of: 
+ 
+• P's consent being required in accordance with section 32(1)(c) (power of 
+advancement) of the Trustee Act 1925; 
+• any discretion delegated to P under section 34 (power of investment and 
+delegation) of the Pensions Act 1995; 
+• the power to give a direction conferred on P by section 19(2) (appointment and 
+retirement of trustee at instance of beneficiaries) of the Trusts of Land and 
+Appointment of Trustees Act 1996; or 
+• the power exercisable collectively at common law to vary or extinguish a trust 
+where the beneficiaries under the trust are of full age and capacity and (taken 
+together) absolutely entitled to the property subject to the trust (or, in Scotland, 
+have a full and unqualified right to the fee). 
+ 
+6.14.12.6 CDD implications arising from the register of beneficial owners of taxable relevant trusts 
+ 
+If you or your practice on occasions acts as (as opposed to for) a trustee of a taxable 
+relevant trust, pursuant to R44 of the Regulations you will need to maintain accurate and 
+up to date records of all beneficial owners and potential beneficiaries of the trust. 
+ 
+Even if your practice is also acting for the trustee(s) and has applied CDD, this may involve 
+you in more extensive investigations. 
+ 
+A taxable relevant trust is: 
+ 
+• a UK express trust, meaning that either all the trustees are resident in the UK or 
+at least one trustee is UK resident and the settlor was UK resident and domiciled 
+when the trust was set up or when the settlor added funds to it; or 
+
+79 
+ 
+ 
+• any other (non-UK) express trust which, in any tax year, becomes liable to pay 
+one or more of UK income tax, capital gains tax, inheritance tax, stamp duty land 
+tax, land and buildings transaction tax or stamp duty reserve tax in relation to UK 
+income or assets. 
+ 
+If you form a business relationship in your role as trustee with a relevant person, which 
+could be an advisory relationship with your practice (if it is subject to the Regulations), 
+you will need to inform the relevant person that you are acting as a trustee and, on 
+request, provide the relevant person with information identifying the trust’s beneficial 
+owners and potential beneficiaries. 
+ 
+That obligation lies on (external) trustees of relevant trusts who enter into transactions in 
+relation to which you or your practice are required to apply CDD or who form a business 
+relationship with you or your practice (if you are subject to the Regulations). This should 
+assist you in your compliance with your CDD obligations and is another reason why it 
+makes sense to extend your CDD in relation to a relevant trust's beneficial owners also to 
+cover potential beneficiaries. 
+ 
+Otherwise, from a reputational risk and advisory perspective, as law enforcement 
+authorities may gain access to information not only about the trust’s beneficial owners as 
+defined in R6(1) but also the names of those individuals who are referred to in any 
+document from the settlor, such as a letter of wishes, relating to the trust, it is prudent to 
+note such wider information in your CDD records where you act for any client in relation to 
+a relevant trust, and where you act in relation to any trust. 
+6.14.12.7 Practical considerations of CDD for trusts 
+ 
+Applying CDD where you act in relation to an existing trust should generally involve your 
+having sight of the trust deed or documents which relates to it and obtaining an 
+appropriate understanding of their content. In some circumstances, this understanding of 
+the content may come from an explanatory note provided by another professional 
+regulated for AML to a similar standard. The rationale for obtaining such evidence in this 
+manner should be documented. 
+ 
+In low-risk situations (as determined by appropriate and thorough documented risk 
+assessment) you may be able to record an account of the terms of the trust given by the 
+client or another regulated person who has had an involvement with setting up or 
+managing the trust. However, before doing so, you should be assured that the reason for 
+your not being provided with the trust deed and any document which relates to it makes 
+sense in all circumstances, is recorded by you and is not indicative of a higher risk of 
+money laundering. 
+ 
+You will also need to assure yourself that in identifying the trust’s beneficial owners, the 
+client or other regulated person, as appropriate, had proper regard to whether they 
+included any individual (other than the settlor, the trustees and the beneficiaries) who has 
+control over the trust, and potential beneficiaries. 
+ 
+6.14.13 Partnerships, limited partnerships, Scottish limited partnerships and UK LLPs 
+A partnership, other than in Scotland, is not a separate legal entity, so you must 
+obtain information on the constituent individuals. 
+
+80 
+ 
+ 
+ 
+Where partnerships or unincorporated businesses are well-known, reputable organisations, 
+with long histories in their industries and with substantial public information about them, their 
+principals, and controllers the following information may be sufficient: 
+ 
+• name; 
+• registered address, if any; 
+• trading address; and 
+• nature of business. 
+ 
+You must still verify the identity of the partnership’s beneficial owners. 
+ 
+R5(3) provides that in the case of a partnership (but not a limited liability partnership) 
+the following individuals are beneficial owners: 
+ 
+• any individual ultimately entitled to or who controls, (whether directly or 
+indirectly), more than 25 per cent of the capital or profits of the partnership or 
+more than 25 per cent of the voting rights in the partnership; or 
+• any individual who otherwise exercises control over the management of the 
+partnership. 
+ 
+Relevant points to consider when applying R5(3) are: 
+ 
+• the property of the entity includes its capital and its profits; and 
+• control involves the ability to manage the use of funds or transactions outside of 
+the normal management structure and control mechanisms 
+ 
+You should also consider whether there are any other registries on which you may be able 
+to verify the details of the partnership.  
+ 
+Other partnerships and unincorporated businesses which are small and have few partners 
+should be treated for identification and verification purposes in the same way as private 
+individuals (i.e., identifying and verifying each partner). Where the numbers are larger, 
+they should be treated for identification and verification purposes in the same way as 
+private companies. 
+ 
+Where a partnership is made up of regulated professionals, it may be sufficient to confirm 
+the practice's existence and the trading address from a reputable professional directory or 
+search facility with the relevant professional body. Otherwise, you should obtain evidence 
+on the identity of at least two partners and evidence of the practice's trading address. You 
+must still verify the identity of the partnership’s beneficial owners. 
+ 
+For a UK LLP or SLP, you should obtain information in accordance with the requirements 
+for companies as outlined above as these are treated as corporate entities. 
+ 
+Careful consideration should be made regarding clients where partners themselves are 
+overseas entities, particularly where these overseas entities are located in jurisdictions 
+where no publicly available corporate registers are available, or ownership can be 
+otherwise concealed through the use of nominees or similar structures. This is particularly 
+relevant where the vehicle is used to hold assets or is involved in transactional or other 
+potentially high-risk activities, or conversely, where no discernible business activity can be 
+determined, from internet searches or other sources. Such factors may be indicative of 
+shell companies and are likely to be indicative of higher ML risk. You should give 
+
+81 
+ 
+ 
+consideration to why the use of such structures may not be legitimate and the nature and 
+purpose of the business. Your client may be able to help you understand this. Information 
+obtained should be considered in light of other CDD information available.  
+ 
+Where you have assessed the client risk to be higher risk because of its structure or 
+factors as above, then you must put in place enhanced due diligence and ongoing 
+monitoring. 
+ 
+
+---
+
+6.14.13 Partnerships, limited partnerships, Scottish limited partnerships and UK LLPs 
+A partnership, other than in Scotland, is not a separate legal entity, so you must 
+obtain information on the constituent individuals. 
+
+80 
+ 
+ 
+ 
+Where partnerships or unincorporated businesses are well-known, reputable organisations, 
+with long histories in their industries and with substantial public information about them, their 
+principals, and controllers the following information may be sufficient: 
+ 
+• name; 
+• registered address, if any; 
+• trading address; and 
+• nature of business. 
+ 
+You must still verify the identity of the partnership’s beneficial owners. 
+ 
+R5(3) provides that in the case of a partnership (but not a limited liability partnership) 
+the following individuals are beneficial owners: 
+ 
+• any individual ultimately entitled to or who controls, (whether directly or 
+indirectly), more than 25 per cent of the capital or profits of the partnership or 
+more than 25 per cent of the voting rights in the partnership; or 
+• any individual who otherwise exercises control over the management of the 
+partnership. 
+ 
+Relevant points to consider when applying R5(3) are: 
+ 
+• the property of the entity includes its capital and its profits; and 
+• control involves the ability to manage the use of funds or transactions outside of 
+the normal management structure and control mechanisms 
+ 
+You should also consider whether there are any other registries on which you may be able 
+to verify the details of the partnership.  
+ 
+Other partnerships and unincorporated businesses which are small and have few partners 
+should be treated for identification and verification purposes in the same way as private 
+individuals (i.e., identifying and verifying each partner). Where the numbers are larger, 
+they should be treated for identification and verification purposes in the same way as 
+private companies. 
+ 
+Where a partnership is made up of regulated professionals, it may be sufficient to confirm 
+the practice's existence and the trading address from a reputable professional directory or 
+search facility with the relevant professional body. Otherwise, you should obtain evidence 
+on the identity of at least two partners and evidence of the practice's trading address. You 
+must still verify the identity of the partnership’s beneficial owners. 
+ 
+For a UK LLP or SLP, you should obtain information in accordance with the requirements 
+for companies as outlined above as these are treated as corporate entities. 
+ 
+Careful consideration should be made regarding clients where partners themselves are 
+overseas entities, particularly where these overseas entities are located in jurisdictions 
+where no publicly available corporate registers are available, or ownership can be 
+otherwise concealed through the use of nominees or similar structures. This is particularly 
+relevant where the vehicle is used to hold assets or is involved in transactional or other 
+potentially high-risk activities, or conversely, where no discernible business activity can be 
+determined, from internet searches or other sources. Such factors may be indicative of 
+shell companies and are likely to be indicative of higher ML risk. You should give 
+
+81 
+ 
+ 
+consideration to why the use of such structures may not be legitimate and the nature and 
+purpose of the business. Your client may be able to help you understand this. Information 
+obtained should be considered in light of other CDD information available.  
+ 
+Where you have assessed the client risk to be higher risk because of its structure or 
+factors as above, then you must put in place enhanced due diligence and ongoing 
+monitoring. 
+ 
+6.14.14 Foundations 
+ 
+Foundations may or may not have legal personality. You should investigate whether this 
+is the case and whether it is appropriate to take on the foundation as your client or 
+whether your client should be the board of trustees or another party involved with the 
+foundation. 
+ 
+If the foundation lacks legal personality, you should approach CDD, as you would where 
+you act for a client in relation to a trust. R6(5) provides that ‘beneficial owner’ in relation to 
+a foundation or other legal arrangement similar to a trust, means those individuals who 
+hold equivalent or similar positions to the (defined) beneficial owners of trusts. 
+ 

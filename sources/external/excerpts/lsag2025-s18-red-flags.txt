@@ -1,0 +1,255 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 18.1-18.2
+topics: [red-flags, suspicious-activity, client-risk, source-of-funds, indicators]
+effective_date: 2025-04-23
+---
+# LSAG AML Guidance 2025 - Red Flags and Suspicious Activity Indicators
+# Chapter 18 (Sections 18.1 - 18.10)
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+18.1 General Overview 
+ 
+The Regulations require you to conduct risk assessments, due diligence and ongoing 
+monitoring of your business relationships and take steps to be aware of transactions with 
+heightened money laundering or counter-terrorist financing risks. The Proceeds of Crime Act 
+2002 requires you to report suspicious transactions. 
+ 
+This section highlights a number of warning signs or “red flags” for legal professionals 
+generally and for those dealing with particular types of work, to further help you assess the 
+AML risks associated with your practice, or risks of a particular client or matter appropriately 
+and also to help you decide whether you have reasons for concern or the basis for a 
+reportable suspicion.  
+ 
+Because money launderers are always developing new techniques, no list of examples can 
+be exhaustive or fully comprehensive; however, below are some key factors which may arise 
+during or after client and retainer acceptance and give you cause for concern.  
+ 
+If you become aware of a red flag, this should prompt to you to ask for additional 
+documentation or ask further questions of your client.  For any aspect of an instruction, good 
+questions to ask are, “Does this make sense?” and, “Is the documentation I have consistent 
+with what I am being told and know about the background, nature or circumstances of the 
+client?”  If the answer is no, then consider what further information or documentation you 
+require in order to become satisfied. If you cannot be satisfied, you consider your position in 
+terms of proceeding with the relationship or matter, as per r.30., and consider the 
+submission of a suspicious activity report.  
+ 
+The presence of any one red flag does not mean that a client is automatically high risk, that 
+you should not continue with the retainer or that you need to make a Suspicious Activity 
+Report. The presence of red flags must be considered in context; the client may be able to 
+provide a legitimate explanation.  For example, a large transaction by an oil company points 
+to high risk, but actually it may be a normal and regular occurrence for that particular client’s 
+industry and business activities, and for your law firm.  Remember, it is not “tipping off” to 
+ask for further information as part of your client due diligence process.  
+ 
+If you cannot get the information you need, this may in itself be cause for further concern 
+and lead you to become suspicious. 
+ 
+18.2 Examples of Red Flags 
+ 
+In collating these red flags, reference has been made to The FATF Report on Money 
+Laundering and Terrorist Financing Vulnerabilities of Legal Professionals (2013) and The 
+FATF Guidance on Concealment of Beneficial Ownership (July 2018) as well as other, 
+similar pieces of guidance.   
+ 
+18.2.1 The Client 
+ 
+If a client: 
+• is excessively obstructive, secretive or unwilling to meet you; 
+• is a Politically Exposed Person (PEP); 
+
+ 
+ 
+• provides false or counterfeited documentation; 
+• is a business entity which cannot be found on the internet and/or uses an email 
+address with an unusual domain or one more appropriate for an individual such as 
+Hotmail, Gmail, Yahoo etc., especially if the client is otherwise secretive or avoids 
+direct contact;  
+• is known to have convictions for acquisitive crime /other serious crimes such as 
+human trafficking, illegal arms dealing or narcotics, known to be currently under 
+investigation for acquisitive crime or have known connections with criminals;  
+• is or is related to or is a known associate of a person listed as being involved or 
+suspected of involvement with terrorist or terrorist financing related activities;  
+• shows an unusual familiarity with respect to the ordinary standards provided for by 
+the law in the matter of satisfactory customer identification, data entries and 
+suspicious transaction reports; 
+• is involved in transactions which do not correspond to their normal professional or 
+business activities e.g., a non-profit engaging business services that do not align with 
+its work; 
+• does not have a suitable knowledge of the nature, object or the purpose of the legal 
+services requested; 
+• wishes to establish or take over a legal person or entity with a dubious description of 
+the aim, or for a purpose which is not related to their normal professional or 
+commercial activities or their other activities, or for which a license is required, while 
+the client does not have the intention to obtain such a licence; 
+• frequently changes legal structures and/or managers of legal persons;  
+• asks for short-cuts or unexplained speed in completing a transaction;  
+• appears disinterested in the outcome of the retainer and/or the costs incurred e.g., 
+fees, taxes, the loss incurred due to selling at a reduced price or at a discount; 
+• requires introduction to financial institutions to help secure banking facilities; 
+• is engaging you from another area or jurisdiction without an obvious reason for doing 
+so; 
+• is a business that is not normally cash intensive but appears to have substantial 
+amounts of cash; 
+• is a business that relies heavily on new technologies and so may have inherent 
+vulnerabilities to exploitation by criminals;  
+• uses financial intermediaries, financial institutions or legal professionals that are not 
+subject to AML/CFT laws and measures and that are not adequately supervised by 
+competent authorities or Professional Body Supervisors.);  
+• appears to be acting on somebody else’s instructions without disclosing the identity 
+of such person; 
+• requests that transactions be completed in unusually tight or accelerated timeframes 
+without a reasonable explanation, which inhibits the legal professionals’ ability to 
+perform proper due diligence and risk assessment;  
+• has no address, or has multiple addresses without legitimate reasons;  
+• has funds which are disproportionate or inconsistent with their disclosed 
+circumstances and financial position;  
+• changes their means of payment for a transaction at the last minute and without 
+plausible justification; 
+• insists, without reasonable explanation, that transactions be undertaken exclusively 
+or mainly through the use of virtual assets for the purpose of preserving their 
+anonymity;  
+• is involved in certain transactions, structures, geographic locations, international 
+activities or other factors that are not consistent with the practice’s understanding of 
+the client’s business or economic situation; 
+
+ 
+ 
+• is from an industry or sector where there is more risk of ML: oil, arms, precious 
+metals, tobacco products, cultural artefacts, ivory, other items related to protected 
+species, other items of archaeological, historical, cultural and religious significance, 
+or of rare scientific value, legal cannabis industry; 
+• applies for residence rights or citizenship in a jurisdiction in exchange for capital 
+transfers, purchase of property or government bonds, or investment in corporate 
+entities in that jurisdiction; 
+• is suspected of involvement in falsifying activities for example by use false loans, 
+false invoices, or misleading naming conventions;  
+• has a business where employee numbers, structure or nature is divergent from the 
+industry norm; 
+• seeks advice or to implement an arrangement where there are indicators of a tax 
+evasion purpose; 
+• is suddenly active after a previously dormant period without clear explanation; 
+• starts or develops an enterprise with unexpected profile or abnormal business cycles 
+or enters into new/emerging markets; 
+• indicates a wish not to obtain necessary governmental approvals/filings;  
+• frequently changes professional adviser(s) or members of management; 
+• is reluctant to provide all the relevant information or legal professionals have 
+reasonable suspicion that the provided information is incorrect or insufficient; 
+• is a foreign national with no significant dealings in the country in which professional 
+or financial services are sought; 
+• is conducting transactions which appear strange given an individual’s age; 
+• has previously been prohibited from holding a directorship role in a company or 
+operating as a trust and company service provider; 
+• is the signatory to company accounts without sufficient explanation;  
+• conducts financial activities and transactions inconsistent with client profile; or 
+• has declared income which is inconsistent with the client’s assets, transactions, or 
+lifestyle.  
+If the client is a legal person or legal arrangement and it: 
+• has demonstrated a long period of inactivity following incorporation, followed by a 
+sudden and unexplained increase in financial activities; 
+• describes itself as a commercial business but cannot be found on the internet or 
+social business network platforms; 
+• is registered under a name that does not indicate the activity of the company or the 
+name cannot otherwise be associated with the operations or ownership of the 
+company; 
+• is registered under a name that indicates that the company performs activities or 
+services that it does not provide;  
+• is registered under a name that appears to mimic the name of other companies, 
+particularly high-profile multinational corporations;  
+• is registered at an address that does not match the profile of the company, that 
+cannot be located on internet mapping services or is also listed against numerous 
+other companies or legal arrangements; 
+• has directors or controlling shareholder(s) who cannot be located or contacted, or do 
+not appear to have an active role in the company;  
+• has directors, controlling shareholder(s) and/or beneficial owner(s) who are listed 
+against the accounts of other legal persons or arrangements, indicating the use of 
+professional nominees;  
+• has directors, controlling shareholders who are geographically diverse, without a 
+logical reason; 
+
+ 
+ 
+• have large amounts of minor data corrections or changes in ownership/control on 
+official company registries, without logical reason; 
+• has authorised numerous signatories without sufficient explanation or business 
+justification; 
+• regularly sends money to low-tax jurisdictions or international trade or finance 
+centres;  
+• conducts a large number of transactions with a small number of recipients;  
+• conducts a small number of high-value transactions with a small number of 
+recipients;  
+• regularly conducts transactions with international companies without sufficient 
+corporate or trade justification;  
+• maintains relationships with foreign professional intermediaries in the absence of 
+genuine business transactions in the professional’s country of operation;  
+• receives large sums of capital funding quickly following incorporation/formation, 
+which is spent or transferred elsewhere in a short period of time without commercial 
+justification;  
+• maintains a bank balance of close to zero, despite frequent incoming and outgoing 
+transactions;  
+• conducts financial activities and transactions inconsistent with the corporate profile;  
+• is incorporated/formed in a jurisdiction that does not require companies to report 
+beneficial owners to a central registry; 
+• operates using accounts opened in countries other than the country in which the 
+company is registered;  
+• involves multiple shareholders who each hold an ownership interest just below the 
+threshold required to trigger enhanced due diligence measures. 
+18.2.2 The Parties 
+• the parties to the transaction are connected without an apparent business reason; 
+• the ties between the parties of a family, employment, corporate or any other nature 
+generate doubts as to the real nature or reason of the transaction;  
+• there are multiple appearances of the same parties in transactions over a short 
+period of time;  
+• the age of the executing parties is unusual for the transaction; there are attempts to 
+disguise the real owner or parties to the transaction;  
+• the person actually directing the operation is not one of the formal parties to the 
+transaction or their representative;  
+• the natural person acting as a director or representative does not appear to be a 
+suitable representative.  
+ 
+18.2.3 Source of Funds 
+The source of funds is unusual due to:   
+• third party funding either for the transaction or for fees/taxes involved with no 
+apparent connection or legitimate explanation; 
+• funds received from or sent to a foreign country when there is no apparent 
+connection between the country and the client; 
+• funds received from or sent to high-risk countries;  
+• the client is using multiple bank accounts or foreign accounts without good reason;  
+• private expenditure is funded by a company, business or government;  
+• use of corporate funds to fund a private individual’s expenditure or vice versa; 
+
+ 
+ 
+• selecting the method of payment has been deferred to a date very close to the time 
+of completion, in a jurisdiction where the method of payment is usually included in the 
+contract, without logical explanation;  
+• an unusually short repayment period has been set without logical explanation;  
+• mortgages are repeatedly repaid significantly prior to the initially agreed maturity 
+date, with no logical explanation; 
+• the asset is purchased with cash and then rapidly used as collateral for a loan;  
+• there is a request to change the payment procedures previously agreed upon without 
+logical explanation; 
+• finance is provided by a lender, either a natural or legal person, other than a credit 
+institution, with no logical explanation or economic justification; 
+• the collateral being provided for the transaction is currently located in a high-risk 
+country;  
+• there has been a significant increase in capital for a recently incorporated company 
+or successive contributions over a short period of time to the same company, with no 
+logical explanation;  
+• the company receives an injection of capital or assets in kind which is notably high in 
+comparison with the business, size or market value of the company performing, or 
+from a foreign country or with no logical explanation; 
+• there is an excessively high or low price attached to the securities transferred; 
+• large financial transactions, especially if requested by recently created companies, 
+where these transactions are not justified by the corporate purpose, the activity of the 
+client or the possible group of companies to which it belongs or other justifiable 
+reasons; 
+• loans are received from private third parties without any supporting loan agreements, 
+collateral, or regular interest payments; 
+• use of cash; 
+• a client deposits funds into your client account but then ends the transaction for no 
+apparent reason; 
+• a client tells you that the funds are coming from one source and at the last minute the 
+source changes; or 
+• a client unexpectedly asks you to send money received into your client account back 
+to its source, to the client or to a third party not associated with the transaction.

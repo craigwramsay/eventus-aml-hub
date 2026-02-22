@@ -1,6 +1,98 @@
 [
   {
     "source_type": "external",
+    "source_name": "FATF High-Risk Jurisdictions",
+    "section_ref": "Black List (Call for Action)",
+    "topics": [
+      "fatf",
+      "hrtc",
+      "high-risk-third-countries",
+      "country-risk",
+      "sanctions",
+      "edd",
+      "countermeasures"
+    ],
+    "content": "FATF High-Risk Jurisdictions subject to a Call for Action (\"Black List\") — 24 October 2025\n\nHigh-risk jurisdictions have significant strategic deficiencies in their regimes to counter money laundering, terrorist financing, and financing of proliferation. For all countries identified as high-risk, the FATF calls on all members and urges all jurisdictions to apply enhanced due diligence, and, in the most serious cases, countries are called upon to apply counter-measures to protect the international financial system from the money laundering, terrorist financing, and proliferation financing (ML/TF/PF) risks emanating from the country.\n\nJurisdictions subject to a FATF call to apply countermeasures:\n\nDemocratic People's Republic of Korea (DPRK): The FATF remains concerned by the DPRK's continued failure to address the significant deficiencies in its anti-money laundering and combating the financing of terrorism (AML/CFT) regime and the serious threats posed by the DPRK's illicit activities related to the proliferation of weapons of mass destruction (WMDs) and its financing. Countermeasures include: terminate correspondent relationships with DPRK banks; close any subsidiaries or branches of DPRK banks; and limit business relationships and financial transactions with DPRK persons.\n\nIran: The FATF acknowledges Iran's re-engagement but, given Iran's lack of progress on its action plan, the FATF has called upon its members and urged all jurisdictions to apply effective countermeasures in line with Recommendation 19. Iran will remain on the FATF High Risk Jurisdictions list until its full Action Plan has been completed.\n\nJurisdiction subject to a FATF call to apply enhanced due diligence proportionate to risks:\n\nMyanmar: In February 2020, Myanmar committed to address its strategic deficiencies. Given the continued lack of progress, the FATF calls on its members and other jurisdictions to apply enhanced due diligence measures proportionate to the risk arising from Myanmar. If no further progress is made by February 2026, the FATF will consider countermeasures.",
+    "effective_date": "2025-10-24"
+  },
+  {
+    "source_type": "external",
+    "source_name": "FATF Jurisdictions under Increased Monitoring",
+    "section_ref": "Grey List",
+    "topics": [
+      "fatf",
+      "hrtc",
+      "high-risk-third-countries",
+      "country-risk",
+      "geographical-risk",
+      "edd",
+      "monitoring"
+    ],
+    "content": "FATF Jurisdictions under Increased Monitoring (\"Grey List\") — 24 October 2025\n\nJurisdictions under increased monitoring are actively working with the FATF to address strategic deficiencies in their regimes to counter money laundering, terrorist financing, and proliferation financing. When the FATF places a jurisdiction under increased monitoring, it means the country has committed to resolve swiftly the identified strategic deficiencies within agreed timeframes and is subject to increased monitoring.\n\nThe FATF does not call for the application of enhanced due diligence measures to be applied to these jurisdictions. The FATF Standards do not envisage de-risking, or cutting-off entire classes of customers, but call for the application of a risk-based approach. The FATF encourages its members and all jurisdictions to take into account the information presented below in their risk analysis.\n\nCountries currently on the Grey List (as at 24 October 2025):\nAlgeria, Angola, Bolivia, Bulgaria, Cameroon, Cote d'Ivoire, Democratic Republic of the Congo, Haiti, Kenya, Lao PDR, Lebanon, Monaco, Namibia, Nepal, South Sudan, Syria, Venezuela, Vietnam, Virgin Islands (UK), Yemen.\n\nCountries no longer subject to FATF increased monitoring (removed October 2025):\nBurkina Faso, Mozambique, Nigeria, South Africa.",
+    "effective_date": "2025-10-24"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 18.2",
+    "topics": [
+      "red-flags",
+      "suspicious-activity",
+      "sar",
+      "reporting",
+      "due-diligence",
+      "legal-sector"
+    ],
+    "content": "Red Flags and Suspicious Activity Indicators for Legal Professionals (LSAG 2025)\n\nThe Regulations require you to conduct risk assessments, due diligence and ongoing monitoring. The Proceeds of Crime Act 2002 requires you to report suspicious transactions.\n\nThe presence of any one red flag does not mean that a client is automatically high risk, that you should not continue with the retainer, or that you need to make a Suspicious Activity Report. Red flags must be considered in context; the client may be able to provide a legitimate explanation. It is not \"tipping off\" to ask for further information as part of your CDD process.\n\nClient red flags (s.18.2.1):\n- Client is excessively obstructive, secretive or unwilling to meet you\n- Client is a Politically Exposed Person (PEP)\n- Client provides false or counterfeited documentation\n- Business entity cannot be found on the internet and/or uses unusual email domains\n- Client is known to have convictions for acquisitive crime or serious crimes\n- Client is related to or is a known associate of persons involved in terrorist financing\n- Client shows unusual familiarity with AML procedures\n- Transactions do not correspond to normal professional or business activities\n- Client does not have suitable knowledge of the purpose of legal services requested\n- Client frequently changes legal structures and/or managers of legal persons\n\nIf you become aware of a red flag, ask for additional documentation or further questions. If you cannot be satisfied, consider your position regarding proceeding with the relationship and consider submitting a suspicious activity report.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 5.6.4",
+    "topics": [
+      "delivery-channel",
+      "risk-assessment",
+      "non-face-to-face",
+      "cmlra",
+      "methodology"
+    ],
+    "content": "Delivery Channel Risk (LSAG 2025)\n\nHow you deliver your services must be considered in your PWRA. You should consider:\n- The proportion and characteristics of clients you do not meet face to face or do not verify with robust electronic identification and verification (EID&V);\n- How many matters rely on indirect contact with your client (e.g., via a representative or agent) rather than holding a direct relationship;\n- How much activity is delivered online or via any other channel that may facilitate anonymity; and\n- The methods used to undertake identification and verification and general due diligence requirements.\n\nActing for individual clients without meeting them (s.5.6.4.1): You should consider this as a risk factor in your PWRA. When you act for clients without meeting them you must be satisfied that it makes sense in all the circumstances and that you can mitigate the risks of identity fraud. You should consider whether any form of Enhanced Due Diligence may be appropriate.\n\nContact that is limited to text-only should be considered as higher risk. Use of an appropriate EID&V platform can be helpful but is not in itself a guaranteed or automatic solution to these challenges.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 5.6.2",
+    "topics": [
+      "geographical-risk",
+      "hrtc",
+      "high-risk-third-countries",
+      "fatf",
+      "country-risk",
+      "edd"
+    ],
+    "content": "Geographic Risk and High-Risk Third Countries (LSAG 2025)\n\nGeographic risk refers to the countries or geographic areas in which your business operates, receives funds from or where clients reside. It may also extend to social, cultural or language ties to known high-risk jurisdictions.\n\nR33(3)(a) defines high-risk third countries (HRTCs) as those which appear on the FATF lists: Jurisdictions under Increased Monitoring and High-Risk Jurisdictions subject to a Call for Action. These lists are amended in February, June or October each year at the conclusion of a FATF plenary session.\n\nThe Regulations mandate prescriptive EDD steps where your client is established in a HRTC or in relation to any relevant transaction where either party is established in a HRTC.\n\nIndicators of higher risk jurisdictions:\n- Deficient anti-money laundering legislation, systems and practices and/or inadequate AML supervision\n- High levels of acquisitive crime or corruption\n- Jurisdiction where drug trafficking, terrorism or corruption is prevalent\n- Considered to be offshore financial centres or tax havens\n- Permit nominee shareholders on share certificates\n- Unclear company structure requirements making it challenging to understand control structures\n\nResources for assessing jurisdictional risk: FATF and HM Treasury statements; Transparency International corruption perception index; Basel AML Index; CIA World Factbook; U.S. INSCR; FATF mutual evaluations; Know Your Country ratings.\n\nYou should list all countries to which your practice is exposed in your PWRA and give a risk rating to each one. Prohibiting clients from outside the UK or who are not UK nationals is not a requirement of the Regulations.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 5.6.3",
+    "topics": [
+      "risk-assessment",
+      "cmlra",
+      "legal-sector",
+      "conveyancing",
+      "trusts",
+      "corporate-structures",
+      "client-account"
+    ],
+    "content": "Product and Service Risks for Legal Professionals (LSAG 2025)\n\nThe National Risk Assessment highlights that independent legal professionals face the greatest potential risks in the following areas:\n- Misuse of client accounts\n- Sale/purchase of real property\n- Creation of trusts, companies and charities\n- Management of trusts and companies\n- Sham litigation\n\nSale/purchase of real property (s.5.6.3.1): According to law enforcement and the NRA, sale and purchase of real estate is a common method for disposing of or converting criminal proceeds. Property is attractive for laundering because it is high value, generally appreciating, conveyancing happens quickly, property can generate rental income, and property can be used as a residence.\n\nClient accounts and payments (s.5.6.3.2): Criminals may attempt to misuse your client account. Putting proceeds of crime through your client account gives funds the appearance of legitimacy, as the subsequent transfer will show as having originated from a regulated legal practice. Generally, avoid accepting cash payments. If you do, it should be considered high risk, particularly where large in size (e.g., above GBP 1,000).\n\nFormation and management of trusts and companies (s.5.6.3.3): Creation and management of specialist entities such as trusts, companies and LLPs can present ML/TF risk, particularly where complex ownership structures are involved.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
     "source_name": "LSAG Sectoral Guidance 2025",
     "section_ref": "s. 5.13",
     "topics": [
@@ -11,6 +103,169 @@
     ],
     "content": "Risk Assessment Methodology\n\n5.13 Firms must undertake a documented risk assessment for each client matter. The risk assessment should:\n\n(a) Consider the risk factors relevant to the client and matter;\n\n(b) Apply a consistent methodology to score or categorise risk;\n\n(c) Document the rationale for the risk rating assigned;\n\n(d) Be proportionate to the nature and size of the firm's business;\n\n(e) Be reviewed and updated periodically, and when there is a material change in circumstances.\n\nThe risk assessment should result in a clear determination of whether the matter presents low, medium, or high risk. Firms should ensure that the methodology used is applied consistently across all matters.",
     "effective_date": "2025-01-01"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 6.1-6.3",
+    "topics": [
+      "cdd",
+      "due-diligence",
+      "verification",
+      "identity",
+      "legal-sector"
+    ],
+    "content": "Client Due Diligence — Overview (LSAG 2025)\n\nUndertaking appropriate Client Due Diligence (CDD) is required under R27, and is one of the key controls you have, to protect your practice from Money Laundering and Terrorism Financing (ML/TF) risks.\n\nCDD is the collective term for the checks you must do on your clients, which may differ depending on the circumstances. It is holistic in nature and is wider than simply undertaking identification and verification of clients.\n\nThe amount, type and level of CDD undertaken should reflect and mitigate the nature of particular risks inherent in each client, transaction or matter. Practices must be able to demonstrate to their supervisory authority that these CDD measures are appropriate in mitigation of these risks.\n\nApplication of CDD (s.6.3): You are required to apply CDD for services in scope of the Regulations when:\n- establishing a business relationship;\n- carrying out an occasional transaction amounting to a transfer of funds exceeding 1,000 Euros;\n- carrying out an occasional transaction of 15,000 Euros or more (single or linked operations);\n- you suspect money laundering or terrorist financing; or\n- you doubt the veracity or adequacy of documents or information previously obtained.\n\nThere is no provision in the Regulations for waiving CDD requirements on the basis of long-standing or personal relationships (s.6.2).",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG AML Guidance for the Legal Sector 2025",
+    "section_ref": "ss. 5.6.3, 6.14.12-6.14.13",
+    "topics": [
+      "corporate-structures",
+      "trusts",
+      "partnerships",
+      "llp",
+      "slp",
+      "beneficial-ownership",
+      "cdd",
+      "conveyancing",
+      "client-account",
+      "shell-companies"
+    ],
+    "content": "LSAG 2025: Corporate Structures, Trusts, and Partnerships\n\nProduct/Service Risks (s.5.6.3):\nThe NRA highlights greatest potential risks for legal professionals in: misuse of client accounts; sale/purchase of real property; creation of trusts, companies and charities; management of trusts and companies; and sham litigation.\n\nProperty (s.5.6.3.1): Real estate is a common method for disposing of criminal proceeds because property is high-value, generally appreciating, transactions happen quickly making it easier to hide money trails, and property can generate quasi-legitimate income streams (e.g. rental). Transfers without exchange of funds present equal risk.\n\nClient Accounts (s.5.6.3.2): Putting proceeds of crime through a client account gives funds the appearance of legitimacy. Avoid accepting cash payments to client accounts in relation to transactions. If accepted, treat as high risk within PWRA, particularly where large (e.g. above £1,000). Establish Source of Funds for any cash payments. Do not display client account details on letterheads or websites. Unsolicited payments or unexpected overpayments may have been engineered for money laundering — consider filing a SAR.\n\nFormation of Trusts and Companies (s.5.6.3.3): Company and trust structures may be exploited by criminals wishing to retain control over criminal assets while impeding law enforcement. Consider it high risk if a client engages services only for routine formation without seeking further legal advice. Shell companies — entities without business activities or assets — can disguise beneficial ownership and flow of illegitimate funds.\n\nTrusts CDD (s.6.14.12): Trusts in the UK do not have legal personality. Your client may be the settlor, trustee(s), protector(s), or one or more beneficiaries. When applying CDD to an existing trust you must: obtain and verify the identity of your client including beneficial owners; understand source of wealth and source of funds contributed to the trust; understand the nature and extent of settled assets; and identify the (non-client) settlor, trustee(s), protector(s), beneficiaries, and any person who has control over the trust.\n\nPartnerships CDD (s.6.14.13): A partnership (except in Scotland) is not a separate legal entity — you must obtain information on constituent individuals. For partnerships, beneficial owners are individuals controlling >25% of capital, profits, or voting rights, or who otherwise exercise control over management. For UK LLPs or Scottish Limited Partnerships (SLPs), apply company CDD requirements. Higher risk where partners are overseas entities in jurisdictions without publicly available corporate registers or where ownership can be concealed through nominees.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 6.18",
+    "topics": [
+      "edd",
+      "enhanced-due-diligence",
+      "high-risk",
+      "pep",
+      "hrtc",
+      "high-risk-third-countries"
+    ],
+    "content": "Enhanced Due Diligence (LSAG 2025)\n\nR33 provides that you must apply enhanced due diligence (EDD) and enhanced ongoing monitoring in addition to the CDD measures required in R28, where:\n- the case has been identified as one where there is a high risk of money laundering or terrorist financing;\n- you carry out an occasional transaction and either party is established in a high-risk third country;\n- the client is a politically exposed person (PEP), or a family member or known close associate of a PEP;\n- the client is established in a high-risk third country;\n- the client has provided false or stolen identification documentation and you have decided to continue dealing with the client;\n- there is any other situation which you have assessed as presenting a higher risk; or\n- the transaction is complex, unusually large, involves an unusual pattern, or has no apparent economic or legal purpose.\n\nWhat is EDD? (s.6.18.2): The Regulations specify that you must take measures to examine the background and purpose of the transaction and increase monitoring. EDD may include:\n- seeking additional independent, reliable sources to verify information;\n- taking additional measures to understand the background, ownership and financial situation of the customer;\n- taking further steps to be satisfied that the transaction is consistent with the purpose and intended nature of the business relationship; or\n- increasing the monitoring of the business relationship, including greater scrutiny of transactions.\n\nFor High Risk Third Countries (HRTCs), EDD is more restrictive and must include: obtaining additional information on the client and beneficial owner; obtaining information on source of funds and source of wealth; obtaining information on the reasons for the transactions; obtaining approval of senior management; and conducting enhanced monitoring.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 6.21",
+    "topics": [
+      "monitoring",
+      "ongoing-monitoring",
+      "cdd",
+      "review",
+      "business-relationship"
+    ],
+    "content": "Ongoing Monitoring (LSAG 2025)\n\nR28(11) requires that you conduct ongoing monitoring of business relationships. Ongoing monitoring is defined as:\n- scrutiny of transactions undertaken throughout the course of the relationship (including, where necessary, the source of funds), to ensure transactions are consistent with your knowledge of the client, their business and risk profile; and\n- undertaking reviews of existing records and keeping the documents or information obtained for the purpose of applying CDD up to date.\n\nTo comply, you may:\n- renew and re-evaluate CDD at appropriate intervals (including during a transaction), noting this is mandatory in certain circumstances;\n- suspend or terminate a business relationship until you have updated information; or\n- use technology to aid your ongoing monitoring.\n\nYou should operate a system of regular review and renewal of CDD. Consider reviewing CDD upon each new matter. Where there has been a significant gap between instructions (anything above a year may be considered significant for higher-risk clients), you should consider refreshing the CDD.\n\nYou must update CDD when you become aware of any changes to the client's identification information, including change of name, address, beneficial owner or business.\n\nIn accordance with R27(9), you must apply or reapply CDD to existing clients on a risk-based approach when you become aware that the client's circumstances have changed, considering: any indication that identity has changed; transactions not reasonably consistent with your knowledge; any change in purpose or nature of the relationship; and any matter affecting your ML/TF risk assessment.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "LSAG Sectoral Guidance 2025",
+    "section_ref": "s. 6.17",
+    "topics": [
+      "sof",
+      "source-of-funds",
+      "sow",
+      "source-of-wealth",
+      "edd",
+      "cdd",
+      "verification"
+    ],
+    "content": "Source of Funds and Source of Wealth (LSAG 2025)\n\nA fundamental element of client due diligence is understanding the nature, background and circumstances of the client, including their financial position. The extent to which you must obtain, review and evidence your client's financial position is dependent upon the risk profile of the client or matter.\n\nSource of Funds (SoF) (s.6.17.2): Refers to the funds being used to fund the specific transaction in hand. The question you are seeking to answer should not simply be \"where did the money for the transaction come from,\" but also \"how and from where did the client get the money for this transaction.\" It is not enough to know the money came from a UK bank account.\n\nIn addition to documenting the amount, currency, and remitting account details, the information obtained should be substantive and establish a provenance or reason for having been acquired (e.g., salary, gift, sale proceeds). Acquiring bank statements, Wills, full payslips, audited financial accounts, sales/purchase agreements, or similar documentation may all be useful.\n\nSource of Wealth (SoW) (s.6.17.3): Refers to the origin of a client's entire body of wealth (i.e., total assets). SoW describes the economic, business and/or commercial activities that generated or significantly contributed to the client's overall net worth. You should seek to answer: \"why and how does the individual have the amount of overall assets they do?\"\n\nYou must take adequate measures to check SoF and SoW as a part of EDD when applied to PEPs. It is good practice to check the SoF even if a business relationship has not been formed and the matter is an occasional transaction.\n\nWhere a third party is to contribute funds, you should consider seeking to understand and obtain evidence relating to the third party's underlying SoF.",
+    "effective_date": "2025-04-23"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Law Society of Scotland Rule B9",
+    "section_ref": "Rule B9",
+    "topics": [
+      "scotland",
+      "rule-b9",
+      "compliance",
+      "supervision",
+      "lss",
+      "practice-rules",
+      "record-keeping",
+      "mlro"
+    ],
+    "content": "Rule B9: Money Laundering & Terrorist Financing — Law Society of Scotland\n\nRule B9 sets out the obligations of Scottish solicitors (\"supervised persons\") in relation to anti-money laundering compliance. The Law Society of Scotland is the supervisory authority for solicitors under the Money Laundering Regulations.\n\nApplication (9.2): Where Rule 9 applies to a practice unit, it also applies to the managers of the practice unit. No regulated person within the practice unit shall cause or knowingly permit the practice unit not to comply with any provision.\n\nDuty to comply (9.3): Every supervised person shall:\n(a) comply with the provisions of the Money Laundering Regulations;\n(b) demonstrate such compliance to the Society on request;\n(c) report any breach of the Money Laundering Regulations to the Society as soon as practicable after discovery;\n(d) remedy any such breach which is capable of remedy, as soon as practicable after discovery;\n(e) timeously provide all such information, records and co-operation as the Society may require to enable it to properly exercise and fulfil its supervisory functions.\n\nRecords (9.4): Every supervised person shall at all times keep such records as are necessary to demonstrate compliance with the Money Laundering Regulations and these rules.\n\nCertificate (9.5): A supervised person shall deliver to the Council a Certificate within one calendar month of the completion of each reporting period (1 January to 31 December).\n\nSigning (9.8): All Certificates must be signed by the responsible officer (MLRO) of the supervised person or, failing such appointment, by the nominated officer.\n\nReviews and investigations (9.9): The Council may carry out thematic and/or desk-based reviews and risk assessments, routine inspections, and non-routine investigations for the purposes of enabling the Society to properly exercise its functions as supervisory authority under the Money Laundering Regulations.\n\nProduction of records (9.10): The Council may, by giving notice, require any supervised person to produce records for inspection or review at a date, time and place fixed by the Council.",
+    "effective_date": "2023-11-01"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 12",
+    "topics": [
+      "scope",
+      "legal-sector",
+      "relevant-person",
+      "trust-company-service-provider"
+    ],
+    "content": "Scope: Independent legal professionals and trust or company service providers\n\n12.-(1) \"Independent legal professional\" means a firm or sole practitioner who by way of business provides legal or notarial services to other persons, when participating in financial or real property transactions concerning:\n(a) the buying and selling of real property or business entities;\n(b) the managing of client money, securities or other assets;\n(c) the opening or management of bank, savings or securities accounts;\n(d) the organisation of contributions necessary for the creation, operation or management of companies; or\n(e) the creation, operation or management of trusts, companies, foundations or similar structures.\n\nA person participates in a transaction by assisting in the planning or execution of the transaction or otherwise acting for or on behalf of a client in the transaction.\n\n(2) \"Trust or company service provider\" means a firm or sole practitioner who by way of business provides any of the following services:\n(a) forming a firm;\n(b) acting, or arranging for another person to act, as a director or secretary of a company, partner of a partnership, or in a similar capacity;\n(c) providing a registered office, business address, correspondence or administrative address for a company, partnership or any other legal person;\n(d) acting, or arranging for another person to act, as a trustee of an express trust or a nominee shareholder.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 18",
+    "topics": [
+      "risk-assessment",
+      "cmlra",
+      "methodology",
+      "policies"
+    ],
+    "content": "Risk assessment by relevant persons\n\n18.-(1) A relevant person must take appropriate steps to identify and assess the risks of money laundering and terrorist financing to which its business is subject.\n\n(2) In carrying out the risk assessment, a relevant person must take into account:\n(a) information made available by the supervisory authority under regulations 17(9) and 47, and\n(b) risk factors including factors relating to:\n(i) its customers;\n(ii) the countries or geographic areas in which it operates;\n(iii) its products or services;\n(iv) its transactions; and\n(v) its delivery channels.\n\n(3) In deciding what steps are appropriate, the relevant person must take into account the size and nature of its business.\n\n(4) A relevant person must keep an up-to-date record in writing of all the steps it has taken, unless its supervisory authority notifies it that such a record is not required.\n\n(6) A relevant person must provide the risk assessment, the information on which it was based, and any record required under paragraph (4), to its supervisory authority on request.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 19",
+    "topics": [
+      "policies",
+      "controls",
+      "procedures",
+      "compliance",
+      "risk-management"
+    ],
+    "content": "Policies, controls and procedures\n\n19.-(1) A relevant person must:\n(a) establish and maintain policies, controls and procedures to mitigate and manage effectively the risks of money laundering and terrorist financing identified in the risk assessment under regulation 18(1);\n(b) regularly review and update those policies, controls and procedures;\n(c) maintain a record in writing of the policies, changes to them, and the steps taken to communicate them within the business.\n\n(2) The policies, controls and procedures must be:\n(a) proportionate with regard to the size and nature of the business, and\n(b) approved by senior management.\n\n(3) The policies, controls and procedures must include:\n(a) risk management practices;\n(b) internal controls (see regulations 21 to 24);\n(c) customer due diligence (see regulations 27 to 38);\n(d) reliance and record keeping (see regulations 39 to 40);\n(e) the monitoring and management of compliance with, and internal communication of, such policies.\n\n(4) Must include policies for the identification and scrutiny of complex or unusually large transactions, unusual patterns of transactions, or transactions with no apparent economic or legal purpose.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 21",
+    "topics": [
+      "internal-controls",
+      "mlro",
+      "nominated-officer",
+      "compliance",
+      "training"
+    ],
+    "content": "Internal controls and nominated officer (MLRO)\n\n21.-(1) Where appropriate with regard to the size and nature of its business, a relevant person must:\n(a) appoint one individual who is a member of the board of directors (or if there is no board, of its equivalent management body) or of its senior management as the officer responsible for the relevant person's compliance with these Regulations;\n(b) carry out screening of relevant employees both before appointment and during the course of the appointment;\n(c) establish an independent audit function with the responsibility:\n(i) to examine and evaluate the adequacy and effectiveness of the policies, controls and procedures adopted to comply with the Regulations;\n(ii) to make recommendations in relation to those policies; and\n(iii) to monitor the relevant person's compliance with those recommendations.\n\nThe appointed compliance officer is commonly referred to as the Money Laundering Reporting Officer (MLRO) or Nominated Officer. This person serves as the point of contact for suspicious activity reports within the firm and is responsible for ensuring compliance with the Regulations.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 27",
+    "topics": [
+      "cdd",
+      "due-diligence",
+      "verification",
+      "occasional-transaction",
+      "business-relationship"
+    ],
+    "content": "Application of customer due diligence measures\n\n27.-(1) A relevant person must apply customer due diligence measures if the person:\n(a) establishes a business relationship;\n(b) carries out an occasional transaction that amounts to a transfer of funds exceeding 1,000 euros;\n(c) suspects money laundering or terrorist financing; or\n(d) doubts the veracity or adequacy of documents or information previously obtained for identification or verification.\n\n(2) A relevant person who is not a high value dealer, art market participant, cryptoasset exchange provider, custodian wallet provider or casino must also apply CDD measures if the person carries out an occasional transaction of 15,000 euros or more, whether executed in a single operation or in several operations which appear to be linked.\n\n(3) A high value dealer must also apply CDD measures for occasional transactions in cash of 10,000 euros or more.",
+    "effective_date": "2017-06-26"
   },
   {
     "source_type": "external",
@@ -28,6 +283,36 @@
   {
     "source_type": "external",
     "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 30",
+    "topics": [
+      "cdd",
+      "verification",
+      "timing",
+      "identity",
+      "due-diligence"
+    ],
+    "content": "Timing of verification\n\n30.-(1) This regulation applies when a relevant person is required to take any measures under regulation 27, 28 or 29.\n\n(2) Subject to paragraph (3), a relevant person must comply with the requirement to verify the identity of the customer, any person purporting to act on behalf of the customer, and any beneficial owner, before the establishment of a business relationship or the carrying out of the transaction.\n\n(3) Provided that the verification is completed as soon as practicable after contact is first established, the verification may be completed during the establishment of a business relationship if:\n(a) this is necessary not to interrupt the normal conduct of business; and\n(b) there is little risk of money laundering and terrorist financing.\n\nThis means that in practice, verification may be deferred in low-risk situations where it would otherwise disrupt normal business, but must be completed as soon as practicable and before any significant transactions are carried out.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 31",
+    "topics": [
+      "cdd",
+      "due-diligence",
+      "verification",
+      "failure",
+      "sar",
+      "reporting",
+      "business-relationship"
+    ],
+    "content": "Requirement to cease transactions etc. (failure to complete CDD)\n\n31.-(1) Where, in relation to any customer, a relevant person is unable to apply customer due diligence measures as required by regulation 28, that person:\n(a) must not carry out any transaction through a bank account with the customer or on behalf of the customer;\n(b) must not establish a business relationship or carry out a transaction with the customer otherwise than through a bank account;\n(c) must terminate any existing business relationship with the customer;\n(d) must consider whether the relevant person is required to make a disclosure by Part 3 of the Terrorism Act 2000 or Part 7 of the Proceeds of Crime Act 2002.\n\n(2) Paragraph (1)(a) does not prevent money deposited in an account being repaid to the person who deposited it, provided that where a disclosure is required, the relevant person has obtained the appropriate consent under s.335 POCA or s.21ZA Terrorism Act 2000.\n\n(3) Paragraph (1) does not apply where an independent legal professional or other professional adviser is in the course of ascertaining the legal position for a client or performing the task of defending or representing that client in, or concerning, legal proceedings, including giving advice on the institution or avoidance of proceedings.\n\nThis regulation means that if CDD cannot be completed, the practice must not proceed with the matter and must consider making a suspicious activity report (SAR).",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
     "section_ref": "reg. 33",
     "topics": [
       "edd",
@@ -37,6 +322,228 @@
     ],
     "content": "Enhanced customer due diligence: required assessment\n\n33.—(1) A relevant person must apply enhanced customer due diligence measures and enhanced ongoing monitoring, in addition to the customer due diligence measures required under regulation 28(2) to (10), to manage and mitigate the risks arising—\n\n(a) in any case identified as one where there is a high risk of money laundering or terrorist financing—\n(i) by the relevant person under regulation 18(1), or\n(ii) in information made available to the relevant person under regulations 17(9) and 47;\n\n(b) in relation to a business relationship or transaction with a person established in a high-risk third country or in relation to any relevant transaction where either of the parties to the transaction is established in a high-risk third country.\n\n(2) Enhanced customer due diligence measures taken by a relevant person for the purposes of paragraph (1) must include—\n(a) obtaining additional information on the customer and on the customer's beneficial owner;\n(b) obtaining additional information on the intended nature of the business relationship;\n(c) obtaining information on the source of funds and source of wealth of the customer and of the customer's beneficial owner;\n(d) obtaining information on the reasons for the intended or performed transactions;\n(e) obtaining the approval of senior management for establishing or continuing the business relationship;\n(f) conducting enhanced monitoring of the business relationship.",
     "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 35",
+    "topics": [
+      "pep",
+      "edd",
+      "enhanced-due-diligence",
+      "high-risk",
+      "politically-exposed-person"
+    ],
+    "content": "Enhanced customer due diligence: politically exposed persons (PEPs)\n\n35.-(1) A relevant person must have in place appropriate risk-management systems and procedures to determine whether a customer or the beneficial owner of a customer is:\n(a) a politically exposed person (a \"PEP\"); or\n(b) a family member or a known close associate of a PEP,\nand to manage the enhanced risks arising from the business relationship or transactions with such a customer.\n\n(2) In determining what risk-management systems are appropriate, the relevant person must take account of:\n(a) the risk assessment carried out under regulation 18(1);\n(b) the level of risk of ML/TF inherent in its business;\n(c) the extent to which that risk would be increased by its business relationship with a PEP; and\n(d) any relevant information made available under regulations 17(9) and 47.\n\n(3) If a relevant person has determined that a customer is a PEP, or a family member or known close associate of a PEP, the relevant person must assess the level of risk and the extent of enhanced CDD measures to be applied.\n\n(3A) Where the customer is a domestic PEP (or family member/known close associate of a domestic PEP):\n(a) the starting point for the assessment is that they present a lower level of risk than a non-domestic PEP, and\n(b) the extent of enhanced CDD measures to be applied is less than for a non-domestic PEP, if no enhanced risk factors are present.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 37",
+    "topics": [
+      "simplified-due-diligence",
+      "sdd",
+      "cdd",
+      "low-risk",
+      "due-diligence"
+    ],
+    "content": "Simplified due diligence\n\n37.-(1) A relevant person may apply simplified customer due diligence measures in relation to a particular business relationship or transaction if it determines that the business relationship or transaction presents a low degree of risk of money laundering and terrorist financing, having taken into account:\n(a) the risk assessment carried out under regulation 18(1);\n(b) relevant information made available under regulations 17(9) and 47; and\n(c) the risk factors referred to in paragraph (3).\n\n(2) Where a relevant person applies simplified CDD measures, it must:\n(a) continue to comply with the requirements in regulations 28 and 30A, but may adjust the extent, timing or type of the measures to reflect the low-risk determination; and\n(b) carry out sufficient monitoring of any business relationships or transactions to enable it to detect any unusual or suspicious transactions.\n\nSimplified due diligence does not mean no due diligence. The relevant person must still identify and verify the customer but may adjust the extent of measures. This is a risk-based decision that must be supported by the firm's risk assessment and documented appropriately.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 40",
+    "topics": [
+      "record-keeping",
+      "retention",
+      "compliance",
+      "cdd",
+      "evidence"
+    ],
+    "content": "Record-keeping obligations\n\n40.-(1) A relevant person must keep the records specified in paragraph (2) for at least the period specified in paragraph (3).\n\n(2) The records to be kept are:\n(a) a copy of, or the references to, the evidence of the identity of the customer obtained under regulation 28(2) or 28(11)(c);\n(b) the supporting records (consisting of the original documents or copies) in respect of a business relationship or occasional transaction which is the subject of CDD or ongoing monitoring;\n(c) a copy of any identification document accepted, and the information obtained, under regulation 28.\n\n(3) The records must be kept for a period of five years beginning on:\n(a) in the case of a business relationship: the date on which the relevant person and the customer cease to have that relationship;\n(b) in the case of an occasional transaction: the date on which the transaction is completed.\n\n(4) A relevant person who is relied on by another relevant person must keep the records for five years beginning on the date on which it is relied on for the purposes of regulation 39.\n\nThese record-keeping requirements ensure that evidence of CDD, ongoing monitoring and transaction records are available for supervisory inspection and, if necessary, law enforcement investigation.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 5",
+    "topics": [
+      "beneficial-ownership",
+      "cdd",
+      "verification",
+      "corporate-structures",
+      "identity"
+    ],
+    "content": "Meaning of beneficial owner: bodies corporate or partnership\n\n5.-(1) \"Beneficial owner\", in relation to a body corporate which is not a company whose securities are listed on a regulated market, means:\n(a) any individual who exercises ultimate control over the management of the body corporate;\n(b) any individual who ultimately owns or controls (directly or indirectly), including through bearer share holdings, more than 25% of the shares or voting rights in the body corporate; or\n(c) an individual who controls the body corporate.\n\n(2) An individual controls a body corporate if:\n(a) the body corporate is a company or a limited liability partnership and that individual satisfies one or more of the conditions set out in Part 1 of Schedule 1A to the Companies Act 2006 (people with significant control); or\n(b) the body corporate would be a subsidiary undertaking of the individual under section 1162 of the Companies Act 2006.\n\n(3) \"Beneficial owner\", in relation to a partnership (other than an LLP), means any individual who:\n(a) ultimately is entitled to or controls more than 25% share of the capital or profits of the partnership or more than 25% of the voting rights;\n(b) satisfies conditions in Part 1 of Schedule 1 to the Scottish Partnerships (Register of People with Significant Control) Regulations 2017; or\n(c) otherwise exercises ultimate control over the management of the partnership.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 6",
+    "topics": [
+      "beneficial-ownership",
+      "trusts",
+      "cdd",
+      "verification",
+      "identity"
+    ],
+    "content": "Meaning of beneficial owner: trusts, similar arrangements and others\n\n6.-(1) \"Beneficial owner\", in relation to a trust, means each of the following:\n(a) the settlor;\n(b) the trustees;\n(c) the beneficiaries;\n(d) where the individuals benefiting from the trust have not been determined, the class of persons in whose main interest the trust is set up or operates;\n(e) any individual who has control over the trust.\n\n(2) \"Control\" means a power (whether exercisable alone, jointly with another person, or with the consent of another person) under the trust instrument or by law to:\n(a) dispose of, advance, lend, invest, pay or apply trust property;\n(b) vary or terminate the trust;\n(c) add or remove a person as a beneficiary or to or from a class of beneficiaries;\n(d) appoint or remove trustees or give another individual control over the trust;\n(e) direct, withhold consent to or veto the exercise of the above powers.\n\n(3) \"Beneficial owner\", in relation to a foundation or other legal arrangement similar to a trust, means those individuals who hold equivalent or similar positions.\n\n(6) \"Beneficial owner\", in relation to an estate of a deceased person in the course of administration, means the executor or administrator for the time being of a deceased person.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Money Laundering Regulations 2017",
+    "section_ref": "reg. 86",
+    "topics": [
+      "offence",
+      "criminal",
+      "compliance",
+      "enforcement",
+      "penalty"
+    ],
+    "content": "Criminal offence for non-compliance\n\n86.-(1) A person who contravenes a relevant requirement imposed on that person is guilty of an offence and liable:\n(a) on summary conviction:\n(i) in England and Wales, to imprisonment for a term not exceeding three months, to a fine, or to both;\n(ii) in Scotland or Northern Ireland, to imprisonment for a term not exceeding three months, to a fine not exceeding the statutory maximum, or to both;\n(b) on conviction on indictment, to imprisonment for a term not exceeding two years, to a fine, or to both.\n\n(2) In deciding whether a person has committed an offence, the court must decide whether that person followed any relevant guidance which was at the time issued by the FCA or issued by any other supervisory authority or appropriate body and approved by the Treasury.\n\nThis means that failure to comply with the Regulations can result in criminal prosecution, with a maximum sentence of two years' imprisonment on indictment. However, following approved guidance (such as LSAG guidance for solicitors) is a relevant factor in determining whether an offence has been committed.",
+    "effective_date": "2017-06-26"
+  },
+  {
+    "source_type": "external",
+    "source_name": "UK National Risk Assessment of Money Laundering and Terrorist Financing 2025",
+    "section_ref": "Chapter 2 (paras 2.14-2.25)",
+    "topics": [
+      "nra",
+      "legal-sector",
+      "supervision",
+      "enforcement",
+      "sra",
+      "opbas",
+      "professional-enablers",
+      "economic-crime",
+      "sar-reform",
+      "asset-recovery"
+    ],
+    "content": "NRA 2025: Government Actions Relevant to the Legal Sector\n\nProfessional Body Supervision: The Office for Professional Body Anti-Money Laundering Supervision (OPBAS) published an ebook for Professional Body AML Supervisors in January 2023, aiming to deliver a stronger and more consistent standard of supervision of the accountancy and legal sectors.\n\nLegal Sector Enforcement: The Economic Crime and Corporate Transparency Act 2023 (ECCTA) created a new regulatory objective in the Legal Services Act 2007 focusing on promoting the prevention and detection of economic crime. The Act also removed the statutory cap on financial penalties for the Solicitors Regulation Authority (SRA) to ensure the SRA has the necessary enforcement powers and can levy financial penalties that act as a credible deterrent in relation to economic crime matters.\n\nProfessional Enablers Strategy: In 2024 the NECC, NCA and OPBAS published the Cross System Professional Enablers Strategy. The aim is to galvanise a whole system response to deliver a step-change in reducing the threat posed by professional enablers — including solicitors who wittingly or unwittingly facilitate money laundering.\n\nSARs Reform: The SARs Reform Programme is delivering a new SARs Digital Service (SDS) to enhance data exploitation, improve feedback and engagement to the regulated sector, enable timelier intelligence sharing with law enforcement, and provide more efficient and effective reporting by the regulated sector.\n\nAsset Recovery: Since 2020, there has been a sustained level of assets recovered: £358.4m recovered in 2021/22, £341.5m in 2022/23, and £243.3m in 2023/24. Reforms to the unexplained wealth order (UWO) regime have extended the class of persons who may be subject to UWOs.\n\nEconomic Crime Levy: The Economic Crime (Anti-Money Laundering) Levy is expected to raise around £115 million per year from April 2024 onwards, funding measures to tackle money laundering and economic crime including £100m for technology to analyse and share threat data in real time.",
+    "effective_date": "2025-01-01"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Proceeds of Crime Act 2002",
+    "section_ref": "s. 327",
+    "topics": [
+      "poca",
+      "money-laundering-offence",
+      "concealing",
+      "criminal-property"
+    ],
+    "content": "Concealing etc. criminal property (POCA 2002 s.327)\n\nA person commits an offence if he:\n(a) conceals criminal property;\n(b) disguises criminal property;\n(c) converts criminal property;\n(d) transfers criminal property;\n(e) removes criminal property from England and Wales or from Scotland or from Northern Ireland.\n\nA person does not commit such an offence if:\n(a) he makes an authorised disclosure under section 338 and (if the disclosure is made before he does the act) he has the appropriate consent;\n(b) he intended to make such a disclosure but had a reasonable excuse for not doing so;\n(c) the act is done in carrying out a law enforcement function.\n\nPenalty: on summary conviction, imprisonment up to 6 months, a fine, or both; on indictment, imprisonment up to 14 years, a fine, or both.\n\nConcealing or disguising criminal property includes concealing or disguising its nature, source, location, disposition, movement, or ownership or any rights with respect to it.",
+    "effective_date": "2002-12-30"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Proceeds of Crime Act 2002",
+    "section_ref": "s. 328",
+    "topics": [
+      "poca",
+      "money-laundering-offence",
+      "arrangements",
+      "criminal-property",
+      "legal-sector"
+    ],
+    "content": "Arrangements (POCA 2002 s.328) — most relevant offence for solicitors\n\nA person commits an offence if he enters into or becomes concerned in an arrangement which he knows or suspects facilitates (by whatever means) the acquisition, retention, use or control of criminal property by or on behalf of another person.\n\nThis is the primary money laundering offence affecting solicitors, because legal transactions (conveyancing, company formation, trust management) can constitute \"arrangements\" that facilitate the handling of criminal property.\n\nA person does not commit such an offence if:\n(a) he makes an authorised disclosure under section 338 and (if the disclosure is made before he does the act) he has the appropriate consent;\n(b) he intended to make such a disclosure but had a reasonable excuse for not doing so;\n(c) the act is done in carrying out a law enforcement function.\n\nPenalty: on summary conviction, imprisonment up to 6 months, a fine, or both; on indictment, imprisonment up to 14 years, a fine, or both.\n\nThe defence of making an authorised disclosure before the act means in practice that solicitors must submit a Suspicious Activity Report (SAR) and obtain consent before proceeding with a transaction where they know or suspect criminal property is involved.",
+    "effective_date": "2002-12-30"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Proceeds of Crime Act 2002",
+    "section_ref": "s. 329",
+    "topics": [
+      "poca",
+      "money-laundering-offence",
+      "acquisition",
+      "possession",
+      "criminal-property"
+    ],
+    "content": "Acquisition, use and possession (POCA 2002 s.329)\n\nA person commits an offence if he:\n(a) acquires criminal property;\n(b) uses criminal property;\n(c) has possession of criminal property.\n\nA person does not commit such an offence if:\n(a) he makes an authorised disclosure under section 338 and has the appropriate consent;\n(b) he intended to make such a disclosure but had a reasonable excuse;\n(c) he acquired or used or had possession of the property for adequate consideration; or\n(d) the act is done in carrying out a law enforcement function.\n\nThe \"adequate consideration\" defence at (c) is important for solicitors: if a solicitor receives fees for genuine legal services, this does not constitute an offence even if the client's funds turn out to be criminal property, provided the consideration was adequate (i.e. not significantly below market value).\n\nPenalty: on summary conviction, imprisonment up to 6 months, a fine, or both; on indictment, imprisonment up to 14 years, a fine, or both.",
+    "effective_date": "2002-12-30"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Proceeds of Crime Act 2002",
+    "section_ref": "s. 330",
+    "topics": [
+      "poca",
+      "sar",
+      "reporting",
+      "disclosure",
+      "failure-to-disclose",
+      "suspicious-activity",
+      "regulated-sector"
+    ],
+    "content": "Failure to disclose: regulated sector (POCA 2002 s.330)\n\nA person in the regulated sector commits an offence if ALL of the following conditions are satisfied:\n\n1. First condition: He knows or suspects, or has reasonable grounds for knowing or suspecting, that another person is engaged in money laundering.\n\n2. Second condition: The information on which his knowledge or suspicion is based came to him in the course of a business in the regulated sector.\n\n3. Third condition: He can identify the other person or the whereabouts of any of the laundered property, OR he believes the information will or may assist in identifying that other person or the whereabouts of the property.\n\n4. Fourth condition: He does not make the required disclosure to a nominated officer (MLRO) or the National Crime Agency (NCA) as soon as is practicable.\n\nThe required disclosure comprises: the identity of the suspected person (if known), the whereabouts of the laundered property (so far as known), and the information or other matter giving rise to the knowledge or suspicion.\n\nDefences: A person does not commit an offence if:\n(a) he has a reasonable excuse for not disclosing;\n(b) he is a professional legal adviser and the information came to him in privileged circumstances (legal professional privilege); or\n(c) he did not know or suspect money laundering and had not been given appropriate training by his employer.\n\nNote: The \"reasonable grounds\" test at condition 1 is an objective test. Even if a solicitor does not actually suspect ML, they commit an offence if a reasonable person in their position would have had such suspicion.\n\nPenalty: on summary conviction, imprisonment up to 6 months, a fine, or both; on indictment, imprisonment up to 5 years, a fine, or both.",
+    "effective_date": "2002-12-30"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Proceeds of Crime Act 2002",
+    "section_ref": "s. 333A",
+    "topics": [
+      "poca",
+      "tipping-off",
+      "sar",
+      "reporting",
+      "disclosure",
+      "confidentiality"
+    ],
+    "content": "Tipping off: regulated sector (POCA 2002 s.333A)\n\nA person commits an offence if:\n(a) the person discloses any matter within subsection (2) [that a SAR has been made];\n(b) the disclosure is likely to prejudice any investigation that might be conducted following the disclosure; and\n(c) the information came to the person in the course of a business in the regulated sector.\n\nThe matters are that the person or another person has made a disclosure under Part 7 POCA to a constable, an officer of Revenue and Customs, a nominated officer, or an NCA officer.\n\nA person also commits an offence if:\n(a) they disclose that an investigation into money laundering offences is being contemplated or is being carried out;\n(b) the disclosure is likely to prejudice that investigation; and\n(c) the information came to them in the course of a business in the regulated sector.\n\nPenalty: on summary conviction, imprisonment up to 3 months, or fine up to level 5, or both; on indictment, imprisonment up to 2 years, or a fine, or both.\n\nImportant for solicitors: Once a SAR has been filed, you must not tell the client (or anyone else) that a report has been made, if doing so is likely to prejudice any investigation. However, it is not tipping off to ask for further information as part of your normal CDD process. Permitted disclosures are allowed between institutions and within undertakings under ss.333B-333D.",
+    "effective_date": "2002-12-30"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Proceeds of Crime Act 2002",
+    "section_ref": "s. 335",
+    "topics": [
+      "poca",
+      "consent-regime",
+      "sar",
+      "reporting",
+      "disclosure",
+      "nca",
+      "moratorium"
+    ],
+    "content": "The Consent Regime (POCA 2002 s.335)\n\nThe appropriate consent is:\n(a) the consent of a nominated officer to do a prohibited act if an authorised disclosure is made to the nominated officer;\n(b) the consent of a constable or customs officer if the authorised disclosure is made to them.\n\nA person is treated as having appropriate consent if:\n- They make an authorised disclosure to a constable or customs officer, AND\n- Before the end of the notice period (7 working days) they do not receive notice that consent is refused; OR\n- They receive notice that consent is refused, but the moratorium period (31 days) has expired.\n\nKey timescales:\n- Notice period: 7 working days starting with the first working day after the disclosure is made\n- Moratorium period: 31 days starting with the day on which notice of refusal is received\n- The moratorium period can be extended by court order under s.336A\n\nIn practice, this means: When a solicitor suspects criminal property is involved in a transaction, they must file a SAR with the NCA (via their MLRO) and wait for consent before proceeding. If consent is refused, the transaction must be halted for the moratorium period while the NCA investigates. If no response is received within 7 working days, consent is deemed to have been given.\n\nA \"prohibited act\" is an act mentioned in s.327(1) (concealing), s.328(1) (arrangements), or s.329(1) (acquisition/use/possession).",
+    "effective_date": "2002-12-30"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Proceeds of Crime Act 2002",
+    "section_ref": "s. 340",
+    "topics": [
+      "poca",
+      "definitions",
+      "criminal-property",
+      "money-laundering",
+      "criminal-conduct"
+    ],
+    "content": "Key definitions (POCA 2002 s.340)\n\nCriminal conduct: conduct which constitutes an offence in any part of the United Kingdom, or would constitute an offence in any part of the United Kingdom if it occurred there.\n\nCriminal property: property is criminal property if:\n(a) it constitutes a person's benefit from criminal conduct or it represents such a benefit (in whole or part and whether directly or indirectly), AND\n(b) the alleged offender knows or suspects that it constitutes or represents such a benefit.\n\nBoth elements must be present — the property must actually derive from crime AND the person must know or suspect this.\n\nProperty: all property wherever situated, including money, all forms of real or personal property, things in action and other intangible property.\n\nMoney laundering: an act which constitutes an offence under s.327 (concealing), s.328 (arrangements), or s.329 (acquisition/use/possession), or constitutes an attempt, conspiracy or incitement to commit such an offence, or would constitute such an offence if done in the United Kingdom.\n\nBenefit from conduct: a person benefits from conduct if he obtains property as a result of or in connection with the conduct. If a person obtains a pecuniary advantage, he is taken to obtain a sum of money equal to the value of that advantage.\n\nIt is immaterial who carried out the criminal conduct, who benefited from it, or whether the conduct occurred before or after the passing of the Act.",
+    "effective_date": "2002-12-30"
+  },
+  {
+    "source_type": "external",
+    "source_name": "Law Society of Scotland AML/CTF Sectoral Risk Assessment",
+    "section_ref": "Key Findings",
+    "topics": [
+      "scotland",
+      "sectoral-risk",
+      "soc",
+      "organised-crime",
+      "conveyancing",
+      "risk-assessment",
+      "pwra",
+      "law-society-scotland"
+    ],
+    "content": "Scottish Sectoral Risk Assessment: Key Findings (February 2022)\n\nThe Law Society of Scotland is the Professional Body AML Supervisor for Scottish solicitors. Of the 1,250 practices regulated by the Society, approximately 696 currently operate within the scope of the Money Laundering Regulations.\n\nSupervised Population Risk Profile (2020/21): 280 practice units at inherently lower risk; 362 at medium inherent risk; 54 at inherently higher risk — based on business activities, client types, and geographical reach.\n\nSerious Organised Crime in Scotland:\n- Approximately 2,400 individuals involved in Serious Organised Crime (SOC) in Scotland across 112 SOC Groups\n- 72% of SOCGs are located in the West of Scotland, 18% in the East, 10% in the North\n- SOC costs the Scottish economy approximately £2 billion per year\n- 72% of SOCGs are involved in the use of seemingly legitimate businesses (licensed premises, taxis, restaurants, shops, garages, property development, care homes, waste/recycling)\n- 69% of SOCGs are involved in drug crime (heroin most common, followed by cocaine, cannabis)\n- Other crime types: fraud (including tax fraud), human trafficking, acquisitive crime, environmental crime, cybercrime\n\nUK Context:\n- Over 70,000 individuals involved in SOC throughout the UK\n- £12 billion criminal cash generated annually in UK\n- Total estimated social and economic cost of SOC: at least £24 billion per year\n- Scale of money laundering impacting the UK: hundreds of billions of pounds annually\n\nPractices must use this document to inform their Regulation 18 Practice-Wide Risk Assessment (PWRA). The AML Certificate process focuses on inherent exposure to higher-risk clients, conveyancing, trust and company provision, geographic and delivery channel risk.",
+    "effective_date": "2022-02-01"
   },
   {
     "source_type": "internal",

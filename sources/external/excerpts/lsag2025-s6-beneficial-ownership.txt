@@ -1,0 +1,262 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.15-6.16
+topics: [cdd, beneficial-ownership, ubo, control, companies, trusts, verification]
+effective_date: 2025-04-23
+---
+6.15 Beneficial ownership requirements 
+ 
+6.15.1 Definition of a beneficial owner 
+ 
+A beneficial owner is normally an individual who ultimately owns or controls the customer 
+or on whose behalf a transaction is being conducted. In respect of private individuals (i.e., 
+a natural person), the client themselves may be treated as the beneficial owner, unless 
+there are features of the transaction, or surrounding circumstances, that indicate 
+otherwise.  
+ 
+Therefore, if your client is an individual, you may want to consider whether they are acting 
+on their own behalf. A question to ask yourself in this context and more generally is: “do 
+the services I am being asked to provide make sense given what I know about the client?” 
+ 
+R5(1) defines the beneficial owner of a body corporate, other than a listed company, as 
+meaning: 
+ 
+any individual who: 
+ 
+• exercises ultimate control over the management of the body corporate; 
+• ultimately owns or controls, directly or indirectly, including through bearer share 
+holdings or other means, more than 25% of the shares or voting rights in the body 
+corporate; 
+• otherwise controls the body: 
+o by satisfying one or more of the conditions set out in Part 1 of 
+Schedule 1A to the Companies Act 2006 (persons with significant 
+control); or 
+o if the individual were an undertaking, the body corporate would be a 
+subsidiary undertaking of the individual under section1162 of the 
+Companies Act 2006 read with Part 7 of that Act. 
+ 
+This does not apply to a company listed on a regulated market. It does apply to UK 
+limited liability partnerships. 
+ 
+Regulation 6(1) In relation to a trust, the Regulations define the beneficial owner as each of:  
+• the settlor;  
+• the trustees;  
+• the beneficiaries, or where the individuals benefiting from the trust have not been 
+determined,  the  class  of  persons  in  whose  main  interest  the  trust  is  set  up,  or 
+operates; and 
+• any individual who has control over the trust.  
+In relation to a foundation or other legal arrangement similar to a trust, the beneficial owners 
+are  those  who  hold  equivalent  or  similar  positions  to  those  set  out  above  in  the  case  of 
+trusts. 
+ 
+In  relation  to  a  legal  entity  or  legal  arrangement  which  does  not  fall  into  the  above,  the 
+beneficial owners are:  
+• any individual who benefits from the property of the entity or arrangement;  
+
+ 
+ 
+• where the  individuals  who  benefit from  the  entity or  arrangement  have  yet  to  be 
+identified, the class of persons in whose main interest the entity or arrangement is 
+set up or operates; and 
+• any individual who exercises control over the property of the entity or arrangement. 
+Unincorporated associations and foundations are examples of entities and 
+arrangements likely to fall within these requirements. 
+ 
+When applying this, relevant points to consider are: 
+ 
+• the property of the entity includes its capital and its profits; 
+• determined benefits are those to which an individual is currently entitled; 
+• contingent benefits or situations where no determination has been made 
+should be dealt with as a class to which (and because) benefit has yet to be 
+determined; 
+• a class of persons need only be identified by description; 
+• an  entity  or  arrangement  is  set  up  for,  or  operates  in,  the  main  interest  of  the 
+persons who are likely to get most of the property; 
+• control includes the ability to manage the use of funds or transactions outside the 
+normal management structure and control mechanisms; and 
+• where you find a body corporate with the requisite interest outlined above, you will 
+need to make further proportionate enquiries as to the beneficial owner of the 
+body corporate. 
+ 
+6.15.2 Other forms of control 
+ 
+You should be alert to the risk that a corporate entity can also be subject to control by 
+persons other than shareholders. Such control may rest with those who have power to 
+manage funds or transactions without requiring specific authority to do so, and who would 
+be in a position to authorise changes to internal procedures and control mechanisms. 
+Depending on the control structures in an entity, this could be a senior role operating 
+without actual or effective supervision or another entity. 
+ 
+You should remain alert to any person or entity with such powers while you are obtaining 
+an understanding of the ownership and control structure of the corporate entity and make 
+such further enquiries you need in order to understand the control structure. Monitor 
+situations within the retainer where control structures appear to be bypassed or unduly 
+complex on a risk sensitive basis. 
+ 
+6.16 CDD on a beneficial owner 
+ 
+6.16.1 General Comments  
+ 
+Beneficial Owners must be identified, and reasonable measures must be taken to verify 
+their identities so that you are satisfied you know who the beneficial owner is and that they 
+are in fact the beneficial owner in question.  
+ 
+In complex structures, practices may have to look through layers of ownership (and 
+consider any associated dilution of that ownership) to arrive at any natural persons owning 
+or controlling the client entity.  
+
+ 
+ 
+ 
+It is important to review both shareholdings and voting rights in respect of beneficial 
+ownership, along with understanding the class and value of shares any individual holds. 
+ 
+Where the shareholding of an entity indicates that no one owns or controls over 25% of a 
+client you may wish to consider whether it is appropriate that the senior manager (e.g., 
+CEO, board, controlling mind of the company) be considered as the beneficial owners 
+under R5(1))(a) and (c). This is subtly different to the requirements of R28(8) and would 
+not necessarily raise a concern of extra risks as the circumstances of R28(7) might. 
+ 
+When conducting CDD on a client, you will need to identify any beneficial owners as 
+defined above. This may be undertaken by obtaining: 
+ 
+• shareholder details from a reputable online registry or commercial provider; 
+• a copy of a detailed structure chart; and 
+• a copy of the trust deed, partnership agreement or other such document. 
+ 
+It is not enough to solely rely on the information contained in a company’s register of 
+persons with significant control. You should consider what is the appropriate level of 
+verification required on an RBA. 
+ 
+These reasonable measures to verify a beneficial owner, may differ to those you may use 
+to verify the identity of a client that is a natural person. For example, you may not require 
+passports or driving licenses in these circumstances, but EID&V may present an effective 
+way to verify the identities of beneficial owners.   
+ 
+It is for your practice to determine a tailored and risk sensitive approach that is appropriate 
+to ensure you are satisfied you know who a beneficial owner is and that you fully 
+understand their relationship with the non-natural person. 
+6.16.2 Requirements introduced in 2020 
+ 
+If you cannot identify the beneficial owner (where they have more than 25% holding of the 
+company), you should consider whether this makes the client or matter higher risk and treat 
+it accordingly and consider whether you should continue to act for the client. 
+ 
+If you cannot identify a beneficial owner pursuant to the above despite having exhausted all 
+possible means of doing so or if you are not satisfied that the person is the beneficial owner, 
+you must then take reasonable measures to verify the identity of the senior responsible 
+manager of the body corporate. Depending on the circumstances, it may be that you have 
+already concluded this is the case on the basis that the individual “exercises ultimate control 
+over the management of the body corporate” under Regulation 5(1)(a), although you should 
+note that the scope of Regulation 5(1)(a) is not limited to this scenario. 
+In practice, this may be the Chief Executive Officer or President of the group, or someone 
+else in the executive team with high level responsibility for the running of the relevant aspect 
+of the body corporate. 
+ 
+You must also record: 
+• All the actions you have undertaken to this end; and 
+• Any difficulties encountered. 
+
+ 
+ 
+ 
+6.16.3 Agency 
+ 
+R6(9) says a beneficial owner generally means any individual who ultimately owns or 
+controls the client or on whose behalf a transaction is being conducted. 
+ 
+In most cases, it is presumed that the client is acting on their own behalf, unless the 
+features of the transaction indicate that they are acting on someone else's behalf.  As 
+highlighted above you should make enquiries when it appears the client may be acting on 
+behalf of someone else. 
+ 
+Situations where a natural person may be acting on behalf of someone else include: 
+ 
+• exercising a power of attorney - the document granting power of attorney may be 
+sufficient to verify the beneficial owner's identity; 
+• acting  as  the  deputy,  administrator  or  insolvency  practitioner - appointment 
+documents may be sufficient to verify the beneficial owner's identity; or 
+• acting as an appointed broker or other agent to conduct a transaction - signed 
+letter of appointment may be sufficient to verify the beneficial owner's identity. 
+ 
+You should be alert to the possibility that purported agency relationships are actually 
+being utilised to facilitate a fraud, leading to possible encounters with the proceeds of 
+crime. Understanding the reason for the agency, rather than simply accepting 
+documentary evidence of such at face value, will assist to mitigate this risk. Where a 
+client or retainer is higher risk, you should obtain further verification of the beneficial 
+owner's identity in line with the suggested CDD methods to be applied to natural persons. 
+ 
+This may also include where a legal practice commissions your services on behalf of 
+someone else.  
+ 
+6.16.4 Companies 
+ 
+6.16.4.1 A proportionate approach 
+ 
+Where you have adequately assessed ML risk to be lower, it would not be generally 
+proportionate to conduct independent searches across multiple entities at multiple layers 
+of a corporate chain to see whether, by accumulating very small interests in different 
+entities, a person finally achieves more than a 25 per cent interest in the client corporate 
+entity. Nevertheless, you must be satisfied that you have an overall understanding of the 
+ownership and control structure of the client company. This provision does not apply in 
+any situations of higher risk, where EDD should be applied. 
+ 
+6.16.4.2 Companies with capital in the form of bearer shares 
+ 
+A bearer share is a form of equity (i.e., a stock or share in a company or equivalent) wholly 
+owned by whoever holds the physical stock certificate. Given this, there is no way to 
+register the owner of the stock confidently or consistently nor track transfers of ownership 
+ 
+
+ 
+ 
+These pose a much higher risk of money laundering as it is often difficult to identify 
+beneficial owners and such companies are often incorporated in jurisdictions with lower 
+AML/CTF regulations. You should consider whether the risk posed is acceptable for your 
+practice before proceeding.  
+ 
+If you do proceed, you must adopt procedures to establish the identities of the holders and 
+material beneficial owners of such shares and ensure you are notified whenever there is a 
+change of holder and/or beneficial owner (i.e., who they are held on behalf of).  
+ 
+This might be achieved by: 
+ 
+• requiring that the shares be deposited with you or a regulated person with whom 
+you have a binding covenant; or  
+• getting appropriate assurance that either such a regulated person or the holder 
+of the shares will notify you of any change of records/holder/ownership relating 
+to the shares. 
+ 
+Ultimately it is for your practice to determine the confidence you can place in any assurances 
+that the bearer shares will not be used to hide money laundering or terrorist financing, 
+however extreme caution must be exercised. Bear in mind that the issuance of bearer 
+shares has been banned in the UK since May 2015, primarily due to money laundering and 
+transparency concerns. Enhanced due diligence and ongoing monitoring should be 
+performed and practices must be able to demonstrate the effectiveness of controls in place 
+to their supervisor. 
+ 
+Where a practice does undertake work for clients where beneficial ownership is held in the 
+form of bearer shares, this should be articulated in the Practice-Wide Risk Assessment. 
+ 
+6.16.5 Trusts 
+Whenever you are instructed by someone involved with an existing trust to advise in relation 
+to it, you must extend your CDD to the trust’s beneficial owners.  
+ 
+You should take a risk-based approach to verifying the identity of the ultimate beneficial 
+owner/s of a professional trustee entity (as they should have no interest in the assets placed 
+in trust). Higher-risk indicators may be where the professional trustee entity is unregulated or 
+where the professional trustee is not independent of the settlor (e.g., family offices). Where 
+such factors are present, reasonable measures should be taken to verify the identity of the 
+beneficial owner/s of the trustee. Lower risk factors may be where the professional trustee is 
+itself a regulated entity (or owned by one) or is large, well-known and/or listed on a regulated 
+market. In such low-risk instances, you should not need to identify and verify beneficial 
+ownership of the professional trustee, although you should document the rationale for your 
+actions. 
+ 
+R28(4)(a) requires a relevant person to identify the beneficial owner ‘of a client’ which is 
+beneficially owned by another person. R6(1) defines ‘the beneficial owners in relation to a 
+trust’ as the settlor, the trustees, the beneficiaries (or class of beneficiaries) and any 
+individual who has control over the trust. Although your client will not actually be the trust 
+(because a trust does not have legal personality), if you advise any client in relation to a 
+trust, the Regulations require you to understand who the trust's other beneficial owners are, 
+as defined in R6(1).

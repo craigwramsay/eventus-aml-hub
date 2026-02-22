@@ -1,0 +1,135 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.14.14-6.14.21
+topics: [cdd, foundations, charities, estates, clubs, government, churches, schools, entity-types]
+effective_date: 2025-04-23
+---
+6.14.15 Charities 
+ 
+Charities may take a number of forms. In the UK, you may come across five types of 
+charities: 
+ 
+• small; 
+• registered; 
+• unregistered; 
+• excepted, such as churches; or 
+• exempt, such as museums and universities. 
+ 
+For registered charities, you should take a record of their full name, registration number 
+and place of business. Details of registered charities in the UK can be obtained from: 
+ 
+• the Charity Commission of England and Wales; 
+• the Office of the Scottish Charity Regulator; or 
+• the Charity Commission for Northern Ireland. 
+ 
+Other countries may also have charity regulators which maintain a list of registered 
+charities. You may consider it appropriate to refer to these when verifying the identity of 
+an overseas charity. 
+ 
+For all other types of charities, you should consider the business structure of the charity 
+and apply CDD appropriately. You may also get confirmation of UK charitable status from 
+HMRC. Further, in applying the risk-based approach to charities it is worth considering 
+whether it is a well-known entity or not. The more obscure the charity, the more likely you 
+are to want to view the constitutional documents of the charity, along with any other 
+documents that may clarify the individuals in control and its status. 
+ 
+
+ 
+ 
+Due to the numerous examples of charities and not-for-profit organisations as fund raising 
+vehicles for terrorist organisations you may want to also consult HM Treasury's 
+consolidated list of persons designated as being subject to financial restrictions to ensure 
+the charity is not a designated person. 
+ 
+Another point to consider is Source of Funds, in that charities may fund transactions 
+effectively through crowdfunding, which can make a Source of Funds check difficult to 
+complete. Taking a risk-based approach you should consider whether you need to seek 
+information as to who those individuals or entities are that are funding the charity, 
+particularly those contributing larger percentages or amounts. 
+6.14.16 Deceased persons' estates 
+ 
+When acting for the executor(s) or administrators of an estate, you should establish their 
+identity using the procedures for natural persons or companies set out above. When 
+acting for more than one executor or administrator, you should verify the identity of at 
+least two of them. You should also get copies of the death certificate, grant of probate 
+and any letters of administration. 
+ 
+If a will trust is created, and the trustees are different from the executors, the procedures 
+in relation to trusts will need to be followed when the will trust comes into operation. 
+ 
+6.14.17 Churches and places of worship 
+ 
+Places of worship may either register as a charity or can apply for registration as a certified 
+building of worship from the General Register Office (GRO) which will issue a certificate. 
+Further, their charitable tax status will be registered with HMRC. As such, identification 
+details with respect to the church or place of worship may be verified: 
+ 
+• as for a charity; 
+• through the headquarters or regional organisation of the denomination or 
+religion; 
+• with reference to the GRO certificate; or 
+• through an enquiry to HMRC. 
+ 
+6.14.18 Schools and colleges 
+ 
+Schools and colleges may be a registered charity, a private company, an 
+unincorporated association or a government entity and should be verified in 
+accordance with the relevant category. The Department of Education maintains 
+lists of approved educational establishments which may assist in verifying the 
+existence of the school or college. 
+ 
+6.14.19 Clubs and associations 
+ 
+Many of these bear a low money laundering risk, but this depends on the scope of 
+their purposes, ownership structure, activities and geographic spread. 
+
+ 
+ 
+ 
+The following information may be relevant to the identity of the club or association: 
+ 
+• full name; 
+• legal status; 
+• purpose; 
+• any registered address; or 
+• names of all office holders. 
+ 
+Documents which may verify the existence of the club or association include: 
+ 
+• any articles of association or constitution; 
+• statement from a bank, building society or credit union; 
+• recent audited accounts; or 
+• financial statements presented to the annual general meeting. 
+ 
+6.14.20 Government agencies and councils 
+ 
+The money laundering and terrorist financing risks associated with public authorities vary 
+significantly depending on the nature of the retainer and the home jurisdiction of the public 
+authority. It may be simple to establish that the entity exists, but where there is a 
+heightened risk of corruption or misappropriation of government monies, greater monitoring 
+of retainers should be applied. 
+ 
+The following information may be relevant when establishing a public sector entity's 
+identity: 
+ 
+• full name of the entity; 
+• nature and status of the entity; 
+• address of the entity; 
+• name of the home state authority; 
+• name of the directors or equivalent; 
+• name of the individual instructing you and confirmation of their authority to do so; 
+or 
+• extract from official government website. 
+ 
+Under R37(3) the fact that the client is a public administration or publicly owned enterprise 
+is one of the factors to consider when deciding whether it is low risk and whether to apply 
+simplified due diligence. It will usually be appropriate to apply simplified due diligence to 
+UK public authorities and to some non-UK public authorities, particularly those in the EEA. 
+ 
+6.14.21 Further Information 
+ 
+You may wish to consider the UK Financial Services Joint Money Laundering 
+Steering Group (JMLSG) guidance Part 1 – (available here) as a useful source of 
+information on possible ways to apply CDD on the above entities, and across a 
+broader range of other entity structures. You should note though that in the context of 
+legal services, the LSAG guidance takes precedent.

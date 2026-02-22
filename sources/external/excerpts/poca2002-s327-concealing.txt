@@ -1,0 +1,120 @@
+---
+source_name: Proceeds of Crime Act 2002
+section_ref: s. 327
+topics: [poca, money-laundering-offence, concealing, criminal-property]
+effective_date: 2002-12-30
+---
+327 Concealing etc
+(1)A person commits an offence if he—
+(a)conceals criminal property;
+(b)disguises criminal property;
+
+(c)converts criminal property;
+(d)transfers criminal property;
+(e)removes criminal property from England and Wales or from Scotland or from 
+Northern Ireland.
+(2)But a person does not commit such an offence if—
+(a)he makes an authorised disclosure under section 338 and (if the disclosure 
+is  made  before  he  does  the  act  mentioned  in  subsection  (1))  he  has  the  
+appropriate consent;
+(b)he intended to make such a disclosure but had a reasonable excuse for not 
+doing so;
+(c)the  act  he  does  is  done  in  carrying  out  a  function  he  has  relating  to  the  
+enforcement of any provision of this Act or of any other enactment relating 
+to criminal conduct or benefit from criminal conduct.
+[
+F1125
+(2A)Nor does a person commit an offence under subsection (1) if—
+(a)he  knows,  or  believes  on  reasonable  grounds,  that  the  relevant  criminal  
+conduct  occurred  in  a  particular  country  or  territory  outside  the  United  
+Kingdom, and
+(b)the relevant criminal conduct—
+(i)was not, at the time it occurred, unlawful under the criminal law then 
+applying in that country or territory, and
+(ii)is not of a description prescribed by an order made by the Secretary 
+of State.
+(2B)In  subsection  (2A)  “  the  relevant  criminal  conduct  ”  is  the  criminal  conduct  by  
+reference to which the property concerned is criminal property. ]
+[
+F1126
+(2C)A deposit-taking body [
+F1127
+, electronic money institution or payment institution] that 
+does an act mentioned in paragraph (c) or (d) of subsection (1) does not commit an 
+offence under that subsection if—
+(a)it does the act in operating an account maintained with it, and
+(b)the value of the criminal property concerned is less than the threshold amount 
+determined under section 339A for the act.]
+[
+F1128
+(2D)A person (“P”) who does an act mentioned in paragraph (c) or (d) of subsection (1) 
+does not commit an offence under that subsection if—
+(a)P is carrying on business in the regulated sector that is not excluded business,
+(b)P does the act, in the course of that business—
+(i)in transferring or handing over to a customer or client money or other 
+property of, or owing to, the customer or client, and
+(ii)for the purposes of the termination of P’s business relationship with 
+the customer or client,
+(c)the total value of the criminal property so transferred or handed over to the 
+customer or client by P for those purposes is less than the threshold amount 
+determined under section 339A for the act, and
+(d)before the act is done, P has complied with the customer due diligence duties.
+(2E)For the purposes of subsection (2D)—
+(a)business is “excluded” if it is of a description specified in regulations made 
+by the Secretary of State for the purposes of this paragraph;
+
+(b)a reference to property being transferred or handed over to the customer or 
+client  includes  a  reference  to  property  being  transferred  or  handed  over  to  
+another person at the direction of the customer or client;
+(c)“customer due diligence duties” means all duties imposed on P in relation to 
+the customer or client by regulation 28(2), (3), (3A), (4), (8) or (10) of the 
+Money Laundering, Terrorist Financing and Transfer of Funds (Information 
+on  the  Payer)  Regulations  2017  (S.I.  2017/692)  (customer  due  diligence  
+measures).]
+[
+F1129
+(2F)A person (“P”) who does an act mentioned in paragraph (c), (d) or (e) of subsection (1) 
+does not commit an offence under that subsection if—
+(a)P is carrying on business in the regulated sector,
+(b)P does the act in the course of that business, on behalf of a customer or client, 
+in operating an account or accounts maintained with P or in connection with 
+holding any property for the customer or client,
+(c)at the time of the act, P knows or suspects that part but not all of the funds in 
+the account or accounts, or of the property so held, is criminal property (“the 
+relevant criminal property”),
+(d)it is not possible, at the time the act takes place, to identify the part of the 
+funds or property that is the relevant criminal property, and
+(e)the value of the funds in the account or accounts, or of the property so held, is 
+not, as a direct or indirect result of the act, less than the value of the relevant 
+criminal property at the time of the act.
+(2G)Where subsection (2F) applies—
+(a)if P does the act in operating an account or accounts, the funds in the account 
+or  accounts  immediately  after  the  act  are  assumed  to  include  the  relevant  
+criminal property, and
+(b)if P does the act in connection with holding any property for the customer 
+or client, such of that property as is held by P immediately after the act is 
+assumed to include the relevant criminal property.]
+(3)Concealing  or  disguising  criminal  property  includes  concealing  or  disguising  its  
+nature, source, location, disposition, movement or ownership or any rights with respect 
+to it.
+Textual Amendments
+F1125
+S. 327(2A)(2B) inserted (15.5.2006) by Serious Organised Crime and Police Act 2005 (c. 15), ss. 
+102(2), 178(8); S.I. 2006/1085, art. 3
+F1126
+S. 327(2C) inserted (1.7.2005) by Serious Organised Crime and Police Act 2005 (c. 15), ss. 103(2),
+178(8); S.I. 2005/1521, art. 3(1)(c)
+F1127
+Words in s. 327(2C) inserted (29.6.2021) by Financial Services Act 2021 (c. 22), ss. 32(2), 49(2)(b)
+F1128
+S. 327(2D)(2E) inserted (26.10.2023) by Economic Crime and Corporate Transparency Act 2023 
+(c. 56), ss. 182(2), 219(2)(f)
+F1129
+S. 327(2F)(2G) inserted (26.10.2023 for specified purposes, 15.1.2024 in so far as not already in 
+force) by Economic Crime and Corporate Transparency Act 2023 (c. 56), ss. 183(2), 219(1)(2)(b); S.I. 
+2023/1206, reg. 3(f)
+
+Commencement Information
+I282
+S. 327 in force at 24.2.2003 by S.I. 2003/120, art. 2, Sch. (with arts. 3, 4) (as amended (20.2.2003) by
+S.I. 2003/333, art. 14)

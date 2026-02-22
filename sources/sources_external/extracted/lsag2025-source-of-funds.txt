@@ -1,0 +1,158 @@
+# LSAG AML Guidance 2025 - Source of Funds and Source of Wealth
+# Section 6.17
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+6.17 Source of Funds and Source of Wealth 
+ 
+6.17.1 Overview 
+A fundamental element of client due diligence is understanding the nature, background and 
+circumstances of the client, including their financial position – and making an assessment as 
+to whether the legal services provided to the client are in keeping with your understanding of 
+that background and circumstances. 
+ 
+The extent to which you must obtain, review and evidence your client’s financial position is 
+dependent upon the risk profile of the client or matter. In enhanced due diligence situations 
+this requirement is more stringent. 
+ 
+The financial circumstances of a client can broadly be categorised into Source of Funds 
+(SoF), and Source of Wealth (SoW). 
+ 
+A practice must scrutinise transactions on a matter-by-matter basis, with the objective of 
+understanding what the source of funds are for transactions you undertake on behalf of a 
+client. This is a fundamental aspect of holistic CDD. It is important to remember that 
+understanding the SoF and SoW is a key protection for your practice, and it should be 
+approached as an opportunity to protect your practice from being used for money 
+laundering. 
+ 
+The type of documentation accepted to verify SoW or SoF should depend on the level of 
+ML/TF risk presented by the customer. The higher the risk, the more comprehensive and 
+reliable documents you obtain should be. 
+ 
+Taking a risk-based approach, you may consider funds remitted from a legal practice 
+regulated for AML to equivalent standards as the Regulations as being of lower risk. 
+ 
+You must take adequate measures to check SoF and SoW as a part of EDD when applied 
+to PEPs. You should also consider doing so as a part of ongoing monitoring of any business 
+relationship (whether high risk or otherwise). You should also apply a source of wealth 
+check in other applications of EDD on a risk-based approach.  
+ 
+It is good practice to check the SoF even if a business relationship as defined in the 
+Regulations has not been formed, and the matter is an occasional transaction. It should be 
+considered that checking source of funds is a useful practical tool for protecting your 
+practice generally. 
+ 
+It is important to document the source of funds checks conducted on each client or matter – 
+this may be by way of the collation of information/evidence obtained, and/or the inclusion of 
+a file note outlining what checks were undertaken, what evidence obtained, and the 
+conclusions derived from these checks. 
+ 
+SoF and SoW do not mean the same thing, although there can be significant overlap 
+between the two and they do not exist in isolation to each other. 
+
+90 
+ 
+ 
+ 
+6.17.2 Source of Funds 
+Source of Funds 
+Source of Funds refers to the funds that are being used to fund the specific transaction 
+in hand – i.e., the origin of the funds used for the transactions or activities that occur 
+within the business relationship or occasional transaction.  The question you are 
+seeking to answer should not simply be, “where did the money for the transaction 
+come from,” but also “how and from where did the client get the money for this 
+transaction or business relationship.” It is not enough to know the money came from a 
+UK bank account. 
+ 
+For further reference see point 87 in the following FATF guidance here.  
+ 
+6.17.2.1 Establishing Source of Funds: 
+ 
+The types of data and documents that you use for verification of Source of Funds will vary 
+depending on the circumstances and the information that the customer provides to you. 
+ 
+The SoF pertains directly to the funds that are being used to fund the specific transaction in 
+hand i.e., the origin of the funds used for the transactions or activities that occur within the 
+client’s business relationship with you. Checking this means ascertaining where those funds 
+came from, how they were accumulated by the client and ensuring on a risk-based approach 
+that they are not the proceeds of crime. 
+ 
+SoF is not simply  limited to knowing from which financial institution the funds in question 
+may have been transferred, except where the financial institution is providing financing for 
+the transaction e.g., via mortgage. It should also not be limited to checking that the client’s 
+name matches the name on the account. 
+In addition to documenting the 
+• Amount; 
+• Currency, and 
+• The remitting account details (bank, account number, sort code, name on account)- 
+-the information obtained should be substantive and establish a provenance or reason for 
+having been acquired e.g., salary, gift etc.  
+ 
+Acquiring bank statements, Wills, full payslips, audited financial accounts showing funds 
+disbursed to the client, sales/purchase agreements, receipts of other transactions or similar 
+documentation may all be useful in establishing source of funds. Establishing income from 
+share capital, business activities, a bequest of gift etc. can also help you. 
+ 
+ 
+In circumstances where it becomes known that a third party is to contribute to funds for a 
+transaction, you should consider also seeking to understand and obtain evidence relating to 
+the third party’s underlying SoF, in the same way you would on the client themselves, with 
+the extent of such measures increasing with risk level. Whether and the extent to which you 
+should obtain, review and evidence third party SoF is dependent upon the risk profile of the 
+client or matter, bearing in mind that accepting payments from unknown or unassociated 
+third parties is a specific risk factor pursuant to 33(6)(b)(iv).  
+
+91 
+ 
+ 
+ 
+The need for and extent of source of funds checks should be informed by your ongoing 
+assessment of client and matter risk under regulations 28(11) to (13), and in turn inform 
+future assessments. You must also bear in mind your obligation under regulation 28(16) to 
+demonstrate that the measures you have taken to carry out due diligence are appropriate, 
+with reference to both your PWRA and the relevant sectoral risk assessment. 
+ 
+It may be difficult to determine the SoF without some understanding of the underlying SoW 
+of the individual. This can particularly be the case where the funds for a transaction have 
+become mixed with other funds in an account. Here, to understand the SoF, you may need 
+to have an awareness of the underlying SoW, although your level of confidence in the SoW 
+in such a case, should be considered on a risk-based approach (see  6.17.3 and 6.18.3 for 
+further guidance on SoW. 
+ 
+6.17.3 Source of Wealth 
+ 
+Source of Wealth 
+ 
+The source of wealth refers to the origin of a client’s entire body of wealth (i.e., total assets).  
+ 
+SoW describes the economic, business and/or commercial activities that generated, or 
+significantly contributed to, the client’s overall net worth/entire body of wealth. This should 
+recognise that the composition of wealth generating activities may change over time, as 
+new activities are identified, and additional wealth is accumulated. 
+ 
+You should seek to answer the question: “why and how does the individual have the amount 
+of overall assets they do – and how did they accumulate/generate these?” 
+ 
+For further reference see point 88 in the following FATF guidance here.  
+ 
+ 
+ 
+SoW is a holistic appraisal as to where an individual or an entity has derived their overall 
+wealth (i.e., the origin of their entire body of assets), rather than any specific portion of it. 
+To check SoW in a low/medium risk transaction, you may be comfortable identifying the SoW 
+by asking and recording how the client has accrued their wealth or by verifying the client’s 
+business interests through public searches. For low/medium risk transactions in relation to 
+companies and other body corporate clients you could be comfortable that the intended 
+transaction is consistent with what you know about the company. For guidance in establishing 
+SoW in higher risk situations see 6.18.3. 
+ 
+For further information on source of wealth requirements please see the Enhanced Due 
+Diligence section below. 
+ 
+In-depth guidance on Source of Wealth and Source of Funds requirements has been issued 
+by the Wolfsberg Group and can be found here.  
+ 
+ 
+
+92 
+ 
+ 

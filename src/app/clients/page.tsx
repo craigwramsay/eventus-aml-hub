@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { getUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getClients } from '@/app/actions/clients';
+import { ClientsList } from './ClientsList';
 import styles from './clients.module.css';
 
 export default async function ClientsPage() {
@@ -20,7 +21,7 @@ export default async function ClientsPage() {
   return (
     <div className={styles.container}>
       <Link href="/dashboard" className={styles.backLink}>
-        ← Back to Dashboard
+        &larr; Back to Dashboard
       </Link>
 
       <div className={styles.header}>
@@ -35,43 +36,7 @@ export default async function ClientsPage() {
           <p>No clients yet. Create your first client to get started.</p>
         </div>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clients.map((client) => (
-              <tr key={client.id}>
-                <td>
-                  <Link
-                    href={`/clients/${client.id}`}
-                    className={styles.tableLink}
-                  >
-                    {client.name}
-                  </Link>
-                </td>
-                <td>
-                  <span
-                    className={`${styles.badge} ${
-                      client.client_type === 'individual'
-                        ? styles.badgeIndividual
-                        : styles.badgeCorporate
-                    }`}
-                  >
-                    {client.client_type}
-                  </span>
-                </td>
-                <td>
-                  {new Date(client.created_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ClientsList clients={clients} />
       )}
     </div>
   );

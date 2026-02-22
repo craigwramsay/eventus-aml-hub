@@ -86,7 +86,7 @@ eventus-aml-hub/
 ├── .github/workflows/ci.yml         # CI/CD pipeline (lint, typecheck, test, build, Docker)
 ├── Dockerfile                        # Multi-stage production Docker build
 ├── docker-compose.yml                # Local Docker development
-├── scripts/                          # CLI tools (excerpt parser, ingest)
+├── scripts/                          # CLI tools (excerpt parser, ingest, extract-pdf-text)
 ├── sources/                          # Raw source documents (originals, NOT imported by code)
 │   ├── eventus/
 │   │   ├── excerpts/                 # Internal policy excerpts (YAML frontmatter + content)
@@ -94,8 +94,9 @@ eventus-aml-hub/
 │   │   ├── rules/                    # Original risk model + CDD ruleset documents (.docx/.txt)
 │   │   ├── *.docx / *.txt           # PWRA, AML Policy source documents
 │   └── sources_external/            # Legislation, guidance PDFs (MLR 2017, LSAG 2025, FATF lists)
+│   │   └── extracted/               # Raw verbatim text extracted from PDFs (35 files)
 │   └── external/
-│       └── excerpts/                 # Curated regulatory excerpts for assistant ingestion
+│       └── excerpts/                 # Curated regulatory excerpts for assistant ingestion (47 files, verbatim)
 ├── supabase/migrations/              # SQL migrations for schema changes
 ├── src/
 │   ├── config/
@@ -428,6 +429,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Embedding backfill for existing sources (admin API endpoint)
 - [x] Pluggable LLM client (OpenAI + Anthropic)
 - [x] Source excerpt ingestion pipeline (YAML frontmatter parser, Supabase insert)
+- [x] External source library (47 verbatim excerpts: MLR 2017, POCA 2002, LSAG 2025, FATF lists, NRA 2025, Scottish Sectoral Risk, Rule B9)
 - [x] Audit event logging (including failed login attempts)
 - [x] Multi-tenant firm isolation (RLS)
 - [x] Multi-jurisdiction support (Scotland / England & Wales, per-firm setting)
@@ -440,13 +442,13 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 
 ### Incomplete / Not Yet Built
 
-- [ ] Assessment editing / re-assessment workflow
+- [x] Assessment re-run workflow (re-run button, pre-populate from previous answers, assessment history on matter page)
 - [x] PDF export of determinations (browser print with `@media print` styles)
-- [ ] Client/matter search and filtering
+- [x] Client/matter/assessment search and filtering (text search + type/status filter buttons)
 - [ ] Dashboard analytics / reporting
 - [ ] Ongoing monitoring tracking
 - [ ] SAR (Suspicious Activity Report) workflow
-- [ ] Source excerpt versioning / update tracking
+- [ ] Source excerpt versioning / update tracking (Phase 1 external library complete; versioning for updates not yet built)
 - [ ] Automated testing coverage for UI components
 - [ ] Generated Supabase types (currently manual)
 
@@ -454,11 +456,10 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 
 ## 11. Known Technical Debt
 
-1. **Hardcoded thresholds in determination renderer.** `renderDetermination.ts` has `THRESHOLD_TEXT: { LOW: '0-4', MEDIUM: '5-8', HIGH: '9+' }` which duplicates config values. Should read from the scoring config.
-2. **No generated Supabase types.** The comment in `types.ts` notes "For full type generation, use: `npx supabase gen types typescript`". Currently using manually defined types.
-3. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
-4. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
-5. **Source documents and runtime configs in separate locations.** Original policy documents live in `sources/` while the JSON configs imported by the rules engine live in `src/config/eventus/`. Changes to the source documents require manual translation into the JSON configs.
+1. **No generated Supabase types.** The comment in `types.ts` notes "For full type generation, use: `npx supabase gen types typescript`". Currently using manually defined types.
+2. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
+3. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
+4. **Source documents and runtime configs in separate locations.** Original policy documents live in `sources/` while the JSON configs imported by the rules engine live in `src/config/eventus/`. Changes to the source documents require manual translation into the JSON configs.
 
 ---
 
@@ -526,17 +527,41 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 
 ## 17. Next Logical Development Steps
 
-1. **Assessment re-run workflow.** Allow creating a new assessment for the same matter (re-assessment) while preserving the original. Never modify the original.
-2. **Dashboard analytics.** Summary stats: assessments by risk level, outstanding mandatory actions, matters pending assessment.
-3. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
-4. **SAR workflow.** Suspicious Activity Report submission and tracking.
-5. **Client/matter search and filtering.** Full-text search and filter controls on list pages.
-6. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
-7. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 163 tests across 6 suites (rules engine: 43, determination: 67, auth: 15, assistant validation: 17, Companies House client: 10, embeddings client: 11).
-8. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
-9. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
-10. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
-11. **Read thresholds from config in determination renderer.** Remove hardcoded `THRESHOLD_TEXT` and read from the scoring config dynamically.
+1. **Dashboard analytics.** Summary stats: assessments by risk level, outstanding mandatory actions, matters pending assessment.
+2. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
+3. **SAR workflow.** Suspicious Activity Report submission and tracking.
+4. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
+5. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 163 tests across 6 suites (rules engine: 43, determination: 67, auth: 15, assistant validation: 17, Companies House client: 10, embeddings client: 11).
+6. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
+7. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
+8. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
+### Roadmap: Explore
+
+12. **Per-firm rules engine config and assessment form (multi-tenant calibration).** Move rules engine config (scoring model, CDD ruleset, AND form questions) from static JSON files to per-firm database-stored config, keyed by `firm_id`. The engine code stays the same (already config-driven); what changes per firm is the config it reads. Form questions and scoring rules are tightly coupled — each question captures a risk factor, each answer gets scored. **No AI in the config pipeline** — config is created by a human who understands the firm's policies, not extracted by an LLM. Determinism is non-negotiable for anything that drives scoring or CDD requirements.
+    - **Regulatory baseline template** — standard config encoding all mandatory requirements from MLR 2017 and LSAG 2025. Includes: core form questions (mandatory, can't be removed — client type, jurisdiction, PEP status, SoF complexity, service type, delivery channel, transaction value), core scoring rules, minimum CDD actions, mandatory EDD triggers. This is a starting point for config creation, NOT a usable default — firms cannot run assessments until onboarded.
+    - **Firm-specific form questions** — MLRO can add questions specific to their practice (e.g., payment method, referral source, practice-area-specific questions). Each added question must map to a scoring rule. Core questions cannot be removed.
+    - **Firm-specific calibration** — derived from the firm's PWRA (risk appetite, practice area weighting, threshold positioning) and AML Policy/PCPs (additional CDD actions, escalation rules, evidence requirements beyond statutory minimum).
+    - **MLRO admin UI** — single configuration experience: view/manage form questions (core locked, firm additions editable), scoring rules and weights, risk level thresholds, CDD actions per risk level (minimum locked, additions editable), EDD triggers, practice area mappings, preview with sample assessments.
+    - **Validation** — system ensures no firm's config falls below the regulatory floor. Stricter than regulations = allowed; weaker = blocked.
+    - **Config versioning** — every change versioned, timestamped, audit logged (who changed what). Previous versions preserved. Assessments unaffected by config changes (snapshot pattern). Version history supports regulatory inspection ("show me your risk model as at 15 March 2026").
+    - **Firm onboarding lifecycle (mandatory before assessments can begin):**
+      1. *Firm created* — admin sets firm name, jurisdiction. Firm exists but is not yet active for assessments.
+      2. *MLRO provides PWRA + AML Policy/PCPs* — mandatory, no shortcut. The hub cannot determine risk or prescribe CDD without the firm's own policies.
+      3. *Human translates documents into config* — the MLRO (or us during onboarding) uses the admin UI to set risk factors, weights, thresholds, CDD actions, building on the regulatory baseline template. No AI extraction — a human reads the policies and configures the engine. This is deterministic: the same policies, configured by the same person, produce the same config.
+      4. *System validates* config against regulatory floor — deterministic comparison, no AI.
+      5. *MLRO approves and locks* — config goes live, firm is active for assessments.
+    - **Ongoing lifecycle:**
+      - *PWRA annual review* (reg 18(2)) — MLRO reviews current config against updated PWRA, makes adjustments via admin UI → new config version created, audit logged. Previous version preserved.
+      - *AML Policy/PCP update* — MLRO reviews config implications if new CDD requirements added. For assistant: new source excerpts created from updated PCPs (old archived).
+      - *Regulatory change* — platform baseline updated → all firms notified "review required" → system flags where firm config may need adjustment to meet new baseline → MLRO reviews and confirms.
+      - *Practice area change* — MLRO adds new practice areas, configures relevant additional risk factors and CDD requirements via admin UI.
+    - Inputs: firm's PWRA + AML Policy/PCPs → human-configured config. One engine, many configs.
+
+13. **AI assistant source strategy and ingestion.** Three use cases, three phases. AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
+    - **Phase 1 — External source library (platform-wide). ✅ LARGELY COMPLETE.** 47 verbatim excerpt files covering: MLR 2017 (15 key regs), POCA 2002 (7 sections), LSAG 2025 (15 excerpts split from 4 large chapters — CDD, EDD, red flags, corporate structures, plus 4 smaller sections), FATF black/grey lists, NRA 2025, Scottish Sectoral Risk 2022, LSS Rule B9. All content is verbatim text extracted from source PDFs (not paraphrased). Raw extracts stored in `sources/sources_external/extracted/` (35 files). Introduce `source_scope` concept: `platform` (shared, all firms) vs `firm` (firm-specific). Remaining: LSAG s5 risk assessment (no raw extract yet), potential additional MLR regs or LSAG sub-sections as gaps are identified in assistant testing.
+    - **Phase 2 — Firm source ingestion.** Admin UI for MLRO to upload/paste PCP content. Human-curated chunking: MLRO identifies section boundaries, assigns topic tags, and reviews content before it becomes a source excerpt. Embeddings generated automatically for vector search (already built). Covers firm-specific procedural questions (use case 2) — e.g., "What documents do we need to verify an instructing director offline?"
+    - **Phase 3 — Form question contextual help.** Wire existing `QuestionHelperButton` into assessment form fields (component exists, not yet integrated). Optionally pre-map form questions to source topics for better retrieval. Assistant opens with question context loaded, user can ask follow-ups. Quality improves as phases 1 and 2 add source material. Covers use case 3.
+    - Internal sources for assistant: firm's PCPs (primary — procedural, answers "how do I..."), AML Policy (strategic — answers "what's our policy on..."), firm-specific guidance notes. NOT risk scoring model or CDD ruleset (those belong in the rules engine, not the assistant — avoids drift between engine behaviour and assistant explanations).
 
 ---
 
@@ -558,4 +583,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 20 Feb 2026, after vector/semantic search + assistant UI integration. 163 tests passing across 6 suites. Update when architectural decisions change.*
+*Last updated: 22 Feb 2026, after Phase A.1 verbatim source excerpt replacement. 163 tests passing across 6 suites. Update when architectural decisions change.*

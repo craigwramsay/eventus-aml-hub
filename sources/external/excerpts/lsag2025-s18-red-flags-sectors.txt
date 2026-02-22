@@ -1,0 +1,283 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 18.7-18.10
+topics: [red-flags, tcsp, litigation, proliferation-financing, sanctions, sector-specific]
+effective_date: 2025-04-23
+---
+CDD on the investors.  
+18.7 Trust and Company Service Providers (TCSPs) 
+ 
+• Payments received from un-associated or unknown third parties and payments for 
+fees in cash where this would not be a typical method of payment;  
+• inexplicable changes in ownership;  
+• activities of the trust, company or other legal entity are unclear or different from the 
+stated purposes under trust deeds or internal regulations of the company or 
+foundation;  
+• legal structure has been altered frequently and/or without adequate explanation; 
+• management of any trustee, company or legal entity appears to be according to 
+instructions of unknown or inappropriate person(s); 
+• unlikely choice of TCSP without a clear explanation, given the size, location or 
+specialisation of the TCSP; 
+• use of pooled client accounts or safe custody of client money / assets or bearer 
+shares, without justification; 
+• situations where advice on the setting up of legal persons or legal arrangements may 
+be misused to obscure ownership or real economic purpose;  
+• in case of an express trust, an unexplained nature or classes of beneficiaries and 
+acting trustees of such a trust; 
+• services where TCSPs may in practice represent or assure the client’s standing, 
+reputation and credibility to third parties, without a commensurate knowledge of the 
+client’s affairs;  
+• services that are capable of concealing beneficial ownership from competent 
+authorities;  
+• services that have deliberately provided, or depend upon, more anonymity in relation 
+to the client’s identity or regarding other participants than is normal;  
+• use of virtual assets and other anonymous means of payment and wealth transfer 
+within the transaction without apparent legal, tax, business, economic or other 
+legitimate reason; 
+• transactions using unusual means of payment; 
+• postponement of a payment for an asset or service delivered immediately to a date 
+far from the moment at which payment would normally be expected to occur, without 
+appropriate assurances that payment will be made;  
+• successive capital or other contributions in a short period of time to the same 
+company with no apparent legal, tax, business, economic or other legitimate reason;  
+
+ 
+ 
+• power of representation given in unusual conditions and the stated reasons for these 
+conditions are unclear or illogical;  
+• transactions involving closely connected persons and for which the client and/or its 
+financial advisors provide inconsistent or irrational explanations and are 
+subsequently unwilling or unable to explain by reference to legal, tax, business, 
+economic or other legitimate reason;  
+• nominee is being used with no apparent legal, tax, business, economic or other 
+legitimate reason;  
+• commercial, private or real property transactions or services to be carried out by the 
+trust, company or other legal entity with no apparent legitimate business, economic, 
+tax, family governance, or legal reasons;  
+• products/services that have inherently provided more anonymity or confidentiality 
+without a legitimate purpose; 
+• existence of suspicion of fraudulent transactions, or transactions that are improperly 
+accounted for;  
+• any attempt by the settlor, trustee, company or other legal entity to enter into any 
+fraudulent transaction;  
+• any attempt by the settlor, trustee, company or other legal entity to enter into any 
+arrangement to fraudulently evade tax in any relevant jurisdiction;  
+• The customer is both the ordering and beneficiary customer for multiple outgoing 
+international funds transfers;  
+• The connections between the parties are questionable, or generate doubts that 
+cannot be sufficiently explained by the client; 
+• The transaction itself: 
+o is occurring between two or more parties that are connected without an apparent 
+business or trade rationale; 
+o is a business transaction that involves family members of one or more of the 
+parties without a legitimate business rationale; 
+o is a repeat transaction between parties over a contracted period of time; 
+o is a large or repeat transaction, and the executing customer is a signatory to the 
+account, but is not listed as having a controlling interest in the company or 
+assets; 
+o is executed from a business account but appears to fund personal purchases, 
+including the purchase of assets or recreational activities that are inconsistent 
+with the company’s profile; 
+o as executed from a business account and involves a large sum of cash, either as 
+a deposit or withdrawal, which is anomalous, or inconsistent with the company’s 
+profile;  
+o appears cyclical; 
+o involves the two-way transfer of funds between a client and a professional 
+intermediary for similar sums of money; 
+o involves two legal persons with similar or identical directors, shareholders or 
+beneficial owners; 
+o involves a professional intermediary without due cause or apparent justification;  
+o involves complicated transaction routings without sufficient explanation or trade 
+records; 
+o involves the transfer of real property from a natural to a legal person in an off-
+market sale; 
+o involves the use of multiple large cash payments to pay down a loan or 
+mortgage; 
+o involves a numbered account; 
+o involves licensing contracts between corporations owned by the same individual 
+o involves the purchase of high-value goods in cash;  
+
+ 
+ 
+o involves the transfer of (bearer) shares in an off-market sale; 
+o loan or mortgage is paid off ahead of schedule, incurring a loss; 
+o includes contractual agreements with terms that do not make business sense for 
+the parties involved; 
+o includes contractual agreements with unusual clauses allowing for parties to be 
+shielded from liability but make the majority of profits at the beginning of the deal; 
+o is transacted via a digital wallet; or 
+• Unexplained use of powers of attorney or other delegation processes.  
+ 
+18.8 Litigation (generally out of scope but still may be relevant for POCA or TACT) 
+ 
+• Disputes which are settled too easily or in an atypical manner may indicate sham 
+litigation; 
+• payments on account followed by request for refund; or 
+• settlement of a debt by credit card, which may be stolen. 
+18.9 Choice of Lawyer 
+ 
+• The instructions are unusual for your practice or client or where they change 
+unexpectedly without a logical reason; 
+• the client has changed advisor a number of times or engaged multiple legal advisers 
+without legitimate reason;  
+• the required service was refused by another professional or the relationship with 
+another professional was terminated; 
+• effusive praise for you or your firm; or 
+• willingness to pay more than usual rates.  
+18.10 Proliferation Financing 
+ 
+• Transaction involves person or entity in foreign country of proliferation concern.  
+• Transaction involves person or entity in foreign country of diversion concern.  
+• The customer or counter-party or its address is similar to one of the parties found on 
+publicly available lists of “denied persons” or has a history of export control 
+contraventions.  
+• Customer activity does not match business profile, or end-user information does not 
+match end-user’s business profile. 
+• A freight forwarding firm is listed as the product’s final destination. 
+• Order for goods is placed by firms or persons from foreign countries other than the 
+country of the stated end-user. 
+• Transaction involves shipment of goods incompatible with the technical level of the 
+country to which it is being shipped, (e.g. semiconductor manufacturing equipment 
+being shipped to a country that has no electronics industry). 
+• Transaction involves possible shell companies (e.g. companies do not have a high 
+level of capitalisation or displays other shell company indicators).  
+• Transaction demonstrates links between representatives of companies exchanging 
+goods i.e. same owners or management.  
+• Circuitous route of shipment (if available) and/or circuitous route of financial 
+transaction.  
+
+ 
+ 
+• Trade finance transaction involves shipment route (if available) through country with 
+weak export control laws or weak enforcement of export control laws.  
+• Transaction involves persons or companies (particularly trading companies) located 
+in countries with weak export control laws or weak enforcement of export control 
+laws. 
+• Transaction involves shipment of goods inconsistent with normal geographic trade 
+patterns (e.g. does the country involved normally export/import good involved?).  
+• Transaction involves financial institutions with known deficiencies in AML/CFT 
+controls and/or domiciled in countries with weak export control laws or weak 
+enforcement of export control laws.  
+• Based on the documentation obtained in the transaction, the declared value of the 
+shipment was obviously under-valued vis-à-vis the shipping cost.  
+• Inconsistencies in information contained in trade documents and financial flows, such 
+as names, companies, addresses, final destination etc.  
+• Pattern of wire transfer activity that shows unusual patterns or has no apparent 
+purpose.  
+• Customer vague/incomplete on information it provides, resistant to providing 
+additional information when queried.  
+• New customer requests letter of credit transaction awaiting approval of new account.  
+• Wire instructions or payment from or due to parties not identified on the original letter 
+of credit or other documentation. 
+• Misleading paperwork eg where a freight-forwarding entity or customs-clearing office 
+is named as the final destination for goods 
+• Generic or vague commercial wording on customs declarations/export licenses 
+• Irregularities with vessels involved in shipping and logistics such as; 
+o at-sea transferal of cargo,  
+o sailing routes inconsistent with historic routes for the vessel or;  
+o gaps in transponder (or automated identification system) signalling  
+  
+
+ 
+ 
+19. GLOSSARY 
+ 
+Acronym Meaning 
+AIM Alternative Investment Market 
+AML Anti- Money Laundering 
+BACS Bankers' Automated Clearing System 
+BOOM Beneficial Owner, Officer or Manager 
+CDD Client Due Diligence 
+CEO Chief Executive Officer 
+CFO Chief Financial Officer 
+CTO Chief Technology Officer 
+DAML Defence Against Money Laundering 
+EDD Enhanced Due Diligence 
+EEA European Economic Area 
+EID&V Electronic Identification & Verification 
+EU European Union 
+FATF Financial Action Task Force 
+FCA Financial Conduct Authority 
+GDPR General Data Protection Regulation 
+HMRC Her Majesty's Revenue & Customs 
+HMT Her Majesty's Treasury 
+HRTC High Risk Third Country 
+ID&V Identification & Verification 
+IDV Identity Verification 
+ISIL Islamic State of Iraq and the Levant 
+LLP Limited Liability Partnership 
+LSAG Legal Sector Affinity Group 
+ML Money Laundering 
+ML/TF Money Laundering/Terrorist Financing 
+MLCO Money Laundering Compliance Officer 
+MLRO Money Laundering Reporting Officer 
+NCA National Crime Agency 
+OPBAS 
+Office for Professional Body Anti-Money Laundering 
+Supervision 
+PCP Policy, Control, Procedure 
+PEP Politically Exposed Person 
+POCA Proceeds of Crime Act 
+PWRA Practice Wide Risk Assessment 
+RBA Risk Based Approach 
+SAR Suspicious Activity Report 
+SDD Simplified Due Diligence 
+SFO Serious Fraud Office 
+SLP Scottish Limited Partnership 
+TACT Terrorism Act 
+
+ 
+ 
+TF Terrorist Financing 
+UBO Ultimate Beneficial Owner 
+UK United Kingdom 
+UKFIU United Kingdom Financial Intelligence Unit 
+
+ 
+ 
+ 
+Annex I 
+If you suspect that property involved in a retainer is criminal property, offences under section 327 and section 329 are relatively straightforward to 
+assess. However, an arrangement offence under section 328 may be more complicated, particularly with transactional matters. 
+Annexes II and III 
+You may become concerned in the arrangement by, for example, executing or implementing it, which may lead you to commit an offence under 
+the Proceeds of Crime Act or the Terrorism Act (2000). 
+Consider whether you need to make an authorised disclosure to: 
+• obtain consent/DAML to proceed with the transaction 
+• provide yourself with a defence to the principal money laundering offences 
+If you are acting within the regulated sector, consider whether you risk committing a failure to disclose offence, if you do not make a disclosure to 
+the NCA. 
+The following two flowcharts show the issues to consider when deciding whether to make a disclosure to the NCA. 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+Acknowledgements 
+ 
+Special thanks to: 
+Jane Jarman, Solicitor and Professor of Law at Nottingham Law School, Nottingham Trent University, 
+for her time, knowledge and expertise in drafting Chapter 13 “Legal Professional Privilege”. 
+Members of the Law Society of England & Wales Money Laundering Taskforce for their time, 
+knowledge and expertise in undertaking practitioner review, challenge and input across this 
+document. 
+
+ 
+ 
+Schedule of amendments 
+ 
+Strikethrough: deletion 
+Underline: addition 
+ 
+2025 amendments and updates 
+ 
+Paragraph Amendment

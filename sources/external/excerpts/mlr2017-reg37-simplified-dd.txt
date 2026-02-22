@@ -1,0 +1,130 @@
+---
+source_name: Money Laundering Regulations 2017
+section_ref: reg. 37
+topics: [simplified-due-diligence, sdd, cdd, low-risk, due-diligence]
+effective_date: 2017-06-26
+---
+Application of simplified customer due diligence
+37.—(1)  A relevant person may apply simplified customer due diligence measures in relation
+to a particular business relationship or transaction if it determines that the business relationship or
+transaction presents a low degree of risk of money laundering and terrorist financing, having taken
+into account—
+(a)the risk assessment it carried out under regulation 18(1);
+(b)relevant information made available to it under regulations 17(9) and 47; and
+(c)the risk factors referred to in paragraph (3).
+(2)  Where a relevant person applies simplified customer due diligence measures, it must—
+(a)
+continue to comply with the requirements in [
+F168
+regulations 28 and 30A], but it may adjust
+the extent, timing or type of the measures it undertakes under [
+F169
+regulation 28] to reflect
+its determination under paragraph (1); and
+(b)carry  out  sufficient  monitoring  of  any  business  relationships  or  transactions  which  are
+subject to those measures to enable it to detect any unusual or suspicious transactions.
+(3)    When  assessing  whether  there  is  a  low  degree  of  risk  of  money  laundering  and  terrorist
+financing  in  a  particular  situation,  and  the  extent  to  which  it  is  appropriate  to  apply  simplified
+
+customer  due  diligence  measures  in  that  situation,  the  relevant  person  must  take  account  of  risk
+factors including, among other things—
+(a)customer risk factors, including whether the customer—
+(i)is a public administration, or a publicly owned enterprise;
+(ii)is an individual resident in a geographical area of lower risk (see sub-paragraph (c));
+(iii)is a credit institution or a financial institution which is—
+[
+F170
+(aa)
+subject to requirements in national legislation having an equivalent effect
+to those laid down in the fourth money laundering directive on an obliged
+entity (within the meaning of that directive); and]
+(bb)
+supervised  for  compliance  with  those  requirements  [
+F171
+in  a  manner
+equivalent  to]  section  2  of  Chapter  VI  of  the  fourth  money  laundering
+directive;
+(iv)is a company whose securities are listed on a regulated market, and the location of
+the regulated market;
+(b)product, service, transaction or delivery channel risk factors, including whether the product
+or service is—
+(i)a life insurance policy for which the premium is low;
+(ii)an  insurance  policy  for  a  pension  scheme  which  does  not  provide  for  an  early
+surrender option, and cannot be used as collateral;
+(iii)a  pension,  superannuation  or  similar  scheme  which  satisfies  the  following
+conditions—
+(aa)the scheme provides retirement benefits to employees;
+(bb)contributions to the scheme are made by way of deductions from wages; and
+(cc)the scheme rules do not permit the assignment of a member's interest under
+the scheme;
+(iv)a financial product or service that provides appropriately defined and limited services
+to certain types of customers to increase access for financial inclusion purposes in
+[
+F172
+the United Kingdom];
+(v)a product where the risks of money laundering and terrorist financing are managed
+by other factors such as purse limits or transparency of ownership;
+(vi)a child trust fund within the meaning given by section 1(2) of the Child Trust Funds
+Act 2004 
+M79
+;
+(vii)a junior ISA within the meaning given by regulation 2B of the Individual Savings
+Account Regulations 1998 
+M80
+;
+(c)geographical risk factors, including whether the country where the customer is resident,
+established or registered or in which it operates is—
+(i)
+[
+F173
+the United Kingdom];
+(ii)a third country which has effective systems to counter money laundering and terrorist
+financing;
+(iii)a third country identified by credible sources as having a low level of corruption
+or other criminal activity, such as terrorism (within the meaning of section 1 of the
+Terrorism Act 2000 
+M81
+), money laundering, and the production and supply of illicit
+drugs;
+
+(iv)a third country which, on the basis of credible sources, such as evaluations, detailed
+assessment reports or published follow-up reports published by the Financial Action
+Task  Force,  the  International  Monetary  Fund,  the  World  Bank,  the  Organisation
+for Economic Co-operation and Development or other international bodies or non-
+governmental organisations—
+(aa)has  requirements  to  counter  money  laundering  and  terrorist  financing
+that  are  consistent  with  the  revised  Recommendations  published  by  the
+Financial Action Task Force in February 2012 and updated in October 2016;
+and
+(bb)effectively implements those Recommendations.
+(4)  In making the assessment referred to in paragraph (3), relevant persons must bear in mind that
+the presence of one or more risk factors may not always indicate that there is a low risk of money
+laundering and terrorist financing in a particular situation.
+(5)  A relevant person may apply simplified customer due diligence measures where the customer
+is  a  person  to  whom  paragraph  (6)  applies  and  the  product  is  an  account  into  which  monies  are
+pooled (the “pooled account”), provided that—
+(a)the business relationship with the holder of the pooled account presents a low degree of
+risk of money laundering and terrorist financing; and
+(b)information on the identity of the persons on whose behalf monies are held in the pooled
+account is available, on request to the relevant person where the pooled account is held.
+(6)  This paragraph applies to—
+(a)a relevant person who is subject to these Regulations under regulation 8;
+[
+F174
+(b)
+a person who carries on business in a third country who is—
+(i)subject to requirements in national legislation having an equivalent effect to those
+laid down in the fourth money laundering directive on an obliged entity (within the
+meaning of that directive); and
+(ii)supervised  for  compliance  with  those  requirements  in  a  manner  equivalent  to
+section 2 of Chapter VI of the fourth money laundering directive.]
+F175
+(7)  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+(8)  A relevant person must not continue to apply simplified customer due diligence measures
+under paragraph (1)—
+(a)if it doubts the veracity or accuracy of any documents or information previously obtained
+for the purposes of identification or verification;
+(b)if its risk assessment changes and it no longer considers that there is a low degree of risk
+of money laundering and terrorist financing;
+(c)if it suspects money laundering or terrorist financing; or
+(d)if any of the conditions set out in regulation 33(1) apply.

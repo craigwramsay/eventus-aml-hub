@@ -66,15 +66,34 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
   // Build matter display: prefer description, fall back to reference
   const matterDisplay = matter.description || matter.reference;
 
-  // Check for existing assessments on this client to determine new/existing status
+  // Check for existing assessments on this matter to determine new/existing status
   const existingAssessments = await getAssessmentsForMatter(matter_id);
   const isExistingClient = existingAssessments.length > 0;
+  const isReassessment = existingAssessments.length > 0;
+
+  // If re-running, pre-populate from the most recent assessment's form answers
+  // (assessments are ordered newest-first by getAssessmentsForMatter)
+  const previousAnswers: FormAnswers = {};
+  if (isReassessment) {
+    const latestSnapshot = existingAssessments[0].input_snapshot as unknown as {
+      formAnswers?: FormAnswers;
+    };
+    if (latestSnapshot?.formAnswers) {
+      Object.assign(previousAnswers, latestSnapshot.formAnswers);
+    }
+  }
 
   // Build initial values from client/matter data
   // Field IDs differ between individual and corporate forms
   const initialValues: FormAnswers = {};
   const readOnlyFields: string[] = [];
 
+  // Start with previous assessment answers as base (user can modify these)
+  if (isReassessment) {
+    Object.assign(initialValues, previousAnswers);
+  }
+
+  // Override with client/matter data (these are always read-only)
   if (derivedClientType === 'corporate') {
     // Corporate form field mappings
     if (matter.client.name) {
@@ -132,11 +151,21 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
       </Link>
 
       <div className={styles.header}>
-        <h1 className={styles.title}>New Risk Assessment</h1>
+        <h1 className={styles.title}>
+          {isReassessment ? 'Re-run Risk Assessment' : 'New Risk Assessment'}
+        </h1>
         <p className={styles.subtitle}>
-          Complete the Client and Matter Risk Assessment form below
+          {isReassessment
+            ? 'Previous answers have been pre-filled. Review and update as needed.'
+            : 'Complete the Client and Matter Risk Assessment form below'}
         </p>
       </div>
+
+      {isReassessment && (
+        <div className={styles.reassessmentBanner}>
+          This matter has {existingAssessments.length} previous assessment{existingAssessments.length > 1 ? 's' : ''}. Submitting will create a new assessment — the original{existingAssessments.length > 1 ? 's are' : ' is'} preserved.
+        </div>
+      )}
 
       <div className={styles.matterInfo}>
         <div className={styles.matterInfoRow}>

@@ -1,0 +1,506 @@
+# LSAG AML Guidance 2025 - Enhanced Due Diligence (EDD)
+# Sections 6.18 - 6.19
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+6.18 Enhanced Due Diligence 
+ 
+R33 provides that you must apply enhanced due diligence (EDD) and enhanced ongoing 
+monitoring in addition to the CDD measures required in R28, where: 
+• the case has been identified as one where there is a high risk of money laundering or 
+terrorist financing in your risk assessment or in the information made available to you 
+by your supervisor under R17(9) and R47; 
+• you carry out an occasional transaction and either party to the transaction is 
+established in a high-risk third country; 
+• the client is a politically exposed person (PEP), or a family member or known close 
+associate of a PEP; 
+• the client is established in a high-risk third country; 
+• the client has provided false or stolen identification documentation or information on 
+establishing the relationship and you have decided to continue dealing with the client; 
+• there is any other situation which you have assessed as presenting a higher risk of 
+money laundering or terrorist financing; or 
+• wherever the transaction: 
+o is complex 
+o unusually large 
+o there is an unusual pattern of transactions, or 
+o the transaction or transactions have no apparent economic or legal purpose. 
+6.18.1 Enhanced Due Diligence and the Beneficial Ownership Threshold 
+ 
+In high-risk situations warranting the application of enhanced due diligence, it may be 
+appropriate to examine beneficial owners with  25% ownership if you have concerns 
+regarding the ownership structure or feel that the ownership structure is a pertinent risk 
+factor, to fully understand control and ownership interests in the client. 
+ 
+6.18.2 What is EDD? 
+ 
+The Regulations specify that you must take measures to examine the background and 
+purpose of the transaction and to increase the monitoring of the business relationship 
+where enhanced due diligence is required. The Regulations are not prescriptive about 
+exactly what must be included in EDD, with the exception of clients that are PEPs. 
+ 
+As per R33(5), EDD may include (while not being restricted to): 
+o seeking additional independent, reliable sources to verify information provided or 
+made available to you; 
+o taking additional measures to understand better the background, ownership and 
+financial situation of the customer, and other parties to the transaction; 
+o taking further steps to be satisfied that the transaction is consistent with the purpose 
+and intended nature of the business relationship; or 
+o increasing the monitoring of the business relationship, including greater scrutiny of 
+transactions. 
+In the case of a High Risk Third Country (HRTC), EDD is more restrictive. 
+ 
+If you are establishing a business relationship with a client in a HRTC, you will need to 
+apply the EDD including the steps below. You will also need to apply the steps below when 
+
+93 
+ 
+ 
+either your client or the counterparty is established in a HRTC where you are undertaking 
+an occasional transaction (within the meanings of R27(1)(b) and (2)). 
+ 
+In these circumstances, EDD must include: 
+o obtaining additional information on the client and on the client’s beneficial owner; 
+o obtaining additional information on the intended nature of the business relationship; 
+o obtaining information on the source of funds and the source of wealth of the client 
+and the client’s beneficial owner; 
+o obtaining information on the reasons for the transactions; 
+o obtaining the approval of senior management for establishing or continuing the 
+business relationship; and 
+o conducting enhanced monitoring of the business relationship including increasing the 
+frequency and number of checks or other controls applied; and selecting patterns of 
+transactions that trigger a requirement of further explanation to your practice.  
+If a client with whom you have a business relationship (not in a HRTC) is engaging in a 
+transaction where the counterparty is based in a HRTC, you should consider the risks this 
+presents and whether it is appropriate to apply EDD to the transaction. 
+ 
+You should also consider whether it is appropriate to go beyond the above minimum 
+requirements, particularly in circumstances of higher risk or where you have identified red 
+flags. This may include for example seeking greater verification of the client’s identity, 
+background and circumstances from independent and reliable information sources. It may 
+also mean lowering beneficial ownership thresholds to 25% or less or conducting further 
+screening or adverse media searches on directors or beneficial owners of the client. 
+ 
+6.18.3 Establishing source of wealth 
+(Please also see 16.7.3) 
+An important additional EDD measure should include understanding the financial situation of 
+the client – in practice this means taking additional measures to understand the SoW as well 
+as the SoF of the client.  
+  
+You should consider the level and nature of verification required in light of the risks posed by 
+the client, transaction and/or business relationship. 
+ 
+As part of your EDD process you should verify the SoW with evidence obtained from the client 
+and/or independent sources until you are comfortable that you understand where the client's  
+overall wealth has been derived from and (to the best of your knowledge) that it is legitimate. 
+You should document your rationale in a file note. 
+When addressing SoW, you should consider whether the SoW is commensurate to your client 
+in general i.e., does it make sense that the client in front of you obtained their wealth in the 
+way that they have advised you? 
+ 
+The SoW refers to the origin of a client’s entire body of wealth (i.e., total assets). This 
+information will usually give an indication as to the volume of wealth the client would be 
+expected to have, and a picture of how the person acquired such wealth. 
+ 
+It does not however require you to account for all of a client’s assets, but to build a rationale 
+and reasoning as to why they have such wealth and to provide assurance that it was 
+
+94 
+ 
+ 
+obtained through legal means. This will help you to establish whether the transaction makes 
+sense. 
+ 
+In many complex scenarios it may be difficult to determine original sources of wealth, 
+possibly accrued many years ago. In such scenarios, reasonable efforts must be 
+undertaken to obtain relevant information from the client, and this must be reviewed in light 
+of other risk factors, such as jurisdictional/geographic risk, adverse media, PEP status and 
+transaction type (especially transactions which may help obscure the ownership or transfer 
+of assets). 
+ 
+Although a practice may not have specific information about assets not deposited or 
+processed by them, it may be possible to gather general information from commercial 
+databases or other open sources. 
+ 
+Where the client’s SoW is not readily apparent, the first step in establishing either SoF 
+or SoW is asking questions of your client and where appropriate seeking independent 
+verification and corroboration of information across a variety of sources, to build a 
+picture of the client’s background and circumstance which may require asking questions 
+of the client. 
+ 
+Actions taken, documentation and materials reviewed, and decisions taken (including 
+rationale) must be clearly recorded. These may be reviewed at a later date by your 
+supervisor or other relevant authorities. 
+ 
+Where you cannot successfully establish the SoW in higher risk situations, you should 
+consider ceasing to act for the client and whether you need to submit a report to the 
+NCA. 
+6.18.4 Enhanced monitoring 
+Enhanced ongoing monitoring is automatically required whenever EDD is applied. 
+ 
+One aspect of keeping transactions under review is to ensure they are still in line with the 
+CDD information held on the client, and information contained in the client and matter risk 
+assessments. Whatever controls you have in place to monitor other business 
+relationships, may be intensified in order to apply enhanced monitoring.  
+ 
+This may include: 
+• requiring a greater level of information and explanation from the client when 
+activity diverts from that addressed in their client risk assessment;  
+• greater frequency of checks on transactions, particularly SoF; or 
+• undertaking more frequent due diligence checks on your client. 
+You should ensure that funds paid into your client account come from an expected source 
+and are for an amount commensurate with the client's known wealth and with what is 
+expected to be deposited in relation to the matters on which you act for them. 
+ 
+ 
+  
+
+95 
+ 
+ 
+6.19 When to apply EDD 
+ 
+6.19.1 High-risk third countries 
+ 
+You must apply EDD measures in any business relationship with a person established 
+in a HRTC or where you are undertaking an occasional transaction (within the meanings 
+of R27(1)(b) and (2)) where either party is established in a high-risk third country.  
+ 
+HRTCs are defined by the Regulations as High-Risk Jurisdictions Subject to a Call for 
+Action or Jurisdictions Under Increased Monitoring by FATF.   
+ 
+Being “established in” a country means: 
+• in the case of a legal person, being incorporated in or having a principal place 
+of business (head office) in that country, or for a financial institution having its 
+main regulator in that country; or 
+• in the case of a natural person, being resident in that country but not 
+necessarily simply having been born in that country. 
+However, this requirement does not apply if: 
+ 
+• the client is a branch or majority owned subsidiary of an entity which is a third 
+country and the entity is subject to requirements equivalent to the 5
+th
+ Money 
+Laundering Directive and supervised for compliance with those requirements; 
+• it complies with the group wide policies established by the entity under Article 45 
+of the Directive, and 
+• you do not consider EDD measures to be necessary taking a risk-based 
+approach. 
+ 
+Note that not all countries where there may be a higher risk of money laundering are 'high-
+risk third countries' for these purposes. Other jurisdictions may equally pose higher ML 
+risks – these should be assessed as part of client and matter risk assessments, and 
+additional, enhanced due diligence measures should be applied accordingly. 
+ 
+6.19.2 Other situations of higher risk of money laundering or terrorist financing 
+ 
+Enhanced due diligence is also required where there is a higher risk of money laundering 
+or terrorist financing. In determining whether there is a higher risk of money laundering or 
+terrorist financing in a given case, you must consider the risk factors set out in R33(6), 
+along with the outcomes of your practice-wide, client and matter risk assessments.  
+ 
+Instances of high risk as detailed in your supervisor’s risk assessment and in the National 
+Risk Assessment also require EDD to be applied. 
+ 
+Please see the features outlined in Section 5 and 18 of this guidance for further 
+information. You should consider the situation in context of the CDD information held on 
+your client, including their background and financial circumstances. 
+ 
+ 
+Regulation 33(6) – Risk Factors you must consider when determining whether to 
+apply EDD 
+
+96 
+ 
+ 
+ 
+When assessing whether there is a high risk of money laundering or terrorist financing in 
+a particular situation, and the extent of the measures which should be taken to manage 
+and mitigate that risk, relevant persons must take account of risk factors including, 
+among other things—  
+ 
+(a)customer risk factors, including whether—  
+(i) the business relationship is conducted in unusual circumstances;  
+(ii) the customer is resident in a geographic area of high risk (see sub-paragraph (c));  
+(iii) the customer is a legal person or legal arrangement that is a vehicle for holding 
+personal assets;  
+(iv) the customer is a company that has nominee shareholders or shares in bearer form;  
+(v) the customer is a business that is cash intensive;  
+(vi) the corporate structure of the customer is unusual or excessively complex given the 
+nature of the company’s business;  
+(vii) the customer is the beneficiary of a life insurance policy; o 
+(viii) the customer is a third country national who is applying for residence rights in or 
+citizenship of an EEA state in exchange for transfers of capital, purchase of a property, 
+government bonds or investment in corporate entities in that EEA state; 
+ 
+(b)product, service, transaction or delivery channel risk factors, including whether—  
+(i) the product involves private banking;  
+(ii) the product or transaction is one which might favour anonymity;  
+(iii) the situation involves non-face-to-face business relationships or transactions, without 
+certain safeguards, such as an electronic identification process which meets the 
+conditions set out in regulation 28(19);  
+(iv) payments will be received from unknown or un-associated third parties;  
+(v) new products and new business practices are involved, including new delivery 
+mechanisms, and the use of new or developing technologies for both new and pre-
+existing products;  
+(vi) the service involves the provision of nominee directors, nominee shareholders or 
+shadow directors, or the formation of companies in a third country;  
+(vii) there is a transaction related to oil, arms, precious metals, tobacco products, cultural 
+artefacts, ivory or other items related to protected species, or other items of 
+archaeological, historical, cultural or religious significance or of rare scientific value 
+ 
+(c) geographic risk factors, including—  
+(i) countries identified by credible sources, such as FATF mutual evaluations, detailed 
+assessment reports or published follow-up reports, as not having effective systems to 
+counter money laundering or terrorist financing;  
+(ii) countries identified by credible sources as having significant levels of corruption or 
+other criminal activity, such as terrorism (within the meaning of section 1 of the Terrorism 
+Act 2000(86)), money laundering, and the production and supply of illicit drugs;  
+(iii) countries subject to sanctions, embargos or similar measures issued by, for example, 
+the European Union or the United Nations;  
+(iv) countries providing funding or support for terrorism;  
+(v) countries that have organisations operating within their territory which have been 
+designated—  
+(aa) by the government of the United Kingdom as proscribed organisations under 
+Schedule 2 to the Terrorism Act 2000(87), or  
+(bb) by other countries, international organisations or the European Union as terrorist 
+organisations; and 
+(vi) countries identified by credible sources, such as evaluations, detailed assessment 
+reports or published follow-up reports published by the Financial Action Task Force, the 
+
+97 
+ 
+ 
+International Monetary Fund, the World Bank, the Organisation for Economic Co-
+operation and Development or other international bodies or non-governmental 
+organisations as not implementing requirements to counter money laundering and 
+terrorist financing that are consistent with the recommendations published by the 
+Financial Action Task Force in February 2012 and updated in June 2019. 
+ 
+As well as considering the risks identified above, you should have regard to any of the risk 
+factors discussed in Section 5 that may be present in a given client or matter.  
+ 
+6.19.3 Screening, Due Diligence & Other Control Measures - Politically-Exposed Persons 
+ 
+Politically Exposed Persons (PEPs) present risks as they have the opportunity to use 
+their political position to enrich themselves through corrupt activities. In order to treat 
+PEPs in a risk-based way, it is a precondition that you can correctly identify them.  
+6.19.3.1 Who is a PEP? 
+ 
+A PEP is a person who has been entrusted within the last year (or for a longer period if 
+you consider it appropriate to address the risks in relation to that person) with one of the 
+following prominent public functions by a public institution, an international body, or a 
+state, including the UK. 
+ 
+Listing of PEP roles R35(14) 
+• heads of state, heads of government, ministers and deputy or assistant 
+ministers; 
+• members of parliament or similar legislative bodies; 
+• members of governing bodies of political parties; 
+• members of supreme courts, of constitutional courts, or any judicial body 
+whose decisions are not subject to further appeal, except in exceptional 
+circumstances; 
+• members of courts of auditors or of the boards of central banks; 
+• ambassadors, charges d'affaires and high-ranking officers in the armed forces; 
+• members of the administrative, management or supervisory bodies of 
+state-owned enterprises; or 
+• directors, deputy directors and members of the board of equivalent function of 
+an international organisation. 
+ 
+In addition to the primary PEPs listed above, a PEP also includes (R35(12)): 
+• family members of a PEP – spouse, civil partner, children, their spouses or 
+partners, and parents; and 
+• known close associates of a PEP – persons with whom joint beneficial 
+ownership of a legal entity or legal arrangement is held, with whom there are 
+close business relationships, or who is a sole beneficial owner of a legal entity 
+or arrangement set up by the primary PEP. 
+ 
+ 
+Middle ranking and junior officials are not PEPs. In the UK, only those who hold truly 
+prominent positions should be treated as PEPs and the definition should not be applied to 
+local government, more junior members of the civil service or military officials other than 
+
+98 
+ 
+ 
+those holding the most senior ranks. This should be borne in mind as many commercially 
+available PEP checking tools may have a much lower threshold for considering an 
+individual a PEP. 
+ 
+In the Government consultation on 5MLD, it was strongly suggested that the FCA’s 
+guidance on PEPs should be the standard across the board.  
+ 
+Section FCA guidance sets out the FCA’s view of what categories of person should be 
+treated as PEPs in the UK (building on the above). 
+ 
+6.19.3.2 Identifying a PEP 
+ 
+R35(1) requires you to have appropriate risk management systems and procedures to 
+determine whether a client or beneficial owner is a PEP. 
+ 
+Practices must take a risk-based approach to identifying PEPs. 
+ 
+To assess your risk of encountering a PEP, you must consider your PWRA, the level of 
+risk of money laundering or terrorist financing inherent in your business and the extent 
+to which that risk would be increased by a business relationship with a PEP. 
+ 
+In larger or more specialist practices where it may be reasonably expected to undertake 
+work on behalf of PEPs in the normal or regular course of business, frequency and 
+intensity of PEP screening should be increased (potentially using an established 
+commercial provider), both at the outset of the matter and an ongoing basis. Many 
+practices use services that can run checks against PEP databases which they maintain.  
+ 
+Where you have a higher risk of having PEPs as clients or you have reason to suspect that 
+a person may actually be a PEP contrary to earlier information, you should consider 
+conducting some form of electronic verification.  
+ 
+The range of PEPs is wide and constantly changing, so any EID&V will not give you total 
+certainty. You should have reference to Section 7 when considering the possible 
+confidence you may place in the abilities of any EID&V tool. 
+ 
+Regardless of the result of any single check you should consider the wider possibility that 
+your client is a PEP. 
+ 
+Questions you should ask with regard to PEP Status 
+• What role(s) does the individual hold? 
+• What is the nature and context of business relationship?  
+• What services or products does the PEP wish to use?  
+• What is the potential for the product to be misused for the purposes of 
+corruption? 
+• Do you know if they have close family members or known associates and if so, 
+what roles do they hold? 
+• What level of public scrutiny, exposure, governance, disclosures or accountability 
+in their role is the PEP subject to? 
+• Are their accompanying geographic risks associated with the PEP relationship? 
+• If you have identified a PEP, were they helpful in providing this information and if 
+not, should and how would this impact my assessment of the risk present? 
+
+99 
+ 
+ 
+• Does the nature of their PEP status impact in the level of EDD that needs to be 
+applied, and if so, how? 
+ 
+In practices where undertaking work on behalf of PEPs is unlikely or a very rare 
+occurrence, it may be acceptable to use publicly available or open sources. Checking for 
+PEP status should be undertaken on a risk-based approach, in light of other CDD 
+information held (such as employment) which may lead to the practice suspecting PEP 
+status.  
+ 
+Simple measures may include: 
+• asking the client or their representative (as appropriate) whether the person is a 
+PEP, as a part of client onboarding; 
+• performing an internet search in order to check whether the individual may hold 
+any position that qualifies them as a PEP; or 
+• reviewing the information, they submit to you carefully to determine whether any 
+information you have access to, suggests they may be a PEP. 
+ 
+ 
+Other indicators that may indicate your client is a PEP include: 
+ 
+• receiving funds from a government account; 
+• correspondence on official letterhead from the client or a related person; 
+• information from the client or person related to the matter linking the client to a PEP; 
+and 
+• any information which comes to your attention suggesting your client is actually 
+a PEP or linked to one. 
+ 
+Where you suspect a client is a PEP but cannot establish that for certain, you should 
+consider what steps you could take in order to resolve this uncertainty. If you are not able to 
+resolve the issue to your satisfaction, you may consider (on a risk-based approach) 
+applying aspects of enhanced due diligence procedures (as a lack of clarity as to whether 
+a person is a PEP could, in and of itself, be indicative of a heightened risk of money 
+laundering). 
+ 
+It is worth reiterating from the outset that family members of PEPs, and known close 
+associates of PEPs, must be treated as PEPs in terms of the due diligence you apply.   
+You should apply the same standard of investigation when identifying whether someone is 
+a family member of a PEP, as you do for a PEP. 
+ 
+R35(15) sets out a different process for “known close associates.” 
+ 
+“For the purpose of deciding whether a person is a known close associate of a politically 
+exposed person, a relevant person need only have regard to information which is in its 
+possession, or to credible information which is publicly available.” This means that you are 
+only expected to be able to identify a known close associate where the information you 
+already hold tells you that this is what they are, or if it is publicly available. 
+ 
+6.19.3.3 Mitigation of PEP Risk 
+ 
+In deciding what risk mitigation to apply you must (R35(2)) take account of: 
+
+100 
+ 
+ 
+• your PWRA; 
+• the client or matter risk assessment; and 
+• any information published by your supervisor. 
+PEPs may pose a higher risk, by virtue of having a greater potential opportunity to be 
+involved in corruption, due to the positions or access to public funds they hold. Being a 
+PEP should not, preclude access to legal services, provided the practice undertakes the 
+necessary enhanced due diligence measures. 
+ 
+Since 10 January 2024 the regulations state that in relation to domestic PEPs, that is, 
+those entrusted with prominent public functions by the United Kingdom: 
+• the starting point for the assessment is that the client or potential client presents a 
+lower level of risk than a non-domestic PEP, and 
+• if no enhanced risk factors are present, the extent of EDD measures to be applied 
+in relation to that client or potential client is less than the extent to be applied in the 
+case of a non-domestic PEP. 
+When there is a PEP relationship (including where a PEP is a beneficial owner of a 
+client and where a client or its beneficial owner is a family member or known close 
+associate of a PEP), the Regulations specify that you must take the following steps to 
+deal with the heightened risk: 
+ 
+• have senior management approval for establishing a business relationship 
+with a PEP or an entity beneficially owned by a PEP; 
+• take adequate measures to establish the SoF and SoW which are involved in the 
+business relationship or occasional transaction; 
+• conduct closer ongoing monitoring of the business relationship; and 
+• consider which aspects of your EDD protocol are appropriate for the PEP in 
+question. 
+ 
+Where you have a beneficial owner who you know to be a PEP, you should consider on a 
+risk-based approach what extra EDD measures, you need to take when dealing with that 
+client. 
+ 
+Where the client is a state-owned entity and the PEP in question is only a PEP due to 
+their position in the State-Owned Entity, you may consider whether this mitigates the risks 
+present. 
+ 
+A useful source of further information is the FCA's guidance on the treatment of politically 
+exposed persons for anti-money laundering purposes. The guidance is aimed at practices 
+supervised by the FCA, but you should take it into account in accordance with 
+R35(4)(b)(i). 
+ 
+6.19.3.4 Senior management approval for onboarding a PEP 
+ 
+R3(1) defines 'senior management' as: 
+ 
+An  officer  or  employee  of  the  relevant  person  with sufficient  knowledge  of  the  relevant 
+person's money laundering and terrorist financing risk exposure, and of sufficient authority to 
+take decisions affecting its risk exposure. 
+ 
+
+101 
+ 
+ 
+The FCA guidance referred to above sets out their view as to who, for the purposes of the 
+Regulations, should be treated as coming within the definition of senior management. 
+ 
+For legal practices, senior management may be: 
+• a member of the board of directors or equivalent senior management team; 
+• the head of a practice group or department or function; 
+• a senior or managing partner; or 
+• the MLRO or, if different, the MLCO. 
+ 
+Other individuals may fall into this category depending on the nature and structure of your 
+practice. 
+ 
+Senior Management may delegate the application of their roles to other suitably senior 
+and competent individuals however they remain ultimately responsible and accountable. 
+You should advise those responsible for monitoring risk assessments that a business 
+relationship with a PEP has begun, to help their overall monitoring of the practice's risk 
+profile and compliance. 
+ 
+For sole practitioners, you should appropriately record your decision e.g., as a conclusion 
+to the client or matter risk assessment. 
+ 

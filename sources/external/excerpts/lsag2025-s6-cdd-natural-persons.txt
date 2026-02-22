@@ -1,0 +1,136 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.14-6.14.4
+topics: [cdd, verification, natural-persons, electronic-verification, identity-documents]
+effective_date: 2025-04-23
+---
+6.14 Methods of verification 
+ 
+Verification should be completed on the basis of documents or information which come 
+from a reliable source, independent of the client. There are a number of ways in which you 
+may verify a client's identity including: 
+ 
+• obtaining or viewing original documents from a trusted and independent source 
+(public or private); 
+• on a risk sensitive basis viewing copies of documents (certification of a copy may 
+give you a higher level of confidence than an uncertified copy, but you should 
+consider and document the risks of relying on certified copies for this);  
+• conducting electronic verification, through a platform that is a reliable source (i.e., 
+secure from fraud and misuse and capable of providing an appropriate level of 
+assurance that the person claiming a particular identity is in fact the person with 
+that identity, to a degree that is necessary for effectively managing and mitigating 
+any risks of money laundering and terrorist financing); or 
+• obtaining information from other regulated persons. 
+ 
+6.14.1 Independent sources 
+ 
+You need a reliable source(s) to verify your client’s identity, which is independent of the 
+client e.g.  a passport or driver’s license, or, in the case of a corporate entity, evidence of 
+registration from the relevant registry or reputable company services provider. 
+ 
+You are permitted to use a wider range of sources when verifying the identity of the 
+beneficial owner and understanding the ownership and control structure of the client.  
+ 
+Sometimes only the client or their representatives will be able to provide you with this 
+information. You may consider whether the documents or information should be certified as 
+accurate by a professional regulated for AML to an equivalent standard.  
+ 
+R28(9) confirms that the register of people with significant control, or the confirmation 
+statement, which is published on the Companies House website, cannot be solely relied 
+upon for the purpose of identifying or verifying the identity of the beneficial owner of a 
+company or LLP client.  
+ 
+The Economic Crime and Corporate Transparency Act 2023 (ECCTA) brought in a 
+number of changes to the way that companies are registered and what information must 
+be declared on an ongoing basis. These increase the volume and detail required on 
+registration and in annual returns. While this information will be very useful in assessing 
+risk and completing due diligence, R28(9) is not affected.  
+ 
+Remember, if you are not satisfied with the information you have on the identity of your 
+client/beneficial owner, you should not undertake business with that client, (or cease 
+business if an existing client) as per the requirements of R31. 
+ 
+Documents should be in date if an expiry date is given, and recently dated (taking a risk-
+based approach) if no expiry date is given. Expired documents should not be relied upon 
+in the absence of any others but may be useful in support. 
+ 
+
+ 
+ 
+6.14.2 Forged Documents 
+ 
+You must not ignore obvious forgeries, but you are not required to be an expert in forged 
+documents. You may however consider providing relevant employees with appropriate 
+training and equipment to help identify forged documents where relevant to the processes 
+of your practice where proportionate to the risk. 
+ 
+You may make use of guidance on how to identify a forged document from the issuing 
+body, or a similarly reputable source. For example, the Passport office issues such 
+information, and current bill formats are available on utility provider websites.  
+ 
+6.14.3 Electronic verification 
+ 
+As technology has developed, use of electronic identification and verification (EID&V) tools 
+have become more common. While you can never outsource your ultimate responsibility, 
+EID&V tools can be useful in protecting your practice. 
+ 
+R28 sets out minimum requirements for EID&V processes to be regarded as reliable sources 
+in applying CDD.  
+ 
+Test for whether you are able to use an EID&V tool 
+ 
+Meeting the definitions in the (R2014/910/EU of the European Parliament and of 
+the Council of 23rd July 2014) as below 
+ 
+Electronic identification - means the process of using person identification data in 
+electronic form uniquely representing either a natural or legal person, or a natural 
+person representing a legal person 
+ 
+Trust service - means an electronic service normally provided for remuneration 
+which consists of: 
+(a) the creation, verification, and validation of electronic signatures, electronic seals 
+or electronic time stamps, electronic registered delivery services and certificates 
+related to those services; 
+(b) the creation, verification and validation of certificates for website authentication; 
+or 
+(c) the preservation of electronic signatures, seals or certificates related to those 
+services 
+ 
+-and being secure from fraud, misuse and capable of providing an appropriate level 
+of assurance that the person claiming a particular identity is in fact the person with 
+that identity, to a degree that is necessary for effectively managing and mitigating 
+any risks of money laundering and terrorist financing. 
+ 
+ 
+There is further information available on this in Section 7. 
+ 
+
+ 
+ 
+6.14.4 Natural persons 
+The name, date of birth and current address of a natural person should all be identified 
+and practices may use government photo-card identification (including passports or driving 
+licenses) to verify these details. 
+ 
+To do this you should obtain documents that verify name, address and date of birth, for 
+example:  
+ 
+• one government document which verifies name, address  and date of birth; or 
+• a government document which verifies the client's full name and supporting 
+documents which verifies their address and date of birth. 
+ 
+You may consult a variety of documents to identify and verify your client. Where 
+government-issued documents are not available, you may consider alternatives such as 
+those set out at 6.14.7 below.   
+The requirement to obtain suitable verification should not preclude access to legal services, 
+especially to vulnerable, elderly or disadvantaged clients. In these situations, where it is not 
+possible to obtain such documents, consider the reliability of other sources and the risks 
+associated with the client and the matter. See the “Clients unable to produce standard 
+documentation” section below. 
+ 
+Where you are reasonably satisfied that an individual is nationally or internationally 
+known, for example, because they are a public figure or a well-known celebrity (i.e., that 
+you can confidently recognise them as the person they are purporting to be), a record of 
+identification may include a file note of your satisfaction about identity, including an 
+address. You should consider whether the individual may be a PEP, or family member 
+or known close associate of a PEP.

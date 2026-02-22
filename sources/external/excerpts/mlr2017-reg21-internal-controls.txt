@@ -1,0 +1,95 @@
+---
+source_name: Money Laundering Regulations 2017
+section_ref: reg. 21
+topics: [internal-controls, mlro, nominated-officer, compliance, training]
+effective_date: 2017-06-26
+---
+Internal controls
+21.—(1)  Where appropriate with regard to the size and nature of its business, a relevant person
+must—
+(a)appoint one individual who is a member of the board of directors (or if there is no board,
+of its equivalent management body) or of its senior management as the officer responsible
+for the relevant person's compliance with these Regulations;
+(b)carry out screening of relevant employees appointed by the relevant person, both before
+the appointment is made and during the course of the appointment;
+(c)establish an independent audit function with the responsibility—
+(i)to examine and evaluate the adequacy and effectiveness of the policies, controls and
+procedures adopted by the relevant person to comply with the requirements of these
+Regulations;
+(ii)to make recommendations in relation to those policies, controls and procedures; and
+(iii)to monitor the relevant person's compliance with those recommendations.
+
+(2)  For the purposes of paragraph (1)(b)—
+(a)“screening” means an assessment of—
+(i)the  skills,  knowledge  and  expertise  of  the  individual  to  carry  out  their  functions
+effectively;
+(ii)the conduct and integrity of the individual;
+(b)a relevant employee is an employee whose work is—
+(i)relevant  to  the  relevant  person's  compliance  with  any  requirement  in  these
+Regulations, or
+(ii)otherwise capable of contributing to the—
+(aa)
+identification or mitigation of the risks of [
+F97
+money laundering, terrorist
+financing  and  proliferation  financing]  to  which  the  relevant  person's
+business is subject, or
+(bb)
+prevention  or  detection  of  [
+F98
+money  laundering,  terrorist  financing  and
+proliferation financing] in relation to the relevant person's business.
+(3)  An individual in the relevant person's firm must be appointed as a nominated officer.
+(4)  A relevant person must, within 14 days of the appointment, inform its supervisory authority
+of—
+(a)the identity of the individual first appointed under paragraph (1)(a);
+(b)the identity of the individual first appointed under paragraph (3); and
+(c)of any subsequent appointment to either of those positions.
+(5)  Where a disclosure is made to the nominated officer, that officer must consider it in the light
+of any relevant information which is available to the relevant person and determine whether it gives
+rise to knowledge or suspicion or reasonable grounds for knowledge or suspicion that a person is
+engaged in money laundering or terrorist financing.
+(6)  Paragraphs (1) and (3) do not apply where the relevant person is an individual who neither
+employs nor acts in association with any other person.
+(7)  A relevant person who is an electronic money issuer or a payment service provider must
+appoint an individual to monitor and manage compliance with, and the internal communication of,
+the policies, controls and procedures adopted by the relevant person under regulation 19(1) [
+F99
+or
+19A(1)], and in particular to—
+(a)
+identify  any  situations  of  higher  risk  of  [
+F100
+money  laundering,  terrorist  financing  or
+proliferation financing];
+(b)maintain  a  record  of  its  policies,  controls  and  procedures,  risk  assessment  and  risk
+management including the application of such policies and procedures;
+(c)apply measures to ensure that its policies, controls and procedures are taken into account
+in all relevant functions including in the development of new products, dealing with new
+customers and in changes to business activities; and
+(d)provide information to senior management about the operation and effectiveness of its
+policies, controls and procedures whenever appropriate and at least annually.
+(8)  A relevant person must establish and maintain systems which enable it to respond fully and
+rapidly to enquiries from any person specified in paragraph (9) as to—
+(a)whether  it  maintains,  or  has  maintained  during  the  previous  five  years,  a  business
+relationship with any person; and
+(b)the nature of that relationship.
+
+(9)  The persons specified in this paragraph are—
+(a)financial  investigators  accredited  under  section  3  of  the  Proceeds  of  Crime  Act  2002
+(accreditation and training) 
+M56
+;
+(b)persons  acting  on  behalf  of  the  Scottish  Ministers  in  their  capacity  as  an  enforcement
+authority under that Act; and
+(c)constables or equivalent officers of any law enforcement authority.
+(10)    In  determining  what  is  appropriate  with  regard  to  the  size  and  nature  of  its  business,  a
+relevant person—
+(a)
+must take into account its risk assessment under regulation 18(1) [
+F101
+and 18A(1)]; and
+(b)may take into account any guidance which has been—
+(i)issued by the FCA; or
+(ii)issued by any other supervisory authority or appropriate body and approved by the
+Treasury.

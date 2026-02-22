@@ -14,15 +14,22 @@ const KEYWORD_TOPICS: Record<string, string[]> = {
   // CDD related
   cdd: ['cdd', 'due-diligence', 'verification', 'identity'],
   'customer due diligence': ['cdd', 'due-diligence', 'verification'],
+  'due diligence': ['cdd', 'due-diligence', 'verification'],
   identification: ['cdd', 'verification', 'identity'],
   verify: ['cdd', 'verification', 'identity'],
+  verification: ['cdd', 'verification', 'identity'],
 
   // EDD related
   edd: ['edd', 'enhanced-due-diligence', 'high-risk'],
   'enhanced due diligence': ['edd', 'enhanced-due-diligence'],
-  'high risk': ['edd', 'high-risk', 'pep'],
-  pep: ['pep', 'edd', 'high-risk'],
-  'politically exposed': ['pep', 'edd'],
+  'high risk': ['edd', 'high-risk', 'pep', 'hrtc'],
+  pep: ['pep', 'edd', 'high-risk', 'politically-exposed-person'],
+  'politically exposed': ['pep', 'edd', 'politically-exposed-person'],
+
+  // Simplified due diligence
+  sdd: ['simplified-due-diligence', 'sdd', 'low-risk', 'cdd'],
+  'simplified due diligence': ['simplified-due-diligence', 'sdd', 'low-risk'],
+  'low risk': ['simplified-due-diligence', 'sdd', 'low-risk'],
 
   // Risk scoring
   score: ['risk-scoring', 'scoring', 'methodology', 'cmlra'],
@@ -30,6 +37,8 @@ const KEYWORD_TOPICS: Record<string, string[]> = {
   threshold: ['risk-scoring', 'thresholds', 'methodology'],
   'risk assessment': ['risk-assessment', 'cmlra', 'scoring', 'methodology'],
   cmlra: ['cmlra', 'risk-assessment', 'methodology'],
+  pwra: ['risk-assessment', 'pwra', 'cmlra'],
+  'practice wide risk assessment': ['risk-assessment', 'pwra', 'cmlra'],
 
   // Source of funds/wealth
   'source of funds': ['sof', 'source-of-funds'],
@@ -39,14 +48,113 @@ const KEYWORD_TOPICS: Record<string, string[]> = {
   'third party': ['sof', 'third-party'],
   funding: ['sof', 'source-of-funds', 'third-party'],
 
+  // SAR / reporting / disclosure
+  sar: ['sar', 'reporting', 'disclosure', 'suspicious-activity'],
+  'suspicious activity report': ['sar', 'reporting', 'disclosure'],
+  'suspicious activity': ['sar', 'suspicious-activity', 'red-flags', 'reporting'],
+  reporting: ['sar', 'reporting', 'disclosure'],
+  disclosure: ['sar', 'reporting', 'disclosure', 'consent-regime'],
+  'tipping off': ['tipping-off', 'sar', 'reporting', 'poca'],
+  consent: ['consent-regime', 'sar', 'reporting', 'poca', 'moratorium'],
+  moratorium: ['consent-regime', 'moratorium', 'sar', 'poca'],
+
+  // POCA / money laundering offences
+  poca: ['poca', 'money-laundering-offence', 'criminal-property'],
+  'proceeds of crime': ['poca', 'money-laundering-offence', 'criminal-property'],
+  'criminal property': ['poca', 'criminal-property', 'money-laundering-offence'],
+  concealing: ['poca', 'money-laundering-offence', 'concealing'],
+  arrangements: ['poca', 'money-laundering-offence', 'arrangements'],
+  'failure to disclose': ['poca', 'failure-to-disclose', 'sar', 'reporting'],
+
+  // Beneficial ownership
+  'beneficial owner': ['beneficial-ownership', 'cdd', 'verification'],
+  'beneficial ownership': ['beneficial-ownership', 'cdd', 'corporate-structures'],
+  ubo: ['beneficial-ownership', 'cdd', 'corporate-structures'],
+
+  // FATF / country risk
+  fatf: ['fatf', 'hrtc', 'high-risk-third-countries', 'country-risk'],
+  'high risk third country': ['fatf', 'hrtc', 'high-risk-third-countries', 'country-risk'],
+  hrtc: ['fatf', 'hrtc', 'high-risk-third-countries', 'country-risk'],
+  'country risk': ['country-risk', 'geographical-risk', 'hrtc', 'fatf'],
+  'geographic risk': ['geographical-risk', 'country-risk', 'hrtc'],
+  'geographical risk': ['geographical-risk', 'country-risk', 'hrtc'],
+  sanctions: ['fatf', 'hrtc', 'country-risk', 'sanctions'],
+  'black list': ['fatf', 'hrtc', 'countermeasures'],
+  'grey list': ['fatf', 'hrtc', 'monitoring'],
+  jurisdiction: ['geographical-risk', 'country-risk', 'hrtc'],
+
+  // Record keeping
+  'record keeping': ['record-keeping', 'retention', 'compliance'],
+  retention: ['record-keeping', 'retention', 'compliance'],
+  records: ['record-keeping', 'retention', 'compliance'],
+
+  // Scotland-specific
+  scotland: ['scotland', 'rule-b9', 'law-society-scotland', 'sectoral-risk'],
+  'rule b9': ['scotland', 'rule-b9', 'compliance', 'mlro'],
+  scottish: ['scotland', 'rule-b9', 'law-society-scotland', 'sectoral-risk'],
+  'law society of scotland': ['scotland', 'law-society-scotland', 'rule-b9'],
+  'organised crime': ['scotland', 'soc', 'organised-crime', 'sectoral-risk'],
+
+  // Corporate structures / trusts / partnerships
+  trust: ['trusts', 'beneficial-ownership', 'corporate-structures', 'cdd'],
+  trusts: ['trusts', 'beneficial-ownership', 'corporate-structures', 'cdd'],
+  company: ['corporate-structures', 'beneficial-ownership', 'cdd'],
+  'corporate structure': ['corporate-structures', 'beneficial-ownership', 'trusts'],
+  partnership: ['partnerships', 'beneficial-ownership', 'corporate-structures'],
+  llp: ['partnerships', 'llp', 'corporate-structures'],
+  slp: ['partnerships', 'slp', 'corporate-structures', 'scotland'],
+  'shell company': ['corporate-structures', 'shell-companies', 'beneficial-ownership'],
+
+  // Conveyancing / property / client account
+  conveyancing: ['conveyancing', 'legal-sector', 'corporate-structures', 'client-account'],
+  property: ['conveyancing', 'legal-sector'],
+  'client account': ['client-account', 'legal-sector', 'conveyancing'],
+
+  // Red flags
+  'red flag': ['red-flags', 'suspicious-activity', 'sar'],
+  'red flags': ['red-flags', 'suspicious-activity', 'sar'],
+  suspicious: ['suspicious-activity', 'red-flags', 'sar', 'reporting'],
+
+  // Delivery channel
+  'delivery channel': ['delivery-channel', 'risk-assessment', 'methodology'],
+  'non face to face': ['delivery-channel', 'risk-assessment'],
+  remote: ['delivery-channel', 'risk-assessment'],
+
+  // MLRO / compliance officer
+  mlro: ['mlro', 'nominated-officer', 'internal-controls', 'compliance'],
+  'nominated officer': ['mlro', 'nominated-officer', 'internal-controls'],
+  'money laundering reporting officer': ['mlro', 'nominated-officer', 'compliance'],
+  'compliance officer': ['mlro', 'compliance', 'internal-controls'],
+
   // Monitoring
   monitoring: ['monitoring', 'ongoing-monitoring'],
   ongoing: ['monitoring', 'ongoing-monitoring'],
+  'ongoing monitoring': ['monitoring', 'ongoing-monitoring', 'business-relationship'],
 
-  // Regulations
+  // Policies / controls / procedures
+  policies: ['policies', 'controls', 'procedures', 'compliance'],
+  controls: ['policies', 'controls', 'internal-controls', 'compliance'],
+  procedures: ['policies', 'controls', 'procedures', 'compliance'],
+  training: ['internal-controls', 'training', 'compliance'],
+
+  // Regulations (general)
   mlr: ['cdd', 'edd', 'verification', 'due-diligence'],
   'money laundering regulations': ['cdd', 'edd', 'verification'],
   regulation: ['cdd', 'edd', 'methodology'],
+
+  // NRA / professional enablers
+  nra: ['nra', 'legal-sector', 'supervision', 'professional-enablers'],
+  'national risk assessment': ['nra', 'legal-sector', 'supervision'],
+  'professional enabler': ['professional-enablers', 'nra', 'legal-sector'],
+
+  // Scope
+  scope: ['scope', 'relevant-person', 'legal-sector'],
+  'relevant person': ['scope', 'relevant-person', 'legal-sector'],
+
+  // Offences / enforcement
+  offence: ['offence', 'criminal', 'enforcement', 'penalty', 'poca'],
+  penalty: ['offence', 'criminal', 'enforcement', 'penalty'],
+  enforcement: ['offence', 'enforcement', 'penalty', 'sra'],
 };
 
 /**

@@ -1,0 +1,211 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.14.5-6.14.10
+topics: [cdd, verification, face-to-face, remote-clients, professionals, non-natural-persons]
+effective_date: 2025-04-23
+---
+6.14.5 Meeting clients face to face 
+ 
+The following sources may be useful for verification of UK-based clients: 
+ 
+• current, signed passport, driving license or birth certificate; 
+• marriage certificate (e.g., particularly useful for evidencing name changes);  
+• current government-issued identity card/certificate with photograph (e.g., gun license); 
+• residence permit issued by the Home Office; 
+• photographic registration cards for self-employed individuals and partnerships in 
+the construction industry; 
+• benefit book or original notification letter confirming the right to benefits; 
+• a tax or utility bill or statement, or a certificate from a utility supplier confirming 
+an arrangement to pre-pay for services; 
+• a recent bank or mortgage statement/passbook from an FCA-regulated lender; 
+• confirmation from an electoral register that a person of that name lives at that 
+address; 
+• land registry confirmation of address; 
+• local council or housing association rent card or tenancy agreement; or 
+• house or motor insurance certificate. 
+ 
+
+ 
+ 
+Where you are provided with an electronic copy of a document (such as a downloaded 
+bank statement) you should continue to take a risk-based approach while being conscious 
+that its value as proof of address may be less than a standard hard copy. 
+ 
+Part of the reason to accept documents such as a hard copy posted bank statement and 
+letters from government agencies is to demonstrate that the individual has access to the 
+property to which they were delivered. Part of that comfort is removed when print outs of 
+electronic statements/bills are used.  This does not mean that such print- outs cannot be 
+accepted but this loss of comfort should be considered on a risk sensitive basis.   
+ 
+If documents are in a foreign language you should take appropriate steps to be 
+satisfied that the documents in fact provide evidence of the client's identity and 
+more generally that you understand what they say. Unless you have a sufficient 
+level of understanding of the language, you should consider engaging the services 
+of a translator. 
+ 
+You should be mindful that some aspects of an individual’s identity (particularly 
+name and/or sex) may change over time for entirely legitimate reasons, for 
+example due to a change in sex or gender, or due to other life events such as a 
+marriage or discretionary change of name. Such changes should not be used as a 
+reason to withhold legal services in isolation, or necessarily interpreted as an 
+indicator of higher AML risk  
+ 
+6.14.6 Natural Persons not able to meet face to face  
+ 
+In the case of persons you cannot meet face to face, consideration should be given to any 
+geographic/jurisdictional (which could be at a regional or national level) risks this may 
+present (see risk assessment section of this guidance for further information).  
+ 
+The client's address may be identified or verified via: 
+ 
+• an official overseas source; 
+• a reputable directory; or 
+• a person regulated to an equivalent standard for money laundering purposes in 
+the country where the person is resident who confirms that the client is known to 
+them and lives or works at the address given. 
+ 
+When you do not meet the client, you should consider the reason for this and whether this 
+represents an additional risk which should be taken into account in your risk assessment of 
+the client and the extent of the due diligence measures you apply. EID&V may be a 
+particularly useful tool in these circumstances. 
+ 
+6.14.7 Clients unable to produce standard documentation 
+Sometimes clients are unable to provide standard verification documents. The purpose of 
+the Regulations is not to deny people access to legal services for legitimate transactions, 
+but to mitigate the risk of legal services being used for the purposes of money laundering. 
+You should consider whether the inability to provide you with standard verification is 
+consistent with the client's profile and circumstances or whether it might make you 
+suspicious that money laundering or terrorist financing is occurring. 
+ 
+
+ 
+ 
+If you decide that a client has a good reason for not meeting the standard verification 
+requirements, you may accept a letter from an appropriate person who knows the 
+individual and can verify the client's identity. 
+ 
+For example: 
+• Clients in care homes might be able to provide a letter from the manager; 
+• For elderly clients, you may be able to accept a letter from a General Medical 
+Practitioner; 
+• Clients without a permanent residence might be able to provide a letter from a 
+householder named on a current council tax bill or a hostel manager, confirming 
+temporary residence; 
+• A refugee might be able to provide a letter from the Home Office confirming refugee 
+status and granting permission to work, or a Home Office travel document for 
+refugees; 
+• An asylum seeker might be able to provide their registration card and any other 
+identity documentation they hold, or a letter of assurance as to identity from a 
+community member such as a religious official, GP, or local councillor who has 
+knowledge of the client; 
+• A student or minor might be able to provide a birth certificate and confirmation of 
+their parent's address or confirmation of address from the register of the school or 
+higher education institution; or 
+• A person with mental health problems or mental incapacity might know medical 
+workers, hostel staff, social workers, deputies or guardians appointed by the court 
+who can locate identification documents or confirm the client's identity. 
+ 
+6.14.8 Professionals 
+ 
+Where other professionals use your services, in their capacity as a professional (e.g., when 
+representing a client or on behalf of their practice) you may consider using Simplified Due 
+Diligence as per R37. 
+ 
+Where other professionals use your services in their capacity as a private individual, you 
+will still need to complete full due diligence on them as you would with any other private 
+individual. In order to verify their identity and business address you may consult their 
+professional directory or register along with other sources. Being a regulated professional 
+should not lead to automatic treatment as being low risk in all cases. 
+ 
+You may consider the section on SDD in this context. 
+ 
+6.14.9 Persons acting on behalf of the client 
+ 
+In accordance with R28(10) where a person (the intermediary, agent or representative) 
+purports to act on behalf of your client, you must: 
+• verify that the intermediary, agent or representative is authorised to act on your 
+client’s behalf (i.e., obtain written confirmation from your client); 
+• identify the intermediary, agent or representative; and 
+• verify the identity of the intermediary, agent or representative on the basis 
+of documents and information from a reliable source which is independent 
+
+ 
+ 
+of both the representative and the client e.g., via a copy of their passport or 
+driving license. 
+Someone employed by your client (depending on their position or seniority) or a 
+director of your client may be considered as having apparent or ostensible 
+authority to provide instructions on behalf of the client, though you may seek 
+comfort of this on a risk sensitive basis.  They should not be considered to be 
+intermediaries, agents or representatives. Where it is not clear or apparent what 
+their authority to instruct on behalf of the client is, CDD should not be considered to 
+be complete.  
+For further information please also refer to 6.6 and 6.7. 
+ 
+6.14.10 Non-natural persons 
+ 
+R28(3A) states that where the customer is a legal person, trust, company, foundation or 
+similar legal arrangement the relevant person must  (having identified and verified the 
+customer in line with R28(2))  take reasonable measures to understand the ownership and 
+control structure of that legal person, trust, company, foundation or similar legal 
+arrangement. This is a wider concept than simply identifying the beneficial owners.  
+“Reasonable measures” means taking steps that are risk-based, proportionate and effective 
+in mitigating the identified money laundering and terrorism financing risks inherent in the 
+client or matter being undertaken. When considering this test of reasonableness, you should 
+consider whether the information is likely to assist in addressing the money laundering risks 
+and that you are comfortable that you would be able to demonstrate and evidence the extent 
+to which you have sought such information, to your supervisor upon request. It should not be 
+misinterpreted as an allowance to not fulfil your duty to understand the overall ownership 
+and control structure of the client.  
+You should also bear in mind that under regulation 33(6)(a)(vi) corporate structures which 
+are unusual or excessively complex given the nature of the company's business, are noted 
+as a specific risk factor. This may in turn require enhanced due diligence which could 
+include, among other things, seeking additional independent, reliable sources to verify 
+information provided to you, pursuant to regulation 33(5)(a). 
+Regulations 28(3) and (4) set out that you must obtain and verify the client’s registered 
+details and, subject to Regulation 28(5), identify the beneficial owner (where there is one). 
+You must also (subject to Regulation 28(5)) take reasonable measures to: 
+• determine and verify the law to which the body corporate is subject, its constitution and 
+the full names of its board of directors or equivalent, and the senior persons responsible 
+for the operations of the body corporate; and 
+• verify the identity of the any beneficial owner so that you are satisfied that you know who 
+the beneficial owner is.  
+  
+Again, subject to Regulation 28(5), you must also take reasonable measures to understand 
+the ownership and control structure of the client entity (as per R28(3A) noted above) and of 
+the beneficial owner if it is a non-natural person. This does not simply mean looking at 
+percentages of ownership but also identifying individuals with control and directing power, as 
+outlined in regulations 5 and 6. You should document your overarching understanding of the 
+individual’s background, circumstances and nature of the transaction. 
+  
+
+ 
+ 
+Under regulation 28(18)(a), “verify” means confirmation based on documents or information 
+obtained from a reliable, independent source.  
+ 
+Regulation 28(5) sets out the measures that do not apply where the client is a company 
+listed on a regulated market. 
+  
+Under regulation 28(18)(b), documents issued by an official body are considered 
+independent, even if provided or made available by the client or on their behalf. This might 
+be significant, for example, where a register was only accessible to the client. 
+Where applicable having regard to the circumstances, you should verify the identity of the 
+beneficial owner(s) to the equivalent standards as that applied to clients who are natural 
+persons, as described in 6.14 and/or 6.14.4. In other, lower risk situations and in limited 
+circumstances (such as when the relevant person already knows and has previously verified 
+the identity of the beneficial owner) taking reasonable measures to verify the beneficial 
+owner may mean, for example, taking verification information from non-independent 
+sources. To evidence why verification of beneficial owners through personal identity 
+documents is not undertaken, it is important to document your overarching understanding of 
+the individual’s background, circumstances and nature of the transaction. 
+It is important to note that you are seeking to verify the beneficial owner’s identity, not simply 
+that the identity in question is a beneficial owner. You may consider a range of sources to do 
+this provided they are appropriate to the risk posed by the client or matter.   
+Where you have been unable to verify the identity of the beneficial owners of a non-natural 
+person, you should consider the reasons for this and whether this should lead to a disclosure 
+to the NCA. Further consideration should be given to whether to act or continue to act for the 
+client, particularly where the complexity of the structures is out of your normal scope of 
+business or make completing CDD difficult. 
+You should record all of your considerations as a part of the client or matter risk assessment, 
+for more information see Section 5.

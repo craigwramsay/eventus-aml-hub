@@ -1,0 +1,1652 @@
+# LSAG AML Guidance 2025 - Customer Due Diligence (CDD)
+# Sections 6.1 - 6.16
+# Source: lsag-aml-guidance-23-april-2025.pdf
+
+6.1 General Comments  
+ 
+Undertaking appropriate Client Due Diligence (CDD) is required under R27, and is one of the 
+key controls you have, to protect your practice from Money Laundering and Terrorism 
+Financing (ML/TF) risks. 
+ 
+CDD is the collective term for the checks you must do on your clients, which may differ 
+depending on the circumstances. It is holistic in nature and is wider than simply 
+undertaking identification and verification of clients. 
+ 
+Aside from any specific CDD requirements you must take under the Regulations, the 
+amount, type and level of CDD undertaken should reflect and mitigate the nature of 
+particular risks inherent in each client, transaction or matter.  
+ 
+
+58 
+ 
+ 
+Practices must be able to demonstrate to their supervisory authority that these CDD 
+measures are appropriate in mitigation of these risks, by recording their reasoning and 
+actions in this regard. 
+ 
+Useful information in regard to understanding the nature and purpose of a relationship may 
+include:  
+• The nature and details of the business/occupation/employment; 
+• Source of funds and source of wealth information; or 
+• Anticipated levels and nature of activity to be conducted. 
+Beyond adherence to the Regulations, there is a natural incentive for practices to establish 
+with confidence who their client is and the details of any transaction they are involved in or 
+facilitating. It will protect them from unintentionally facilitating a range of financial crimes or 
+being defrauded themselves. 
+ 
+Identifying and verifying clients, is also essential for a practice to be able to accurately report 
+suspicious activity to the National Crime Agency (NCA), identify Politically Exposed Persons 
+(PEPs) or other high-risk individuals, and ensure the practice is not undertaking business in 
+breach of applicable sanctions regimes. 
+ 
+In relation to CDD, the Policies, Controls and Procedures (PCPs) of your firm should be set 
+out clearly, in writing in a way that is accessible to all relevant staff in your practice. 
+ 
+6.2 Long-standing/Personal Relationships 
+ 
+There is no provision in the Regulations for waiving CDD requirements on the basis of long-
+standing or personal relationships. Taking this approach will not satisfy the requirement to 
+undertake independent verification, though these factors may inform your risk-based 
+approach. 
+ 
+6.3 Application of CDD 
+ 
+You are required to apply CDD for services in scope of the Regulations when: 
+ 
+• establishing a business relationship; 
+• carrying out an occasional transaction that amounts to a transfer of funds within 
+the meaning of Article 3.9 of the Funds Transfer Regulation (Regulation (EU) 
+2015/847)
+3
+ exceeding 1,000 Euros; 
+ 
+3
+(9) ‘transfer of funds’ means any transaction at least partially carried out by electronic means on behalf of a 
+payer through a payment service provider, with a view to making funds available to a payee through a 
+payment service provider, irrespective of whether the payer and the payee are the same person and 
+irrespective of whether the payment service provider of the payer and that of the payee are one and the 
+same, including:  
+(a)  a credit transfer as defined in point (1) of Article 2 of Regulation (EU) No 260/2012;  
+(b)  a direct debit as defined in point (2) of Article 2 of Regulation (EU) No 260/2012;  
+(c)  a money remittance as defined in point (13) of Article 4 of Directive 2007/64/EC, whether national or cross 
+border;  
+(d)  a transfer carried out using a payment card, an electronic money instrument, or a mobile phone, or any 
+other digital or IT prepaid or post-paid device with similar characteristics;   
+
+59 
+ 
+ 
+• carrying out an occasional transaction that amounts to 15,000 Euros or more, 
+whether it is executed in a single operation or in several operations which appear 
+to be linked; 
+• you suspect money laundering or terrorist financing; or 
+• you doubt the veracity or adequacy of documents or information previously 
+obtained for the purposes of identification or verification. 
+The Regulations as amended prescribe further situations where you must re-apply CDD for 
+existing clients. These arise when you have any legal duty in the course of the calendar year 
+to contact a client to review information: 
+ 
+• relevant to your client risk assessment (or practice-wide/matter risk assessment as 
+appropriate); or 
+• concerning beneficial ownership information of the customer, including information 
+which helps you understand the ownership or control structure of any entity that is 
+the beneficial owner of the client. 
+ 
+The duty also arises where a practice has a duty to contact the client under the International 
+Tax Compliance Regulations 2015. 
+ 
+6.4 Definition of Business Relationship 
+There may be several indicators that a client is establishing a business relationship, as 
+opposed to the matter being an “occasional transaction” including but not limited to: 
+• an explicit expectation from the client or practice that a business relationship is 
+being established; 
+• the nature of the client or the transaction suggests they may wish to undertake 
+more than one transaction e.g., it is in the nature of their business;  
+• or the transaction itself will inherently take time to complete e.g., the 
+buying/selling of real property. 
+ 
+The definition of business relationship under the Regulations requires the legal 
+practitioner to have an expectation at the time the contact is established, that the 
+relationship will have “an element of duration” (R4). This should be interpreted in the 
+broadest sense, as it is reasonable to assume that any legal professional will have an 
+expectation of possible further business from any initial contact made with a client. 
+When dealing with a client for the first time, you should assume that a business 
+relationship is being formed unless you have explicit reasons to know that this is not 
+the case i.e., that there will not be an “element of duration.”  
+ 
+The nature of the relationship should be recorded in the client risk assessment. Any 
+reasons for not applying CDD must be clearly recorded and this will in practice be in 
+the rarest of exceptions. 
+ 
+For the avoidance of doubt, any company formation on behalf of a client immediately 
+implies the establishment of a business relationship as per R4(2). 
+ 
+6.5 Definition of an occasional transaction 
+ 
+A transaction that falls outside of a “business relationship,” is known as an occasional 
+transaction. 
+ 
+
+60 
+ 
+ 
+By definition it can only apply where a practice-client relationship lacks an expectation 
+of an “element of duration.” For this definition to apply, the relationship must be limited 
+to a single service provided at a certain point in time.   
+ 
+It will still be necessary to undertake CDD for an occasional transaction where it has a 
+value of 15,000 Euros or more. 15,000 Euros relates only to the sums involved in the 
+transaction(s) and does not include legal fees or distributions. 
+ 
+Due to the ongoing duties a practice would have in most foreseeable circumstances, 
+this definition is not likely to apply to the relationship between a legal practice and a 
+client for any transaction. 
+ 
+It may apply in the case of a limited ancillary service, provided as a one-off or in some 
+examples of notarial work in particular. Please see Part 2 for more information on 
+notarial work. 
+ 
+6.6 Intermediaries, agents or representatives 
+ 
+If your client is represented by an intermediary, agent or representative (i.e., someone 
+purporting to represent them), you must comply with R28(10) and identify and verify the 
+intermediary's identity and their authority to act on behalf of your underlying client. 
+ 
+Examples of someone purporting to represent might include: 
+ 
+• a parent on behalf of an adult child; 
+• an individual not employed by your client; or 
+• a situation where the instructing persons authority to instruct is not clear or does not 
+make sense. 
+ 
+In the absence of factors that give rise to a concern, an employee of a company would 
+not be considered to be ‘purporting to instruct’.  A risk-based approach should be taken 
+to the level of identification verification applied.  Authority to instruct can be addressed 
+by an engagement letter or equivalent but it should come directly from the underlying 
+client (including where instructed by an employee of the company).  
+ 
+Even where someone does not purport to act on someone else’s behalf, you should 
+consider if it is possible there may be an underlying client that is the recipient 
+(potentially by proxy via another professional service provider) of your services on more 
+than a single isolated basis. If you think this is possible, you should satisfy yourself that 
+you have identified and verified who the underlying client is or establish a suitable 
+reliance arrangement with the professional you are dealing with. 
+ 
+You should ensure you understand who your client relationship is with. There may be 
+times when an intermediary is your client (in that your contract is with them) but the 
+intermediary’s client is the ultimate beneficiary of your work and advice. The regulations 
+make clear that a “beneficial owner” is the individual on whose behalf a transaction is 
+being conducted and you should treat such a client as a beneficial owner, including 
+undertaking reasonable measures to identify and verify their identity. This is different to 
+a situation where an entity refers a client to you (see below.) 
+ 
+Where the intermediary is an entity, you may consider whether you need to undertake 
+Ultimate Beneficial Ownership checks on a risk-based approach. 
+
+61 
+ 
+ 
+ 
+See 6.14.9 for how to identify and verify individuals in these situations. 
+ 
+6.7 Referrals to another legal practice (or referrals between other entities in scope of 
+the regulations) 
+ 
+The difference between the circumstances described in 6.6 and making referrals to 
+another practice is described in the below table.  
+ 
+This table relates to solicitors only - for arrangements relating to Barristers and 
+Advocates, please consult the relevant section in Part 2.  
+Intermediaries, Agents or 
+Representatives 
+ 
+Referrals 
+If you are instructed by a law firm, or 
+other professional intermediary the law 
+firm/professional intermediary are your 
+client, and you will need to undertake 
+CDD on them.  
+ 
+If the effective beneficial owner of the 
+advice is that law firm’s/professional 
+intermediary’s client, you should 
+consider the risks and identify/verify 
+their client as you would any other 
+ultimate beneficial owner.  
+This could include understanding the 
+checks the intermediary has carried 
+out. 
+Where a legal practice or other 
+intermediary refers a client to you and 
+you have the direct relationship with 
+the client, you should treat the referred 
+entity as the client and carry out CDD 
+on them as the client in the usual way.  
+You may wish to consider, having 
+regard to the risks (and regulated 
+status of the referring entity), whether 
+a reliance agreement with the referring 
+entity is appropriate in the 
+circumstances. 
+
+62 
+ 
+ 
+ 
+6.8 Timing of CDD 
+ 
+CDD must be completed before you: 
+• deliver substantive work or benefit; 
+• permit funds to be deposited in your practice’s client account unless they are 
+for fees and disbursements;  
+• allow property to be transferred; or  
+• allow final agreements to be signed and completed. 
+A legal practice should ensure that CDD has been completed as early as possible, before 
+any money has been taken from the client, though money on account of costs/fees may be 
+accepted on a risk sensitive basis. 
+ 
+Conducting CDD as early as possible also helps you to avoid any delays further along in the 
+matter and will help you in your duty to report suspicious activity, at an early stage. This can 
+help protect you from needing to submit a suspicious activity report (SAR) seeking a defence 
+against money laundering (DAML) to return funds that have been paid into your client 
+account, where you have a suspicion the funds may be the proceeds of crime. 
+ 
+R30 requires you to verify your client's identity, the identity of any person purporting to act 
+on their behalf and that of any beneficial owner before you establish a business 
+relationship or carry out a transaction which amounts to 15,000 Euros or more (subject to 
+R30(3)(a)). 
+ 
+ 
+6.9 What happens when you cannot complete CDD? 
+ 
+R31 provides that if you are unable to complete CDD in time, including identification & 
+verification, you must: 
+• not carry out a transaction with or for the client through a bank account; 
+• not carry out a transaction otherwise than through a bank account; or, 
+• terminate the business relationship. 
+ 
+For the avoidance of doubt, you should consider a failure to apply CDD under R28(10) 
+(persons acting as agents) as also triggering the above requirements in R31. 
+ 
+If you are unable to complete CDD, you must in addition to terminating any existing business 
+relationship consider making a disclosure to the NCA. 
+ 
+You cannot seek consent from the NCA to proceed with a transaction solely because you 
+have been unable to complete CDD measures as required by R28 and reporting a matter 
+to the NCA is not a substitute for your responsibility to complete CDD. Although you should 
+consider making a disclosure to the NCA where you have been unable to complete CDD, 
+this does not mean you are automatically required to submit a SAR. For further information 
+refer to Section 11. 
+
+63 
+ 
+ 
+ 
+6.10 Exceptions to the timing requirement 
+There are exceptions to the timing requirement and the prohibition on acting for the client 
+until CDD has been completed. 
+ 
+Where there is a delay in completing CDD you should consider why, and whether this 
+gives rise to a suspicion which should be disclosed to the NCA. 
+ 
+A practice should document any occasion where CDD was delayed in the matter risk 
+assessment and take appropriate mitigatory steps in order to manage any risks this may 
+create.  
+ 
+In the event that you think either of the below exceptions apply, you should consider and 
+record your reasoning as to why. 
+ 
+However, when acting for a: 
+ 
+• UK company (registered or unregistered as defined in the Unregistered 
+Companies Regulations 2009(1)); 
+• UK Limited Liability Partnership; or  
+• Scottish Partnership 
+ 
+- you must collect proof of registration (e.g., via the client) or an excerpt from the relevant 
+register before commencing a business relationship even when relying on an exception to 
+the timing requirement. 
+ 
+6.10.1 Exception 1 - Normal conduct of business 
+R30(3) provides that verification of the client and the beneficial owner may be completed as 
+soon as practicable after contact is first established, during the establishment of the 
+business relationship if: 
+ 
+• it is necessary not to interrupt the normal conduct of business; and 
+• there is little risk of money laundering or terrorist financing.  
+ 
+This should be considered in the context of the points in 6.8 of this guidance. 
+ 
+If there is little risk of money laundering (due to the nature of the client or transaction) thus 
+allowing a delay in CDD completion, the reasons for this view must be included in the 
+client and/or matter risk assessment, along with any mitigations you have put in place for 
+this. 
+ 
+Consider your Practice Wide Risk Assessment (PWRA) when assessing which work, if 
+any, can be undertaken prior to verification being completed. This exception does not 
+apply if your matter is an occasional transaction. 
+ 
+ 
+
+64 
+ 
+ 
+6.10.2 Exception 2 - Ascertaining legal position 
+ 
+R31(3) provides that the prohibitions in 31(1) do not apply where: 
+’An independent legal professional or other professional adviser is in the course of 
+ascertaining the legal position for their client or performing the task of defending or 
+representing that client in, or concerning, legal proceedings, including giving advice on the 
+institution or avoidance of proceedings.' 
+ 
+We interpret this to mean that this exception does not generally apply to transactional 
+work but may be relevant when considering work undertaken as a tax adviser or when 
+ascertaining the legal position an anticipation or preparation of early stages of 
+transactional work or early stages of representation or provision of legal advice on other 
+topics.  
+ 
+6.11 Undertaking CDD on Clients 
+ 
+R28 requires that you must: 
+ 
+• Identify the client and verify their identity on the basis of documents (e.g., passport 
+or driver’s license) or information obtained from a reliable source which is 
+independent of the client (which may include a digital verification system, subject to 
+meeting certain criteria – further details provided under Section 7), unless the 
+identity of the client is already known to you and has been verified by you; 
+• Identify where there is a beneficial owner who is not the client and take 
+reasonable measures to verify the identity so that you are satisfied that you 
+know who the beneficial owner is; 
+• Take reasonable measures to understand the ownership and control structure of 
+the legal person, trust, company, foundation or other similar legal arrangement; 
+• Assess, and where appropriate obtain information on the purpose and intended 
+nature of the business relationship or occasional transaction; and 
+• Conduct ongoing monitoring, scrutinise transactions and make sure CDD 
+documents are up to date. 
+ 
+6.12 Identification and verification 
+ 
+Identification  of  a  client or  a  beneficial  owner  is simply  being told  or  otherwise  coming  to 
+know a client's identifying details, such as their name and address. 
+ 
+Verification is obtaining evidence which supports this claim of identity.  
+ 
+6.13 A risk-based approach 
+ 
+R28(12) provides that to comply with the requirement to take CDD measures, you must 
+reflect: 
+• the PWRA (R18); and 
+• your assessment of the level of risk arising in any particular case i.e., the 
+client/matter risk assessment. 
+ 
+
+65 
+ 
+ 
+6.14 Methods of verification 
+ 
+Verification should be completed on the basis of documents or information which come 
+from a reliable source, independent of the client. There are a number of ways in which you 
+may verify a client's identity including: 
+ 
+• obtaining or viewing original documents from a trusted and independent source 
+(public or private); 
+• on a risk sensitive basis viewing copies of documents (certification of a copy may 
+give you a higher level of confidence than an uncertified copy, but you should 
+consider and document the risks of relying on certified copies for this);  
+• conducting electronic verification, through a platform that is a reliable source (i.e., 
+secure from fraud and misuse and capable of providing an appropriate level of 
+assurance that the person claiming a particular identity is in fact the person with 
+that identity, to a degree that is necessary for effectively managing and mitigating 
+any risks of money laundering and terrorist financing); or 
+• obtaining information from other regulated persons. 
+ 
+6.14.1 Independent sources 
+ 
+You need a reliable source(s) to verify your client’s identity, which is independent of the 
+client e.g.  a passport or driver’s license, or, in the case of a corporate entity, evidence of 
+registration from the relevant registry or reputable company services provider. 
+ 
+You are permitted to use a wider range of sources when verifying the identity of the 
+beneficial owner and understanding the ownership and control structure of the client.  
+ 
+Sometimes only the client or their representatives will be able to provide you with this 
+information. You may consider whether the documents or information should be certified as 
+accurate by a professional regulated for AML to an equivalent standard.  
+ 
+R28(9) confirms that the register of people with significant control, or the confirmation 
+statement, which is published on the Companies House website, cannot be solely relied 
+upon for the purpose of identifying or verifying the identity of the beneficial owner of a 
+company or LLP client.  
+ 
+The Economic Crime and Corporate Transparency Act 2023 (ECCTA) brought in a 
+number of changes to the way that companies are registered and what information must 
+be declared on an ongoing basis. These increase the volume and detail required on 
+registration and in annual returns. While this information will be very useful in assessing 
+risk and completing due diligence, R28(9) is not affected.  
+ 
+Remember, if you are not satisfied with the information you have on the identity of your 
+client/beneficial owner, you should not undertake business with that client, (or cease 
+business if an existing client) as per the requirements of R31. 
+ 
+Documents should be in date if an expiry date is given, and recently dated (taking a risk-
+based approach) if no expiry date is given. Expired documents should not be relied upon 
+in the absence of any others but may be useful in support. 
+ 
+
+66 
+ 
+ 
+6.14.2 Forged Documents 
+ 
+You must not ignore obvious forgeries, but you are not required to be an expert in forged 
+documents. You may however consider providing relevant employees with appropriate 
+training and equipment to help identify forged documents where relevant to the processes 
+of your practice where proportionate to the risk. 
+ 
+You may make use of guidance on how to identify a forged document from the issuing 
+body, or a similarly reputable source. For example, the Passport office issues such 
+information, and current bill formats are available on utility provider websites.  
+ 
+6.14.3 Electronic verification 
+ 
+As technology has developed, use of electronic identification and verification (EID&V) tools 
+have become more common. While you can never outsource your ultimate responsibility, 
+EID&V tools can be useful in protecting your practice. 
+ 
+R28 sets out minimum requirements for EID&V processes to be regarded as reliable sources 
+in applying CDD.  
+ 
+Test for whether you are able to use an EID&V tool 
+ 
+Meeting the definitions in the (R2014/910/EU of the European Parliament and of 
+the Council of 23rd July 2014) as below 
+ 
+Electronic identification - means the process of using person identification data in 
+electronic form uniquely representing either a natural or legal person, or a natural 
+person representing a legal person 
+ 
+Trust service - means an electronic service normally provided for remuneration 
+which consists of: 
+(a) the creation, verification, and validation of electronic signatures, electronic seals 
+or electronic time stamps, electronic registered delivery services and certificates 
+related to those services; 
+(b) the creation, verification and validation of certificates for website authentication; 
+or 
+(c) the preservation of electronic signatures, seals or certificates related to those 
+services 
+ 
+-and being secure from fraud, misuse and capable of providing an appropriate level 
+of assurance that the person claiming a particular identity is in fact the person with 
+that identity, to a degree that is necessary for effectively managing and mitigating 
+any risks of money laundering and terrorist financing. 
+ 
+ 
+There is further information available on this in Section 7. 
+ 
+
+67 
+ 
+ 
+6.14.4 Natural persons 
+The name, date of birth and current address of a natural person should all be identified 
+and practices may use government photo-card identification (including passports or driving 
+licenses) to verify these details. 
+ 
+To do this you should obtain documents that verify name, address and date of birth, for 
+example:  
+ 
+• one government document which verifies name, address  and date of birth; or 
+• a government document which verifies the client's full name and supporting 
+documents which verifies their address and date of birth. 
+ 
+You may consult a variety of documents to identify and verify your client. Where 
+government-issued documents are not available, you may consider alternatives such as 
+those set out at 6.14.7 below.   
+The requirement to obtain suitable verification should not preclude access to legal services, 
+especially to vulnerable, elderly or disadvantaged clients. In these situations, where it is not 
+possible to obtain such documents, consider the reliability of other sources and the risks 
+associated with the client and the matter. See the “Clients unable to produce standard 
+documentation” section below. 
+ 
+Where you are reasonably satisfied that an individual is nationally or internationally 
+known, for example, because they are a public figure or a well-known celebrity (i.e., that 
+you can confidently recognise them as the person they are purporting to be), a record of 
+identification may include a file note of your satisfaction about identity, including an 
+address. You should consider whether the individual may be a PEP, or family member 
+or known close associate of a PEP. 
+ 
+6.14.5 Meeting clients face to face 
+ 
+The following sources may be useful for verification of UK-based clients: 
+ 
+• current, signed passport, driving license or birth certificate; 
+• marriage certificate (e.g., particularly useful for evidencing name changes);  
+• current government-issued identity card/certificate with photograph (e.g., gun license); 
+• residence permit issued by the Home Office; 
+• photographic registration cards for self-employed individuals and partnerships in 
+the construction industry; 
+• benefit book or original notification letter confirming the right to benefits; 
+• a tax or utility bill or statement, or a certificate from a utility supplier confirming 
+an arrangement to pre-pay for services; 
+• a recent bank or mortgage statement/passbook from an FCA-regulated lender; 
+• confirmation from an electoral register that a person of that name lives at that 
+address; 
+• land registry confirmation of address; 
+• local council or housing association rent card or tenancy agreement; or 
+• house or motor insurance certificate. 
+ 
+
+68 
+ 
+ 
+Where you are provided with an electronic copy of a document (such as a downloaded 
+bank statement) you should continue to take a risk-based approach while being conscious 
+that its value as proof of address may be less than a standard hard copy. 
+ 
+Part of the reason to accept documents such as a hard copy posted bank statement and 
+letters from government agencies is to demonstrate that the individual has access to the 
+property to which they were delivered. Part of that comfort is removed when print outs of 
+electronic statements/bills are used.  This does not mean that such print- outs cannot be 
+accepted but this loss of comfort should be considered on a risk sensitive basis.   
+ 
+If documents are in a foreign language you should take appropriate steps to be 
+satisfied that the documents in fact provide evidence of the client's identity and 
+more generally that you understand what they say. Unless you have a sufficient 
+level of understanding of the language, you should consider engaging the services 
+of a translator. 
+ 
+You should be mindful that some aspects of an individual’s identity (particularly 
+name and/or sex) may change over time for entirely legitimate reasons, for 
+example due to a change in sex or gender, or due to other life events such as a 
+marriage or discretionary change of name. Such changes should not be used as a 
+reason to withhold legal services in isolation, or necessarily interpreted as an 
+indicator of higher AML risk  
+ 
+6.14.6 Natural Persons not able to meet face to face  
+ 
+In the case of persons you cannot meet face to face, consideration should be given to any 
+geographic/jurisdictional (which could be at a regional or national level) risks this may 
+present (see risk assessment section of this guidance for further information).  
+ 
+The client's address may be identified or verified via: 
+ 
+• an official overseas source; 
+• a reputable directory; or 
+• a person regulated to an equivalent standard for money laundering purposes in 
+the country where the person is resident who confirms that the client is known to 
+them and lives or works at the address given. 
+ 
+When you do not meet the client, you should consider the reason for this and whether this 
+represents an additional risk which should be taken into account in your risk assessment of 
+the client and the extent of the due diligence measures you apply. EID&V may be a 
+particularly useful tool in these circumstances. 
+ 
+6.14.7 Clients unable to produce standard documentation 
+Sometimes clients are unable to provide standard verification documents. The purpose of 
+the Regulations is not to deny people access to legal services for legitimate transactions, 
+but to mitigate the risk of legal services being used for the purposes of money laundering. 
+You should consider whether the inability to provide you with standard verification is 
+consistent with the client's profile and circumstances or whether it might make you 
+suspicious that money laundering or terrorist financing is occurring. 
+ 
+
+69 
+ 
+ 
+If you decide that a client has a good reason for not meeting the standard verification 
+requirements, you may accept a letter from an appropriate person who knows the 
+individual and can verify the client's identity. 
+ 
+For example: 
+• Clients in care homes might be able to provide a letter from the manager; 
+• For elderly clients, you may be able to accept a letter from a General Medical 
+Practitioner; 
+• Clients without a permanent residence might be able to provide a letter from a 
+householder named on a current council tax bill or a hostel manager, confirming 
+temporary residence; 
+• A refugee might be able to provide a letter from the Home Office confirming refugee 
+status and granting permission to work, or a Home Office travel document for 
+refugees; 
+• An asylum seeker might be able to provide their registration card and any other 
+identity documentation they hold, or a letter of assurance as to identity from a 
+community member such as a religious official, GP, or local councillor who has 
+knowledge of the client; 
+• A student or minor might be able to provide a birth certificate and confirmation of 
+their parent's address or confirmation of address from the register of the school or 
+higher education institution; or 
+• A person with mental health problems or mental incapacity might know medical 
+workers, hostel staff, social workers, deputies or guardians appointed by the court 
+who can locate identification documents or confirm the client's identity. 
+ 
+6.14.8 Professionals 
+ 
+Where other professionals use your services, in their capacity as a professional (e.g., when 
+representing a client or on behalf of their practice) you may consider using Simplified Due 
+Diligence as per R37. 
+ 
+Where other professionals use your services in their capacity as a private individual, you 
+will still need to complete full due diligence on them as you would with any other private 
+individual. In order to verify their identity and business address you may consult their 
+professional directory or register along with other sources. Being a regulated professional 
+should not lead to automatic treatment as being low risk in all cases. 
+ 
+You may consider the section on SDD in this context. 
+ 
+6.14.9 Persons acting on behalf of the client 
+ 
+In accordance with R28(10) where a person (the intermediary, agent or representative) 
+purports to act on behalf of your client, you must: 
+• verify that the intermediary, agent or representative is authorised to act on your 
+client’s behalf (i.e., obtain written confirmation from your client); 
+• identify the intermediary, agent or representative; and 
+• verify the identity of the intermediary, agent or representative on the basis 
+of documents and information from a reliable source which is independent 
+
+70 
+ 
+ 
+of both the representative and the client e.g., via a copy of their passport or 
+driving license. 
+Someone employed by your client (depending on their position or seniority) or a 
+director of your client may be considered as having apparent or ostensible 
+authority to provide instructions on behalf of the client, though you may seek 
+comfort of this on a risk sensitive basis.  They should not be considered to be 
+intermediaries, agents or representatives. Where it is not clear or apparent what 
+their authority to instruct on behalf of the client is, CDD should not be considered to 
+be complete.  
+For further information please also refer to 6.6 and 6.7. 
+ 
+6.14.10 Non-natural persons 
+ 
+R28(3A) states that where the customer is a legal person, trust, company, foundation or 
+similar legal arrangement the relevant person must  (having identified and verified the 
+customer in line with R28(2))  take reasonable measures to understand the ownership and 
+control structure of that legal person, trust, company, foundation or similar legal 
+arrangement. This is a wider concept than simply identifying the beneficial owners.  
+“Reasonable measures” means taking steps that are risk-based, proportionate and effective 
+in mitigating the identified money laundering and terrorism financing risks inherent in the 
+client or matter being undertaken. When considering this test of reasonableness, you should 
+consider whether the information is likely to assist in addressing the money laundering risks 
+and that you are comfortable that you would be able to demonstrate and evidence the extent 
+to which you have sought such information, to your supervisor upon request. It should not be 
+misinterpreted as an allowance to not fulfil your duty to understand the overall ownership 
+and control structure of the client.  
+You should also bear in mind that under regulation 33(6)(a)(vi) corporate structures which 
+are unusual or excessively complex given the nature of the company's business, are noted 
+as a specific risk factor. This may in turn require enhanced due diligence which could 
+include, among other things, seeking additional independent, reliable sources to verify 
+information provided to you, pursuant to regulation 33(5)(a). 
+Regulations 28(3) and (4) set out that you must obtain and verify the client’s registered 
+details and, subject to Regulation 28(5), identify the beneficial owner (where there is one). 
+You must also (subject to Regulation 28(5)) take reasonable measures to: 
+• determine and verify the law to which the body corporate is subject, its constitution and 
+the full names of its board of directors or equivalent, and the senior persons responsible 
+for the operations of the body corporate; and 
+• verify the identity of the any beneficial owner so that you are satisfied that you know who 
+the beneficial owner is.  
+  
+Again, subject to Regulation 28(5), you must also take reasonable measures to understand 
+the ownership and control structure of the client entity (as per R28(3A) noted above) and of 
+the beneficial owner if it is a non-natural person. This does not simply mean looking at 
+percentages of ownership but also identifying individuals with control and directing power, as 
+outlined in regulations 5 and 6. You should document your overarching understanding of the 
+individual’s background, circumstances and nature of the transaction. 
+  
+
+71 
+ 
+ 
+Under regulation 28(18)(a), “verify” means confirmation based on documents or information 
+obtained from a reliable, independent source.  
+ 
+Regulation 28(5) sets out the measures that do not apply where the client is a company 
+listed on a regulated market. 
+  
+Under regulation 28(18)(b), documents issued by an official body are considered 
+independent, even if provided or made available by the client or on their behalf. This might 
+be significant, for example, where a register was only accessible to the client. 
+Where applicable having regard to the circumstances, you should verify the identity of the 
+beneficial owner(s) to the equivalent standards as that applied to clients who are natural 
+persons, as described in 6.14 and/or 6.14.4. In other, lower risk situations and in limited 
+circumstances (such as when the relevant person already knows and has previously verified 
+the identity of the beneficial owner) taking reasonable measures to verify the beneficial 
+owner may mean, for example, taking verification information from non-independent 
+sources. To evidence why verification of beneficial owners through personal identity 
+documents is not undertaken, it is important to document your overarching understanding of 
+the individual’s background, circumstances and nature of the transaction. 
+It is important to note that you are seeking to verify the beneficial owner’s identity, not simply 
+that the identity in question is a beneficial owner. You may consider a range of sources to do 
+this provided they are appropriate to the risk posed by the client or matter.   
+Where you have been unable to verify the identity of the beneficial owners of a non-natural 
+person, you should consider the reasons for this and whether this should lead to a disclosure 
+to the NCA. Further consideration should be given to whether to act or continue to act for the 
+client, particularly where the complexity of the structures is out of your normal scope of 
+business or make completing CDD difficult. 
+You should record all of your considerations as a part of the client or matter risk assessment, 
+for more information see Section 5. 
+ 
+6.14.11 Companies – General Requirements 
+ 
+You must identify and verify 
+• the name of the company; 
+• its company number or other registration number; and 
+• the address of its registered office, and if different, its principal place of business. 
+ 
+Furthermore, the practice must take reasonable measures to determine and verify the law to 
+which the company is subject, and its constitution (whether set out in its articles of association 
+or other governing documents) and the full names of the board of directors (or if there is no 
+board, the members of the equivalent management body) and the senior persons responsible 
+for the operations of the body corporate.  
+A practice must collect proof of registration (e.g., via the client) or an excerpt from the 
+relevant register before establishing a business relationship with a:  
+• UK company (registered or unregistered as defined in the Unregistered Companies 
+Regulations 2009(1)); 
+
+72 
+ 
+ 
+• UK Limited Liability Partnership; or  
+• Scottish Partnership. 
+You must collect proof of registration (e.g., via the client) or an excerpt from the relevant 
+register.  
+ 
+Discrepancies in this information must be reported to the registrar, see Section 12 for more 
+details. 
+Where the client is beneficially owned by another person, the practice must also: 
+• identify the beneficial owner; and 
+• take reasonable measures to verify the identity of the beneficial owner, along with the 
+ownership and control structure of the non-natural person R28(4)(c). 
+These reasonable measures for verifying the identity of a non-natural person, may be 
+easier to undertake for smaller entities where the beneficial owners may be more 
+accessible. For larger entities where the beneficial owners may be more difficult to contact 
+directly, EID&V may be of significant help when verifying their identities. 
+ 
+Where a company is well-known or regulated for AML to a standard equivalent to which 
+you are subject to in the UK you may consider that the level of money laundering and 
+terrorist financing risks are low and apply CDD on a risk-based approach. For listed 
+companies see below. 
+ 
+Where you commence acting for a wholly owned subsidiary of an existing client, you may 
+refer to the CDD file for your existing client for verification of details of the subsidiary, 
+provided that the existing client has been identified to the standards of the Regulations or 
+to a similar standard in another jurisdiction. 
+ 
+6.14.11.1 Public companies listed on Regulated Markets 
+ 
+You must obtain and verify the: 
+ 
+• company name; 
+• company number or other registration number; and 
+• address of the registered office and, if different, principal place of business. 
+ 
+In accordance with R28(5), if the company is listed on a regulated market it is not 
+necessary to: 
+ 
+• obtain information about the beneficial owners of the company; or 
+• take  reasonable  measures  to  determine  and  verify  the  law  to  which  it  is 
+subject or the names of its directors and senior persons. 
+ 
+This may also be applied to a majority-owned subsidiary of such a company 
+where you have established the nature of ownership via an independent and 
+reliable source. 
+ 
+For a wholly owned subsidiary of a listed company, you will also require 
+evidence of the parent/subsidiary relationship. Such evidence may be: 
+ 
+• the subsidiary's last filed annual return/confirmation; 
+
+73 
+ 
+ 
+• a note in the parent's or subsidiary's last audited accounts or annual report; 
+• information  from  a reputable  electronic  verification  service  provider  or  online 
+registry; or 
+• information from the parent company’s published reports, for example, from their 
+website. 
+ 
+“Regulated market” is defined as follows: 
+• Within  the  EEA,  the  meaning  given  by  Article  4.1  (14)  of  the  Markets  in 
+Financial Instruments Directive; and 
+• Outside the EEA, a regulated financial market which subjects’ companies 
+whose securities are admitted to trading to disclosure obligations which are 
+equivalent to the specified disclosure obligations. 
+ 
+“specified disclosure obligations” means— 
+ 
+(a)disclosure obligations set out in Articles 17 and 19 of Regulation (EU) No 596/2014 
+of the European Parliament and of the Council of 16th April 2014 on market abuse 
+(22); 
+(b)disclosure obligations consistent with Articles 3, 5, 7, 8, 10, 14 and 16 of Directive 
+2003/71/EC of the European Parliament and of the Council of 4th November 2003 on 
+the prospectuses to be published when securities are offered to the public or admitted 
+to trading(23); 
+(c)disclosure obligations consistent with Articles 4 to 6, 14, 16 to 19 and 30 of 
+Directive 2004/109/EC of the European Parliament and of the Council of 15th 
+December 2004 on the harmonisation of transparency requirements in relation to 
+information about issuers whose securities are admitted to trading on a regulated 
+market(24); and 
+(d)disclosure requirements consistent with EU legislation made under the provisions 
+mentioned in sub-paragraphs (a) to (c); 
+ 
+ 
+If a regulated market is located within the EEA there is no requirement to undertake 
+checks on the market itself. Under a risk-based approach you may wish to simply record 
+the steps taken to ascertain the status of the market. 
+ 
+Consider a similar approach for non-EEA markets that subject companies to disclosure 
+obligations which are contained in international standards equivalent to specified 
+disclosure obligations in the EU. Jurisdictional AML risks should also be considered – 
+see the risk assessment section of this guidance for further information. 
+ 
+Consult the register on the European Securities and Markets Authority website. 
+Following an assessment that the client is low risk it will be sufficient, for a listed 
+company, to obtain confirmation of the company's listing on the regulated market.  
+ 
+Such evidence may be: 
+ 
+• a copy of the dated page of the website of the relevant stock exchange 
+showing the listing; 
+• a photocopy of the listing in a reputable newspaper; or 
+• information  from  a  reputable  electronic  verification  service  provider  or  online 
+registry. 
+ 
+
+74 
+ 
+ 
+Where a listed company is owned by multiple parties that are themselves held on a 
+regulated market(s), this does not need to be treated differently to a listed company that 
+is a wholly owned subsidiary of one, except that you need to collect the details of all 
+owners as above. 
+ 
+When assessing a listed company’s relationship with a market, you should have regard to 
+whether a company’s ownership is only partially available on a market i.e., only a 
+percentage is publicly held. In this context, you should consider seeking further 
+information about any owners whose relationship is not through a regulated market on a 
+risk sensitive basis. In other words, a company having any proportion of a listing on a 
+regulated market however small, does not mean you do not need to check other owners. 
+ 
+The regulated market in the UK is the London Stock Exchange. You may consider whether 
+it is appropriate to treat companies listed on other markets in the same way as those 
+meeting the definition of “regulated markets” on a risk sensitive basis. For example, AIM is 
+not a ‘regulated market’, but you may consider, on a risk-based approach, treating it as 
+such. 
+ 
+Where further CDD is required for a listed company (i.e., when it is not on a regulated 
+market or where you otherwise deem it necessary) consider the nature of the risks 
+presented and obtain additional information/comforts to address those risks.  This may 
+include obtaining relevant information or particulars of the company's identity or business 
+practices. 
+ 
+Verification sources may include: 
+ 
+• a search of the relevant company registry (such as Companies House); 
+• a copy of the company's certificate of incorporation; 
+• a copy of their audited accounts; or 
+• information from a reputable electronic verification service provider. 
+ 
+You are still required to conduct ongoing monitoring of the business relationship with a publicly 
+listed company to enable you to spot suspicious activity. 
+ 
+Companies whose listing does not fall within the above requirements should be identified in 
+accordance with the provisions for private companies. 
+ 
+6.14.11.2 Private and unlisted companies in the UK 
+ 
+Private companies are generally subject to a lower level of public disclosure than 
+public companies. In general, however, the structure, ownership, purposes and 
+activities of many private companies will be clear and understandable. 
+ 
+Sources for verifying corporate identification may include: 
+ 
+• certificate of incorporation; 
+• articles of association (or equivalent formation documents); 
+• details from the relevant company registry, confirming details of the company and 
+of the director/s and their addresses; 
+• filed audited accounts; or 
+• information from a reputable electronic verification service provider. 
+
+75 
+ 
+ 
+ 
+R43 requires UK companies not listed on a regulated market to provide information 
+about their identity on request, including their articles of association or other governing 
+documents and information about beneficial owners. 
+ 
+6.14.11.3 Private and unlisted overseas companies 
+ 
+Obtaining CDD material for these companies may be more difficult, particularly 
+regarding beneficial ownership where ownership is held in jurisdictions where no 
+publicly available corporate registers are available, or ownership can be otherwise 
+concealed through the use of nominees. If this is the case, it should be taken as an 
+increased risk factor and may warrant the application of enhanced due diligence 
+measures. 
+ 
+The company's identity should be established in the same way as for UK private and 
+unlisted companies. 
+Where you are not obtaining original documentation, you should consider the need for 
+further comfort on authenticity on a risk-based approach. Certification of documents does 
+not automatically guarantee documentation is genuine.  
+ 
+6.14.11.4 The Register of Overseas Entities 
+ 
+Overseas entities wishing to buy, sell or transfer property or land in the UK must now 
+register with Companies House. An overseas entity is defined as a legal entity governed 
+by the law of a country or territory outside the UK. 
+ 
+This requirement applies to overseas entities who own real property in the UK and have 
+done so since:  
+ 
+• in England and Wales, on or since 1 January 1999 
+• in Scotland, on or since 8 December 2014 
+• in Northern Ireland, on or since 5 September 2022. 
+Regulation 28(9) does not exclude the ROE as a register on which you can rely on for the 
+purposes of verification under 28(4). Nonetheless, it is important not to rely solely on this or 
+any other register. Regulation 30A, for example, introduced a discrepancy reporting 
+requirement for the ROE which indicates that inconsistency may occur. The information 
+provided by such registers should be verified independently. 
+Entries on the Register of Overseas Interests are not public but copies may be obtained on 
+application to Companies House. 
+More information is available here.  
+ 
+6.14.12 Trusts 
+ 
+These obligations set out below, apply to all trusts including will trusts and personal injury 
+trusts.  
+ 
+
+76 
+ 
+ 
+6.14.12.1 Who is the client? 
+ 
+In the UK, trusts do not have legal personality. As such, a trust cannot be your client. 
+When advising in relation to a trust, your client may be: 
+ 
+• the settlor; 
+• the trustee(s); 
+• the protector(s); or 
+• one or more of the beneficiaries. 
+ 
+Your client(s) will be the person to whom you owe your duty of care and who will receive 
+the benefit of your advice. 
+ 
+Where an express trust has yet to be established and you are providing tax or 
+transactional advice to a prospective settlor in anticipation of creating a trust, your client 
+will usually be the settlor. Your responsibilities to verify the identity of the client and their 
+source of funds, is then no different to any other client, except that you will also need to 
+understand the nature and extent of the assets that will be settled on the trust. 
+ 
+6.14.12.2 Specific CDD requirements when instructed in relation to an existing trust 
+ 
+Where you are instructed in relation to an existing trust, when applying CDD: you must 
+obtain and verify the identity of your client including beneficial owners where applicable: 
+ 
+• where you act for several beneficiaries (subject to conflicts issues), you must 
+obtain and verify the identity of each of them, unless you are acting for them as 
+a class (in which case you should identify the class by its name); 
+• you must, where your client has had a trust funding role, understand your client’s 
+source of wealth and the source of funds which were contributed (or which were 
+used to acquire assets which were contributed) to the trust; 
+• you must understand the nature and extent of the assets settled on the trust; and 
+• you must understand and record the identity of the (non-client) settlor, trustee(s), 
+protector(s), and/or beneficiary(is) and any person who otherwise has control of 
+the trust, as trust beneficial owners. 
+ 
+If the trust is a relevant trust for registration, you must also identify potential 
+beneficiaries. 
+ 
+If, when you carried out CDD in relation to a trust (or legal entity/arrangement other 
+than a body corporate) the beneficiaries were designated as a class you must 
+establish and verify the identity of any beneficiary before you are involved in the 
+payment to, or exercising of rights of, a specified beneficiary.  
+ 
+When applying CDD to a trust, or any other legal arrangement/entity which is not a 
+company, involving a class of beneficiaries, you must always verify the identity of the 
+beneficiary or beneficiaries before any payment is made to them or they exercise their 
+vested rights in the trust or legal entity/arrangement (R 30 (7)). 
+ 
+
+77 
+ 
+ 
+6.14.12.3 CDD where the identified client (i.e., the trustee or the settlor) of a trust is an entity  
+ 
+If the identified beneficial owner is an entity, you may need to understand who its 
+ultimate beneficial owners are, depending on the entity's status (e.g., whether it is a 
+company or some other type of entity).  
+ 
+The extent of the measures you take to identify the ultimate beneficial owner of one of the 
+trust’s defined ‘beneficial owners’ will depend on its role in relation to the trust. The ultimate 
+beneficial owner of a settlor, protector or sole beneficiary entity should be fully identified. 
+ 
+6.14.12.4 Who is a ‘beneficiary’ for the purposes of CDD where you act in relation to trusts? 
+ 
+R6(1) implies that individual beneficiaries need not be identified in CDD unless it has been 
+determined that they will benefit from the trust. That is, unless and until they have a vested 
+interest in the capital of the trust. 
+ 
+If you do not note all individual beneficiaries named in the trust deed or any associated 
+document on the basis that their benefit from the trust has not yet been determined, you 
+must identify any named class of beneficiaries, by its description. For example: 
+ 
+• grandchildren of [X]; or 
+• charity [Y]. 
+ 
+As CDD can only take account of circumstances at a point in time, you should note the 
+names of all discretionary beneficiaries (including those who have yet to acquire determined 
+interests) named in the trust deed and any document from the settlor relating to the trust, 
+such as a letter of wishes. Their interests may vest (or otherwise be determined) while you 
+are acting in relation to the trust, thus bringing them within the group of individuals who need 
+to be noted in CDD as beneficiaries, as defined in R6(1)(c). 
+ 
+When considering the identity of those in whose main interest a trust is set up or 
+operates and there are several classes of beneficiary, consider which class is most 
+likely to receive most of the trust property. For example: 
+ 
+• where a trust is for the issue of [X], then the class is the issue of [X] as there is only 
+one class; 
+• where a trust is for the children of [X], if they all die, for the grandchildren of [X] 
+and if they all die for charity [Y], then the class is likely to be the children of [X] as 
+it is unlikely that they will all die before the funds are disbursed; or 
+• where a discretionary trust allows for payments to the widow, the children, their 
+spouses and civil partners, the grandchildren and their spouses and civil partners 
+then all interests are equal, and all classes will need to be identified. 
+ 
+When in doubt about which class has the main interest, you should identity all 
+classes. 
+ 
+However, where you act in relation to a discretionary trust, if you decide against noting in 
+your CDD the names of individual beneficiaries who are named in the trust deed or any 
+associated document on the basis that their benefitting from the trust has not yet been 
+determined, you will need to seek regular updates from your client, as part of your on-going 
+
+78 
+ 
+ 
+monitoring measures on a risk-based approach. This may include when and whether 
+beneficiaries’ interests in the trust will be or have been determined. 
+ 
+The wider approach, involving noting all beneficiaries and potential beneficiaries named 
+in the trust deed and any associated document at CDD outset, may therefore be 
+preferable from the outset. 
+6.14.12.5 What does ‘an individual who has control over the trust’ mean? 
+R6(1)(e) brings any individual who has control over the trust within the definition of 
+the beneficial owners of a trust and they will therefore need to be identified when you 
+act in relation to a trust. 
+ 
+R6(2) defines control as a power, whether exercisable alone, jointly or with the consent of 
+another, under the trust instrument or by law to: 
+ 
+• dispose of, advance, lend, invest, pay or apply trust property; 
+• vary or terminate the trust; 
+• add or remove a person as a beneficiary or to or from a class of beneficiaries; 
+• appoint or remove trustees or give another individual control over the trust; or 
+• direct, withhold consent to or veto the exercise of one of the above powers. 
+ 
+R6(4)(b) specifically excludes from the definition of an individual who has control over a 
+trust an individual ('P') who has control solely as a result of: 
+ 
+• P's consent being required in accordance with section 32(1)(c) (power of 
+advancement) of the Trustee Act 1925; 
+• any discretion delegated to P under section 34 (power of investment and 
+delegation) of the Pensions Act 1995; 
+• the power to give a direction conferred on P by section 19(2) (appointment and 
+retirement of trustee at instance of beneficiaries) of the Trusts of Land and 
+Appointment of Trustees Act 1996; or 
+• the power exercisable collectively at common law to vary or extinguish a trust 
+where the beneficiaries under the trust are of full age and capacity and (taken 
+together) absolutely entitled to the property subject to the trust (or, in Scotland, 
+have a full and unqualified right to the fee). 
+ 
+6.14.12.6 CDD implications arising from the register of beneficial owners of taxable relevant trusts 
+ 
+If you or your practice on occasions acts as (as opposed to for) a trustee of a taxable 
+relevant trust, pursuant to R44 of the Regulations you will need to maintain accurate and 
+up to date records of all beneficial owners and potential beneficiaries of the trust. 
+ 
+Even if your practice is also acting for the trustee(s) and has applied CDD, this may involve 
+you in more extensive investigations. 
+ 
+A taxable relevant trust is: 
+ 
+• a UK express trust, meaning that either all the trustees are resident in the UK or 
+at least one trustee is UK resident and the settlor was UK resident and domiciled 
+when the trust was set up or when the settlor added funds to it; or 
+
+79 
+ 
+ 
+• any other (non-UK) express trust which, in any tax year, becomes liable to pay 
+one or more of UK income tax, capital gains tax, inheritance tax, stamp duty land 
+tax, land and buildings transaction tax or stamp duty reserve tax in relation to UK 
+income or assets. 
+ 
+If you form a business relationship in your role as trustee with a relevant person, which 
+could be an advisory relationship with your practice (if it is subject to the Regulations), 
+you will need to inform the relevant person that you are acting as a trustee and, on 
+request, provide the relevant person with information identifying the trust’s beneficial 
+owners and potential beneficiaries. 
+ 
+That obligation lies on (external) trustees of relevant trusts who enter into transactions in 
+relation to which you or your practice are required to apply CDD or who form a business 
+relationship with you or your practice (if you are subject to the Regulations). This should 
+assist you in your compliance with your CDD obligations and is another reason why it 
+makes sense to extend your CDD in relation to a relevant trust's beneficial owners also to 
+cover potential beneficiaries. 
+ 
+Otherwise, from a reputational risk and advisory perspective, as law enforcement 
+authorities may gain access to information not only about the trust’s beneficial owners as 
+defined in R6(1) but also the names of those individuals who are referred to in any 
+document from the settlor, such as a letter of wishes, relating to the trust, it is prudent to 
+note such wider information in your CDD records where you act for any client in relation to 
+a relevant trust, and where you act in relation to any trust. 
+6.14.12.7 Practical considerations of CDD for trusts 
+ 
+Applying CDD where you act in relation to an existing trust should generally involve your 
+having sight of the trust deed or documents which relates to it and obtaining an 
+appropriate understanding of their content. In some circumstances, this understanding of 
+the content may come from an explanatory note provided by another professional 
+regulated for AML to a similar standard. The rationale for obtaining such evidence in this 
+manner should be documented. 
+ 
+In low-risk situations (as determined by appropriate and thorough documented risk 
+assessment) you may be able to record an account of the terms of the trust given by the 
+client or another regulated person who has had an involvement with setting up or 
+managing the trust. However, before doing so, you should be assured that the reason for 
+your not being provided with the trust deed and any document which relates to it makes 
+sense in all circumstances, is recorded by you and is not indicative of a higher risk of 
+money laundering. 
+ 
+You will also need to assure yourself that in identifying the trust’s beneficial owners, the 
+client or other regulated person, as appropriate, had proper regard to whether they 
+included any individual (other than the settlor, the trustees and the beneficiaries) who has 
+control over the trust, and potential beneficiaries. 
+ 
+6.14.13 Partnerships, limited partnerships, Scottish limited partnerships and UK LLPs 
+A partnership, other than in Scotland, is not a separate legal entity, so you must 
+obtain information on the constituent individuals. 
+
+80 
+ 
+ 
+ 
+Where partnerships or unincorporated businesses are well-known, reputable organisations, 
+with long histories in their industries and with substantial public information about them, their 
+principals, and controllers the following information may be sufficient: 
+ 
+• name; 
+• registered address, if any; 
+• trading address; and 
+• nature of business. 
+ 
+You must still verify the identity of the partnership’s beneficial owners. 
+ 
+R5(3) provides that in the case of a partnership (but not a limited liability partnership) 
+the following individuals are beneficial owners: 
+ 
+• any individual ultimately entitled to or who controls, (whether directly or 
+indirectly), more than 25 per cent of the capital or profits of the partnership or 
+more than 25 per cent of the voting rights in the partnership; or 
+• any individual who otherwise exercises control over the management of the 
+partnership. 
+ 
+Relevant points to consider when applying R5(3) are: 
+ 
+• the property of the entity includes its capital and its profits; and 
+• control involves the ability to manage the use of funds or transactions outside of 
+the normal management structure and control mechanisms 
+ 
+You should also consider whether there are any other registries on which you may be able 
+to verify the details of the partnership.  
+ 
+Other partnerships and unincorporated businesses which are small and have few partners 
+should be treated for identification and verification purposes in the same way as private 
+individuals (i.e., identifying and verifying each partner). Where the numbers are larger, 
+they should be treated for identification and verification purposes in the same way as 
+private companies. 
+ 
+Where a partnership is made up of regulated professionals, it may be sufficient to confirm 
+the practice's existence and the trading address from a reputable professional directory or 
+search facility with the relevant professional body. Otherwise, you should obtain evidence 
+on the identity of at least two partners and evidence of the practice's trading address. You 
+must still verify the identity of the partnership’s beneficial owners. 
+ 
+For a UK LLP or SLP, you should obtain information in accordance with the requirements 
+for companies as outlined above as these are treated as corporate entities. 
+ 
+Careful consideration should be made regarding clients where partners themselves are 
+overseas entities, particularly where these overseas entities are located in jurisdictions 
+where no publicly available corporate registers are available, or ownership can be 
+otherwise concealed through the use of nominees or similar structures. This is particularly 
+relevant where the vehicle is used to hold assets or is involved in transactional or other 
+potentially high-risk activities, or conversely, where no discernible business activity can be 
+determined, from internet searches or other sources. Such factors may be indicative of 
+shell companies and are likely to be indicative of higher ML risk. You should give 
+
+81 
+ 
+ 
+consideration to why the use of such structures may not be legitimate and the nature and 
+purpose of the business. Your client may be able to help you understand this. Information 
+obtained should be considered in light of other CDD information available.  
+ 
+Where you have assessed the client risk to be higher risk because of its structure or 
+factors as above, then you must put in place enhanced due diligence and ongoing 
+monitoring. 
+ 
+6.14.14 Foundations 
+ 
+Foundations may or may not have legal personality. You should investigate whether this 
+is the case and whether it is appropriate to take on the foundation as your client or 
+whether your client should be the board of trustees or another party involved with the 
+foundation. 
+ 
+If the foundation lacks legal personality, you should approach CDD, as you would where 
+you act for a client in relation to a trust. R6(5) provides that ‘beneficial owner’ in relation to 
+a foundation or other legal arrangement similar to a trust, means those individuals who 
+hold equivalent or similar positions to the (defined) beneficial owners of trusts. 
+ 
+6.14.15 Charities 
+ 
+Charities may take a number of forms. In the UK, you may come across five types of 
+charities: 
+ 
+• small; 
+• registered; 
+• unregistered; 
+• excepted, such as churches; or 
+• exempt, such as museums and universities. 
+ 
+For registered charities, you should take a record of their full name, registration number 
+and place of business. Details of registered charities in the UK can be obtained from: 
+ 
+• the Charity Commission of England and Wales; 
+• the Office of the Scottish Charity Regulator; or 
+• the Charity Commission for Northern Ireland. 
+ 
+Other countries may also have charity regulators which maintain a list of registered 
+charities. You may consider it appropriate to refer to these when verifying the identity of 
+an overseas charity. 
+ 
+For all other types of charities, you should consider the business structure of the charity 
+and apply CDD appropriately. You may also get confirmation of UK charitable status from 
+HMRC. Further, in applying the risk-based approach to charities it is worth considering 
+whether it is a well-known entity or not. The more obscure the charity, the more likely you 
+are to want to view the constitutional documents of the charity, along with any other 
+documents that may clarify the individuals in control and its status. 
+ 
+
+82 
+ 
+ 
+Due to the numerous examples of charities and not-for-profit organisations as fund raising 
+vehicles for terrorist organisations you may want to also consult HM Treasury's 
+consolidated list of persons designated as being subject to financial restrictions to ensure 
+the charity is not a designated person. 
+ 
+Another point to consider is Source of Funds, in that charities may fund transactions 
+effectively through crowdfunding, which can make a Source of Funds check difficult to 
+complete. Taking a risk-based approach you should consider whether you need to seek 
+information as to who those individuals or entities are that are funding the charity, 
+particularly those contributing larger percentages or amounts. 
+6.14.16 Deceased persons' estates 
+ 
+When acting for the executor(s) or administrators of an estate, you should establish their 
+identity using the procedures for natural persons or companies set out above. When 
+acting for more than one executor or administrator, you should verify the identity of at 
+least two of them. You should also get copies of the death certificate, grant of probate 
+and any letters of administration. 
+ 
+If a will trust is created, and the trustees are different from the executors, the procedures 
+in relation to trusts will need to be followed when the will trust comes into operation. 
+ 
+6.14.17 Churches and places of worship 
+ 
+Places of worship may either register as a charity or can apply for registration as a certified 
+building of worship from the General Register Office (GRO) which will issue a certificate. 
+Further, their charitable tax status will be registered with HMRC. As such, identification 
+details with respect to the church or place of worship may be verified: 
+ 
+• as for a charity; 
+• through the headquarters or regional organisation of the denomination or 
+religion; 
+• with reference to the GRO certificate; or 
+• through an enquiry to HMRC. 
+ 
+6.14.18 Schools and colleges 
+ 
+Schools and colleges may be a registered charity, a private company, an 
+unincorporated association or a government entity and should be verified in 
+accordance with the relevant category. The Department of Education maintains 
+lists of approved educational establishments which may assist in verifying the 
+existence of the school or college. 
+ 
+6.14.19 Clubs and associations 
+ 
+Many of these bear a low money laundering risk, but this depends on the scope of 
+their purposes, ownership structure, activities and geographic spread. 
+
+83 
+ 
+ 
+ 
+The following information may be relevant to the identity of the club or association: 
+ 
+• full name; 
+• legal status; 
+• purpose; 
+• any registered address; or 
+• names of all office holders. 
+ 
+Documents which may verify the existence of the club or association include: 
+ 
+• any articles of association or constitution; 
+• statement from a bank, building society or credit union; 
+• recent audited accounts; or 
+• financial statements presented to the annual general meeting. 
+ 
+6.14.20 Government agencies and councils 
+ 
+The money laundering and terrorist financing risks associated with public authorities vary 
+significantly depending on the nature of the retainer and the home jurisdiction of the public 
+authority. It may be simple to establish that the entity exists, but where there is a 
+heightened risk of corruption or misappropriation of government monies, greater monitoring 
+of retainers should be applied. 
+ 
+The following information may be relevant when establishing a public sector entity's 
+identity: 
+ 
+• full name of the entity; 
+• nature and status of the entity; 
+• address of the entity; 
+• name of the home state authority; 
+• name of the directors or equivalent; 
+• name of the individual instructing you and confirmation of their authority to do so; 
+or 
+• extract from official government website. 
+ 
+Under R37(3) the fact that the client is a public administration or publicly owned enterprise 
+is one of the factors to consider when deciding whether it is low risk and whether to apply 
+simplified due diligence. It will usually be appropriate to apply simplified due diligence to 
+UK public authorities and to some non-UK public authorities, particularly those in the EEA. 
+ 
+6.14.21 Further Information 
+ 
+You may wish to consider the UK Financial Services Joint Money Laundering 
+Steering Group (JMLSG) guidance Part 1 – (available here) as a useful source of 
+information on possible ways to apply CDD on the above entities, and across a 
+broader range of other entity structures. You should note though that in the context of 
+legal services, the LSAG guidance takes precedent. 
+ 
+
+84 
+ 
+ 
+6.15 Beneficial ownership requirements 
+ 
+6.15.1 Definition of a beneficial owner 
+ 
+A beneficial owner is normally an individual who ultimately owns or controls the customer 
+or on whose behalf a transaction is being conducted. In respect of private individuals (i.e., 
+a natural person), the client themselves may be treated as the beneficial owner, unless 
+there are features of the transaction, or surrounding circumstances, that indicate 
+otherwise.  
+ 
+Therefore, if your client is an individual, you may want to consider whether they are acting 
+on their own behalf. A question to ask yourself in this context and more generally is: “do 
+the services I am being asked to provide make sense given what I know about the client?” 
+ 
+R5(1) defines the beneficial owner of a body corporate, other than a listed company, as 
+meaning: 
+ 
+any individual who: 
+ 
+• exercises ultimate control over the management of the body corporate; 
+• ultimately owns or controls, directly or indirectly, including through bearer share 
+holdings or other means, more than 25% of the shares or voting rights in the body 
+corporate; 
+• otherwise controls the body: 
+o by satisfying one or more of the conditions set out in Part 1 of 
+Schedule 1A to the Companies Act 2006 (persons with significant 
+control); or 
+o if the individual were an undertaking, the body corporate would be a 
+subsidiary undertaking of the individual under section1162 of the 
+Companies Act 2006 read with Part 7 of that Act. 
+ 
+This does not apply to a company listed on a regulated market. It does apply to UK 
+limited liability partnerships. 
+ 
+Regulation 6(1) In relation to a trust, the Regulations define the beneficial owner as each of:  
+• the settlor;  
+• the trustees;  
+• the beneficiaries, or where the individuals benefiting from the trust have not been 
+determined,  the  class  of  persons  in  whose  main  interest  the  trust  is  set  up,  or 
+operates; and 
+• any individual who has control over the trust.  
+In relation to a foundation or other legal arrangement similar to a trust, the beneficial owners 
+are  those  who  hold  equivalent  or  similar  positions  to  those  set  out  above  in  the  case  of 
+trusts. 
+ 
+In  relation  to  a  legal  entity  or  legal  arrangement  which  does  not  fall  into  the  above,  the 
+beneficial owners are:  
+• any individual who benefits from the property of the entity or arrangement;  
+
+85 
+ 
+ 
+• where the  individuals  who  benefit from  the  entity or  arrangement  have  yet  to  be 
+identified, the class of persons in whose main interest the entity or arrangement is 
+set up or operates; and 
+• any individual who exercises control over the property of the entity or arrangement. 
+Unincorporated associations and foundations are examples of entities and 
+arrangements likely to fall within these requirements. 
+ 
+When applying this, relevant points to consider are: 
+ 
+• the property of the entity includes its capital and its profits; 
+• determined benefits are those to which an individual is currently entitled; 
+• contingent benefits or situations where no determination has been made 
+should be dealt with as a class to which (and because) benefit has yet to be 
+determined; 
+• a class of persons need only be identified by description; 
+• an  entity  or  arrangement  is  set  up  for,  or  operates  in,  the  main  interest  of  the 
+persons who are likely to get most of the property; 
+• control includes the ability to manage the use of funds or transactions outside the 
+normal management structure and control mechanisms; and 
+• where you find a body corporate with the requisite interest outlined above, you will 
+need to make further proportionate enquiries as to the beneficial owner of the 
+body corporate. 
+ 
+6.15.2 Other forms of control 
+ 
+You should be alert to the risk that a corporate entity can also be subject to control by 
+persons other than shareholders. Such control may rest with those who have power to 
+manage funds or transactions without requiring specific authority to do so, and who would 
+be in a position to authorise changes to internal procedures and control mechanisms. 
+Depending on the control structures in an entity, this could be a senior role operating 
+without actual or effective supervision or another entity. 
+ 
+You should remain alert to any person or entity with such powers while you are obtaining 
+an understanding of the ownership and control structure of the corporate entity and make 
+such further enquiries you need in order to understand the control structure. Monitor 
+situations within the retainer where control structures appear to be bypassed or unduly 
+complex on a risk sensitive basis. 
+ 
+6.16 CDD on a beneficial owner 
+ 
+6.16.1 General Comments  
+ 
+Beneficial Owners must be identified, and reasonable measures must be taken to verify 
+their identities so that you are satisfied you know who the beneficial owner is and that they 
+are in fact the beneficial owner in question.  
+ 
+In complex structures, practices may have to look through layers of ownership (and 
+consider any associated dilution of that ownership) to arrive at any natural persons owning 
+or controlling the client entity.  
+
+86 
+ 
+ 
+ 
+It is important to review both shareholdings and voting rights in respect of beneficial 
+ownership, along with understanding the class and value of shares any individual holds. 
+ 
+Where the shareholding of an entity indicates that no one owns or controls over 25% of a 
+client you may wish to consider whether it is appropriate that the senior manager (e.g., 
+CEO, board, controlling mind of the company) be considered as the beneficial owners 
+under R5(1))(a) and (c). This is subtly different to the requirements of R28(8) and would 
+not necessarily raise a concern of extra risks as the circumstances of R28(7) might. 
+ 
+When conducting CDD on a client, you will need to identify any beneficial owners as 
+defined above. This may be undertaken by obtaining: 
+ 
+• shareholder details from a reputable online registry or commercial provider; 
+• a copy of a detailed structure chart; and 
+• a copy of the trust deed, partnership agreement or other such document. 
+ 
+It is not enough to solely rely on the information contained in a company’s register of 
+persons with significant control. You should consider what is the appropriate level of 
+verification required on an RBA. 
+ 
+These reasonable measures to verify a beneficial owner, may differ to those you may use 
+to verify the identity of a client that is a natural person. For example, you may not require 
+passports or driving licenses in these circumstances, but EID&V may present an effective 
+way to verify the identities of beneficial owners.   
+ 
+It is for your practice to determine a tailored and risk sensitive approach that is appropriate 
+to ensure you are satisfied you know who a beneficial owner is and that you fully 
+understand their relationship with the non-natural person. 
+6.16.2 Requirements introduced in 2020 
+ 
+If you cannot identify the beneficial owner (where they have more than 25% holding of the 
+company), you should consider whether this makes the client or matter higher risk and treat 
+it accordingly and consider whether you should continue to act for the client. 
+ 
+If you cannot identify a beneficial owner pursuant to the above despite having exhausted all 
+possible means of doing so or if you are not satisfied that the person is the beneficial owner, 
+you must then take reasonable measures to verify the identity of the senior responsible 
+manager of the body corporate. Depending on the circumstances, it may be that you have 
+already concluded this is the case on the basis that the individual “exercises ultimate control 
+over the management of the body corporate” under Regulation 5(1)(a), although you should 
+note that the scope of Regulation 5(1)(a) is not limited to this scenario. 
+In practice, this may be the Chief Executive Officer or President of the group, or someone 
+else in the executive team with high level responsibility for the running of the relevant aspect 
+of the body corporate. 
+ 
+You must also record: 
+• All the actions you have undertaken to this end; and 
+• Any difficulties encountered. 
+
+87 
+ 
+ 
+ 
+6.16.3 Agency 
+ 
+R6(9) says a beneficial owner generally means any individual who ultimately owns or 
+controls the client or on whose behalf a transaction is being conducted. 
+ 
+In most cases, it is presumed that the client is acting on their own behalf, unless the 
+features of the transaction indicate that they are acting on someone else's behalf.  As 
+highlighted above you should make enquiries when it appears the client may be acting on 
+behalf of someone else. 
+ 
+Situations where a natural person may be acting on behalf of someone else include: 
+ 
+• exercising a power of attorney - the document granting power of attorney may be 
+sufficient to verify the beneficial owner's identity; 
+• acting  as  the  deputy,  administrator  or  insolvency  practitioner - appointment 
+documents may be sufficient to verify the beneficial owner's identity; or 
+• acting as an appointed broker or other agent to conduct a transaction - signed 
+letter of appointment may be sufficient to verify the beneficial owner's identity. 
+ 
+You should be alert to the possibility that purported agency relationships are actually 
+being utilised to facilitate a fraud, leading to possible encounters with the proceeds of 
+crime. Understanding the reason for the agency, rather than simply accepting 
+documentary evidence of such at face value, will assist to mitigate this risk. Where a 
+client or retainer is higher risk, you should obtain further verification of the beneficial 
+owner's identity in line with the suggested CDD methods to be applied to natural persons. 
+ 
+This may also include where a legal practice commissions your services on behalf of 
+someone else.  
+ 
+6.16.4 Companies 
+ 
+6.16.4.1 A proportionate approach 
+ 
+Where you have adequately assessed ML risk to be lower, it would not be generally 
+proportionate to conduct independent searches across multiple entities at multiple layers 
+of a corporate chain to see whether, by accumulating very small interests in different 
+entities, a person finally achieves more than a 25 per cent interest in the client corporate 
+entity. Nevertheless, you must be satisfied that you have an overall understanding of the 
+ownership and control structure of the client company. This provision does not apply in 
+any situations of higher risk, where EDD should be applied. 
+ 
+6.16.4.2 Companies with capital in the form of bearer shares 
+ 
+A bearer share is a form of equity (i.e., a stock or share in a company or equivalent) wholly 
+owned by whoever holds the physical stock certificate. Given this, there is no way to 
+register the owner of the stock confidently or consistently nor track transfers of ownership 
+ 
+
+88 
+ 
+ 
+These pose a much higher risk of money laundering as it is often difficult to identify 
+beneficial owners and such companies are often incorporated in jurisdictions with lower 
+AML/CTF regulations. You should consider whether the risk posed is acceptable for your 
+practice before proceeding.  
+ 
+If you do proceed, you must adopt procedures to establish the identities of the holders and 
+material beneficial owners of such shares and ensure you are notified whenever there is a 
+change of holder and/or beneficial owner (i.e., who they are held on behalf of).  
+ 
+This might be achieved by: 
+ 
+• requiring that the shares be deposited with you or a regulated person with whom 
+you have a binding covenant; or  
+• getting appropriate assurance that either such a regulated person or the holder 
+of the shares will notify you of any change of records/holder/ownership relating 
+to the shares. 
+ 
+Ultimately it is for your practice to determine the confidence you can place in any assurances 
+that the bearer shares will not be used to hide money laundering or terrorist financing, 
+however extreme caution must be exercised. Bear in mind that the issuance of bearer 
+shares has been banned in the UK since May 2015, primarily due to money laundering and 
+transparency concerns. Enhanced due diligence and ongoing monitoring should be 
+performed and practices must be able to demonstrate the effectiveness of controls in place 
+to their supervisor. 
+ 
+Where a practice does undertake work for clients where beneficial ownership is held in the 
+form of bearer shares, this should be articulated in the Practice-Wide Risk Assessment. 
+ 
+6.16.5 Trusts 
+Whenever you are instructed by someone involved with an existing trust to advise in relation 
+to it, you must extend your CDD to the trust’s beneficial owners.  
+ 
+You should take a risk-based approach to verifying the identity of the ultimate beneficial 
+owner/s of a professional trustee entity (as they should have no interest in the assets placed 
+in trust). Higher-risk indicators may be where the professional trustee entity is unregulated or 
+where the professional trustee is not independent of the settlor (e.g., family offices). Where 
+such factors are present, reasonable measures should be taken to verify the identity of the 
+beneficial owner/s of the trustee. Lower risk factors may be where the professional trustee is 
+itself a regulated entity (or owned by one) or is large, well-known and/or listed on a regulated 
+market. In such low-risk instances, you should not need to identify and verify beneficial 
+ownership of the professional trustee, although you should document the rationale for your 
+actions. 
+ 
+R28(4)(a) requires a relevant person to identify the beneficial owner ‘of a client’ which is 
+beneficially owned by another person. R6(1) defines ‘the beneficial owners in relation to a 
+trust’ as the settlor, the trustees, the beneficiaries (or class of beneficiaries) and any 
+individual who has control over the trust. Although your client will not actually be the trust 
+(because a trust does not have legal personality), if you advise any client in relation to a 
+trust, the Regulations require you to understand who the trust's other beneficial owners are, 
+as defined in R6(1). 
+
+89 
+ 
+ 
+ 

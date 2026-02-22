@@ -193,6 +193,12 @@ export default async function AssessmentViewPage({ params }: PageProps) {
           View Determination
         </Link>
         {!isFinalised && canFinalise && <FinaliseButton assessmentId={assessment.id} />}
+        <Link
+          href={`/assessments/new?matter_id=${matter.id}`}
+          className={styles.rerunButton}
+        >
+          Re-run Assessment
+        </Link>
       </div>
     </div>
   );

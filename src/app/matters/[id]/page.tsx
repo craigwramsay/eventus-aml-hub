@@ -120,7 +120,7 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
               </tr>
             </thead>
             <tbody>
-              {assessments.map((assessment) => (
+              {assessments.map((assessment, index) => (
                 <tr key={assessment.id}>
                   <td>
                     <Link
@@ -129,6 +129,11 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
                     >
                       {assessment.id.slice(0, 8)}...
                     </Link>
+                    {index === 0 && assessments.length > 1 && (
+                      <span className={`${styles.badge} ${styles.badgeOpen}`} style={{ marginLeft: '0.5rem' }}>
+                        Latest
+                      </span>
+                    )}
                   </td>
                   <td>
                     <span

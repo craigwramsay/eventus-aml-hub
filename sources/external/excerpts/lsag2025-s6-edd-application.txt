@@ -1,0 +1,125 @@
+---
+source_name: LSAG Sectoral Guidance 2025
+section_ref: s. 6.19.1-6.19.2
+topics: [edd, enhanced-due-diligence, hrtc, high-risk-third-countries, risk-factors, application]
+effective_date: 2025-04-23
+---
+6.19 When to apply EDD 
+ 
+6.19.1 High-risk third countries 
+ 
+You must apply EDD measures in any business relationship with a person established 
+in a HRTC or where you are undertaking an occasional transaction (within the meanings 
+of R27(1)(b) and (2)) where either party is established in a high-risk third country.  
+ 
+HRTCs are defined by the Regulations as High-Risk Jurisdictions Subject to a Call for 
+Action or Jurisdictions Under Increased Monitoring by FATF.   
+ 
+Being “established in” a country means: 
+• in the case of a legal person, being incorporated in or having a principal place 
+of business (head office) in that country, or for a financial institution having its 
+main regulator in that country; or 
+• in the case of a natural person, being resident in that country but not 
+necessarily simply having been born in that country. 
+However, this requirement does not apply if: 
+ 
+• the client is a branch or majority owned subsidiary of an entity which is a third 
+country and the entity is subject to requirements equivalent to the 5
+th
+ Money 
+Laundering Directive and supervised for compliance with those requirements; 
+• it complies with the group wide policies established by the entity under Article 45 
+of the Directive, and 
+• you do not consider EDD measures to be necessary taking a risk-based 
+approach. 
+ 
+Note that not all countries where there may be a higher risk of money laundering are 'high-
+risk third countries' for these purposes. Other jurisdictions may equally pose higher ML 
+risks – these should be assessed as part of client and matter risk assessments, and 
+additional, enhanced due diligence measures should be applied accordingly. 
+ 
+6.19.2 Other situations of higher risk of money laundering or terrorist financing 
+ 
+Enhanced due diligence is also required where there is a higher risk of money laundering 
+or terrorist financing. In determining whether there is a higher risk of money laundering or 
+terrorist financing in a given case, you must consider the risk factors set out in R33(6), 
+along with the outcomes of your practice-wide, client and matter risk assessments.  
+ 
+Instances of high risk as detailed in your supervisor’s risk assessment and in the National 
+Risk Assessment also require EDD to be applied. 
+ 
+Please see the features outlined in Section 5 and 18 of this guidance for further 
+information. You should consider the situation in context of the CDD information held on 
+your client, including their background and financial circumstances. 
+ 
+ 
+Regulation 33(6) – Risk Factors you must consider when determining whether to 
+apply EDD 
+
+ 
+ 
+ 
+When assessing whether there is a high risk of money laundering or terrorist financing in 
+a particular situation, and the extent of the measures which should be taken to manage 
+and mitigate that risk, relevant persons must take account of risk factors including, 
+among other things—  
+ 
+(a)customer risk factors, including whether—  
+(i) the business relationship is conducted in unusual circumstances;  
+(ii) the customer is resident in a geographic area of high risk (see sub-paragraph (c));  
+(iii) the customer is a legal person or legal arrangement that is a vehicle for holding 
+personal assets;  
+(iv) the customer is a company that has nominee shareholders or shares in bearer form;  
+(v) the customer is a business that is cash intensive;  
+(vi) the corporate structure of the customer is unusual or excessively complex given the 
+nature of the company’s business;  
+(vii) the customer is the beneficiary of a life insurance policy; o 
+(viii) the customer is a third country national who is applying for residence rights in or 
+citizenship of an EEA state in exchange for transfers of capital, purchase of a property, 
+government bonds or investment in corporate entities in that EEA state; 
+ 
+(b)product, service, transaction or delivery channel risk factors, including whether—  
+(i) the product involves private banking;  
+(ii) the product or transaction is one which might favour anonymity;  
+(iii) the situation involves non-face-to-face business relationships or transactions, without 
+certain safeguards, such as an electronic identification process which meets the 
+conditions set out in regulation 28(19);  
+(iv) payments will be received from unknown or un-associated third parties;  
+(v) new products and new business practices are involved, including new delivery 
+mechanisms, and the use of new or developing technologies for both new and pre-
+existing products;  
+(vi) the service involves the provision of nominee directors, nominee shareholders or 
+shadow directors, or the formation of companies in a third country;  
+(vii) there is a transaction related to oil, arms, precious metals, tobacco products, cultural 
+artefacts, ivory or other items related to protected species, or other items of 
+archaeological, historical, cultural or religious significance or of rare scientific value 
+ 
+(c) geographic risk factors, including—  
+(i) countries identified by credible sources, such as FATF mutual evaluations, detailed 
+assessment reports or published follow-up reports, as not having effective systems to 
+counter money laundering or terrorist financing;  
+(ii) countries identified by credible sources as having significant levels of corruption or 
+other criminal activity, such as terrorism (within the meaning of section 1 of the Terrorism 
+Act 2000(86)), money laundering, and the production and supply of illicit drugs;  
+(iii) countries subject to sanctions, embargos or similar measures issued by, for example, 
+the European Union or the United Nations;  
+(iv) countries providing funding or support for terrorism;  
+(v) countries that have organisations operating within their territory which have been 
+designated—  
+(aa) by the government of the United Kingdom as proscribed organisations under 
+Schedule 2 to the Terrorism Act 2000(87), or  
+(bb) by other countries, international organisations or the European Union as terrorist 
+organisations; and 
+(vi) countries identified by credible sources, such as evaluations, detailed assessment 
+reports or published follow-up reports published by the Financial Action Task Force, the 
+
+ 
+ 
+International Monetary Fund, the World Bank, the Organisation for Economic Co-
+operation and Development or other international bodies or non-governmental 
+organisations as not implementing requirements to counter money laundering and 
+terrorist financing that are consistent with the recommendations published by the 
+Financial Action Task Force in February 2012 and updated in June 2019. 
+ 
+As well as considering the risks identified above, you should have regard to any of the risk 
+factors discussed in Section 5 that may be present in a given client or matter.
