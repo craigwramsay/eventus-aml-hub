@@ -21,7 +21,7 @@ export function GlobalAssistantButton() {
         aria-label={isOpen ? 'Close assistant' : 'Open AML assistant'}
         title="AML Assistant"
       >
-        {isOpen ? '&#x2715;' : '?'}
+        {isOpen ? '\u2715' : '?'}
       </button>
 
       <AssistantPanel isOpen={isOpen} onClose={() => setIsOpen(false)} />

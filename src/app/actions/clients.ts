@@ -107,7 +107,7 @@ export async function createClientAction(
         registered_address: registered_address ?? null,
         trading_address: trading_address ?? null,
         sector: sector ?? null,
-        aml_regulated: aml_regulated ?? false,
+        aml_regulated: aml_regulated ?? null,
         updated_at: new Date().toISOString(),
       })
       .select()

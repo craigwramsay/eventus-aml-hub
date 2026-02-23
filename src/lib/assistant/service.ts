@@ -37,10 +37,23 @@ export async function processAssistantRequest(
   }
 
   try {
+    // Build a retrieval query enriched with conversation context.
+    // Follow-up questions like "What does that mean?" are too vague on their own
+    // to match relevant sources, so we include the last user question from history.
+    let retrievalQuery = request.questionText;
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      const lastUserTurn = [...request.conversationHistory]
+        .reverse()
+        .find((turn) => turn.role === 'user');
+      if (lastUserTurn) {
+        retrievalQuery = `${lastUserTurn.content} ${request.questionText}`;
+      }
+    }
+
     // Retrieve relevant sources
     let sources = await retrieveRelevantSources(
       firmContext.firmId,
-      request.questionText
+      retrievalQuery
     );
 
     // If no relevant sources found, try getting all sources
@@ -55,9 +68,16 @@ export async function processAssistantRequest(
       request.uiContext
     );
 
+    // Build conversation history (cap to last 20 messages = ~10 turns)
+    const MAX_HISTORY_MESSAGES = 20;
+    const history: ChatMessage[] = (request.conversationHistory || [])
+      .slice(-MAX_HISTORY_MESSAGES)
+      .map((turn) => ({ role: turn.role, content: turn.content }));
+
     // Build messages for the LLM
     const messages: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
+      ...history,
       { role: 'user', content: request.questionText },
     ];
 

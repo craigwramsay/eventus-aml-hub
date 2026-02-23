@@ -12,6 +12,7 @@ import { renderDetermination } from '@/lib/determination';
 import type { AssessmentRecord, InputSnapshot, OutputSnapshot, EvidenceForDetermination } from '@/lib/determination';
 import { CopyButton } from './CopyButton';
 import { PrintButton } from './PrintButton';
+import { AutoPrint } from './AutoPrint';
 import styles from './page.module.css';
 
 interface PageProps {
@@ -75,6 +76,10 @@ export default async function DeterminationPage({ params }: PageProps) {
 
   return (
     <>
+      <Link href={`/assessments/${id}`} className={styles.backLink}>
+        &larr; Back to Assessment
+      </Link>
+
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>
@@ -98,6 +103,8 @@ export default async function DeterminationPage({ params }: PageProps) {
       <pre className={styles.determinationBlock}>
         {determination.determinationText}
       </pre>
+
+      <AutoPrint />
     </>
   );
 }

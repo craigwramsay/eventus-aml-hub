@@ -4,11 +4,18 @@
 
 import Link from 'next/link';
 import { getClients } from '@/app/actions/clients';
+import { getUserProfile } from '@/lib/supabase/server';
+import { canDeleteEntities } from '@/lib/auth/roles';
 import { ClientsList } from './ClientsList';
 import styles from './clients.module.css';
 
 export default async function ClientsPage() {
-  const clients = await getClients();
+  const [clients, profile] = await Promise.all([
+    getClients(),
+    getUserProfile(),
+  ]);
+
+  const canDelete = profile ? canDeleteEntities(profile.role) : false;
 
   return (
     <>
@@ -24,7 +31,7 @@ export default async function ClientsPage() {
           <p>No clients yet. Create your first client to get started.</p>
         </div>
       ) : (
-        <ClientsList clients={clients} />
+        <ClientsList clients={clients} canDelete={canDelete} />
       )}
     </>
   );

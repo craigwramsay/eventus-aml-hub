@@ -32,6 +32,7 @@ export function QuestionHelperButton({
   return (
     <>
       <button
+        type="button"
         className={styles.questionHelper}
         onClick={() => setIsOpen(true)}
         aria-label="Get help with this question"

@@ -8,12 +8,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { AssessmentListItem } from '@/app/actions/assessments';
 import { SortableTable, type ColumnConfig } from '@/components/tables/SortableTable';
+import { InlineDeleteButton } from '@/components/tables/InlineDeleteButton';
+import { deleteAssessment } from '@/app/actions/assessments';
 import styles from './assessments.module.css';
 
 type FilterStatus = 'all' | 'draft' | 'finalised';
 
 interface AssessmentsListProps {
   assessments: AssessmentListItem[];
+  canDelete?: boolean;
 }
 
 function formatDate(dateString: string): string {
@@ -42,7 +45,7 @@ function getRiskLabel(level: string): string {
   }
 }
 
-export function AssessmentsList({ assessments }: AssessmentsListProps) {
+export function AssessmentsList({ assessments, canDelete }: AssessmentsListProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
 
@@ -138,6 +141,21 @@ export function AssessmentsList({ assessments }: AssessmentsListProps) {
       sortValue: (row) => row.created_at,
       render: (row) => formatDate(row.created_at),
     },
+    ...(canDelete
+      ? [
+          {
+            key: 'actions',
+            label: '',
+            render: (row: AssessmentListItem) => (
+              <InlineDeleteButton
+                label="Delete"
+                confirmMessage={`Delete ${row.reference}?`}
+                onDelete={() => deleteAssessment(row.id)}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

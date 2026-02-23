@@ -64,11 +64,19 @@ export function AssistantPanel({
     setIsLoading(true);
 
     try {
+      // Build conversation history from existing messages (before this turn)
+      const conversationHistory = messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       const response = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           questionText,
+          conversationHistory:
+            conversationHistory.length > 0 ? conversationHistory : undefined,
           uiContext: initialContext,
         }),
       });

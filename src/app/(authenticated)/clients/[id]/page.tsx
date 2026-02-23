@@ -43,7 +43,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               : styles.badgeCorporate
           }`}
         >
-          {client.client_type}
+          {client.client_type.charAt(0).toUpperCase() + client.client_type.slice(1)}
         </span>
       </div>
 
@@ -56,7 +56,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           </div>
           <div className={styles.detailField}>
             <div className={styles.detailLabel}>Client Type</div>
-            <div className={styles.detailValue}>{client.client_type}</div>
+            <div className={styles.detailValue}>{client.client_type.charAt(0).toUpperCase() + client.client_type.slice(1)}</div>
           </div>
           <div className={styles.detailField}>
             <div className={styles.detailLabel}>Created</div>
@@ -92,8 +92,8 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Reference</th>
                 <th>Description</th>
+                <th>Reference</th>
                 <th>Status</th>
                 <th>Created</th>
               </tr>
@@ -106,10 +106,17 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                       href={`/matters/${matter.id}`}
                       className={styles.tableLink}
                     >
+                      {matter.description || matter.reference}
+                    </Link>
+                  </td>
+                  <td>
+                    <Link
+                      href={`/matters/${matter.id}`}
+                      className={styles.tableLink}
+                    >
                       {matter.reference}
                     </Link>
                   </td>
-                  <td>{matter.description || '-'}</td>
                   <td>
                     <span className={styles.badge}>
                       {matter.status}

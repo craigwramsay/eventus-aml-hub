@@ -474,6 +474,13 @@ export async function getAssessmentWithDetails(
     // Parse output_snapshot as AssessmentOutput
     const outputSnapshot = assessment.output_snapshot as unknown as AssessmentOutput;
 
+    // Registered number: prefer client record, fall back to assessment form answer (field 4)
+    const inputSnapshot = assessment.input_snapshot as unknown as { formAnswers?: Record<string, string | string[]> };
+    const formRegNumber = typeof inputSnapshot?.formAnswers?.['4'] === 'string'
+      ? inputSnapshot.formAnswers['4']
+      : null;
+    const registeredNumber = client.registered_number || formRegNumber || null;
+
     return {
       success: true,
       data: {
@@ -481,7 +488,7 @@ export async function getAssessmentWithDetails(
         client,
         matter,
         outputSnapshot,
-        registeredNumber: client.registered_number || null,
+        registeredNumber,
       },
     };
   } catch (error) {

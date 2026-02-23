@@ -10,6 +10,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitAssessment } from '@/app/actions/assessments';
+import { QuestionHelperButton } from '@/components/assistant/QuestionHelperButton';
+import { CountryMultiSelect } from '@/components/forms/CountryMultiSelect';
 import type { FormAnswers } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
 
@@ -201,6 +203,19 @@ export function AssessmentForm({
       .join('\n');
   };
 
+  const renderFieldLabel = (field: FormField, fieldReadOnly: boolean) => {
+    return (
+      <div className={styles.fieldLabelRow}>
+        <label className={styles.fieldLabel}>
+          {getLabelText(field)}
+          {isRequired(field) && <span className={styles.fieldRequired}>*</span>}
+          {fieldReadOnly && <span className={styles.prefilledBadge}>Pre-filled</span>}
+        </label>
+        <QuestionHelperButton questionId={field.id} questionText={getLabelText(field)} />
+      </div>
+    );
+  };
+
   const renderField = (field: FormField): React.ReactNode => {
     if (!shouldShowField(field)) return null;
 
@@ -213,6 +228,10 @@ export function AssessmentForm({
           return renderCurrencyField(field);
         }
         return renderTextField(field);
+      case 'date':
+        return renderDateField(field);
+      case 'country_multi':
+        return renderCountryMultiField(field);
       case 'radio':
         return renderRadioField(field);
       case 'checkbox':
@@ -255,15 +274,7 @@ export function AssessmentForm({
 
     return (
       <div key={field.id} className={styles.field}>
-        <label className={styles.fieldLabel}>
-          {getLabelText(field)}
-          {isRequired(field) && (
-            <span className={styles.fieldRequired}>*</span>
-          )}
-          {fieldReadOnly && (
-            <span className={styles.prefilledBadge}>Pre-filled</span>
-          )}
-        </label>
+        {renderFieldLabel(field, fieldReadOnly)}
         <input
           type="text"
           className={`${styles.input} ${fieldReadOnly ? styles.inputReadOnly : ''}`}
@@ -279,17 +290,53 @@ export function AssessmentForm({
     );
   };
 
+  const renderDateField = (field: FormField): React.ReactNode => {
+    const value = (answers[field.id] as string) || '';
+    const fieldReadOnly = isReadOnly(field.id);
+
+    return (
+      <div key={field.id} className={styles.field}>
+        {renderFieldLabel(field, fieldReadOnly)}
+        <input
+          type="date"
+          className={`${styles.input} ${fieldReadOnly ? styles.inputReadOnly : ''}`}
+          value={value}
+          onChange={(e) => setAnswer(field.id, e.target.value)}
+          readOnly={fieldReadOnly}
+          tabIndex={fieldReadOnly ? -1 : undefined}
+        />
+        {field.hint && (
+          <div className={styles.fieldHint}>{field.hint}</div>
+        )}
+      </div>
+    );
+  };
+
+  const renderCountryMultiField = (field: FormField): React.ReactNode => {
+    const value = (answers[field.id] as string) || '';
+    const fieldReadOnly = isReadOnly(field.id);
+
+    return (
+      <div key={field.id} className={styles.field}>
+        {renderFieldLabel(field, fieldReadOnly)}
+        <CountryMultiSelect
+          value={value}
+          onChange={(v) => setAnswer(field.id, v)}
+          readOnly={fieldReadOnly}
+        />
+        {field.hint && (
+          <div className={styles.fieldHint}>{field.hint}</div>
+        )}
+      </div>
+    );
+  };
+
   const renderCurrencyField = (field: FormField): React.ReactNode => {
     const fieldReadOnly = isReadOnly(field.id);
 
     return (
       <div key={field.id} className={styles.field}>
-        <label className={styles.fieldLabel}>
-          {getLabelText(field)}
-          {isRequired(field) && (
-            <span className={styles.fieldRequired}>*</span>
-          )}
-        </label>
+        {renderFieldLabel(field, fieldReadOnly)}
         <input
           type="text"
           inputMode="numeric"
@@ -304,7 +351,7 @@ export function AssessmentForm({
           }}
           readOnly={fieldReadOnly}
           tabIndex={fieldReadOnly ? -1 : undefined}
-          placeholder="\u00A30"
+          placeholder="Enter amount"
         />
         {field.hint && (
           <div className={styles.fieldHint}>{field.hint}</div>
@@ -320,15 +367,7 @@ export function AssessmentForm({
 
     return (
       <div key={field.id} className={styles.field}>
-        <label className={styles.fieldLabel}>
-          {getLabelText(field)}
-          {isRequired(field) && (
-            <span className={styles.fieldRequired}>*</span>
-          )}
-          {fieldReadOnly && (
-            <span className={styles.prefilledBadge}>Pre-filled</span>
-          )}
-        </label>
+        {renderFieldLabel(field, fieldReadOnly)}
         <div className={styles.radioGroup}>
           {options.map((option) => (
             <label
@@ -361,12 +400,7 @@ export function AssessmentForm({
 
     return (
       <div key={field.id} className={styles.field}>
-        <label className={styles.fieldLabel}>
-          {getLabelText(field)}
-          {isRequired(field) && (
-            <span className={styles.fieldRequired}>*</span>
-          )}
-        </label>
+        {renderFieldLabel(field, false)}
         <div className={styles.checkboxGroup}>
           {options.map((option) => (
             <label key={option}>

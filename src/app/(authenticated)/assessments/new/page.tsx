@@ -111,10 +111,6 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
       initialValues['41'] = matter.description;
       readOnlyFields.push('41');
     }
-    if (matter.client.aml_regulated !== undefined && matter.client.aml_regulated !== null) {
-      initialValues['51'] = matter.client.aml_regulated ? 'Yes' : 'No';
-      readOnlyFields.push('51');
-    }
   } else {
     // Individual form field mappings
     if (matter.client.name) {

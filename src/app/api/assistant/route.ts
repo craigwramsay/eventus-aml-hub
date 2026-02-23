@@ -114,6 +114,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate and cap conversation history
+    if (body.conversationHistory !== undefined) {
+      if (!Array.isArray(body.conversationHistory)) {
+        return NextResponse.json(
+          { error: 'conversationHistory must be an array' },
+          { status: 400 }
+        );
+      }
+      const MAX_HISTORY = 20;
+      const valid = body.conversationHistory.every(
+        (turn: unknown) =>
+          typeof turn === 'object' &&
+          turn !== null &&
+          'role' in turn &&
+          'content' in turn &&
+          ((turn as { role: string }).role === 'user' ||
+            (turn as { role: string }).role === 'assistant') &&
+          typeof (turn as { content: unknown }).content === 'string'
+      );
+      if (!valid) {
+        return NextResponse.json(
+          { error: 'Each history entry must have role (user|assistant) and content (string)' },
+          { status: 400 }
+        );
+      }
+      // Cap to last N messages
+      body.conversationHistory = body.conversationHistory.slice(-MAX_HISTORY);
+    }
+
     // Process the request
     const result = await processAssistantRequest(body, {
       firmId: profile.firm_id,

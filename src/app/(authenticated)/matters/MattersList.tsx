@@ -8,12 +8,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { MatterWithClient } from '@/app/actions/matters';
 import { SortableTable, type ColumnConfig } from '@/components/tables/SortableTable';
+import { InlineDeleteButton } from '@/components/tables/InlineDeleteButton';
+import { deleteMatter } from '@/app/actions/matters';
 import styles from './matters.module.css';
 
 type StatusFilter = 'all' | 'open' | 'closed';
 
 interface MattersListProps {
   matters: MatterWithClient[];
+  canDelete?: boolean;
 }
 
 function formatDate(dateString: string): string {
@@ -24,7 +27,7 @@ function formatDate(dateString: string): string {
   });
 }
 
-export function MattersList({ matters }: MattersListProps) {
+export function MattersList({ matters, canDelete }: MattersListProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
@@ -89,6 +92,21 @@ export function MattersList({ matters }: MattersListProps) {
       sortValue: (row) => row.created_at,
       render: (row) => formatDate(row.created_at),
     },
+    ...(canDelete
+      ? [
+          {
+            key: 'actions',
+            label: '',
+            render: (row: MatterWithClient) => (
+              <InlineDeleteButton
+                label="Delete"
+                confirmMessage={`Delete ${row.reference}?`}
+                onDelete={() => deleteMatter(row.id)}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

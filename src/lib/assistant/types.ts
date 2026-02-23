@@ -10,10 +10,18 @@ export interface UIContext {
   questionText?: string;
 }
 
+/** A prior conversation turn */
+export interface ConversationTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 /** Request to the assistant */
 export interface AssistantRequest {
   /** The user's question */
   questionText: string;
+  /** Prior conversation turns (most recent last) */
+  conversationHistory?: ConversationTurn[];
   /** Optional UI context */
   uiContext?: UIContext;
 }

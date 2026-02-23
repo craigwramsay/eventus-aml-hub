@@ -22,6 +22,11 @@
           "id": "pep_status",
           "condition": "individual.pepOrRca == 'Yes'",
           "authority": "MLR 2017, reg. 35; PCP §15"
+        },
+        {
+          "id": "client_account_funds",
+          "condition": "clientAccountFunds == 'Yes'",
+          "authority": "PWRA §2.4; LSAG §6.2.3; PCP §20"
         }
       ]
     },
@@ -238,6 +243,16 @@
         "note": "Scored via CMLRA only",
         "factors": [
           {
+            "id": "client_account_funds",
+            "formFieldId": "55",
+            "label": "Receipt of funds into client account",
+            "authority": "PWRA §2.4; LSAG §6.2.3; PCP §20",
+            "options": [
+              { "answer": "Yes", "outcome": "HIGH_RISK_EDD_REQUIRED" },
+              { "answer": "No", "score": 0 }
+            ]
+          },
+          {
             "id": "third_party_funding",
             "formFieldId": "59",
             "label": "Third-party funding",
@@ -405,6 +420,16 @@
         "label": "Section 6 - Source of Funds Indicators",
         "note": "Same as corporate - scored via CMLRA only",
         "factors": [
+          {
+            "id": "client_account_funds",
+            "formFieldId": "36",
+            "label": "Receipt of funds into client account",
+            "authority": "PWRA §2.4; LSAG §6.2.3; PCP §20",
+            "options": [
+              { "answer": "Yes", "outcome": "HIGH_RISK_EDD_REQUIRED" },
+              { "answer": "No", "score": 0 }
+            ]
+          },
           {
             "id": "third_party_funding",
             "formFieldId": "38",

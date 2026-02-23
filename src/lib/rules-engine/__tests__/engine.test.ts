@@ -484,24 +484,36 @@ describe('AML Rules Engine', () => {
       expect(clientAccountTrigger).toBeDefined();
     });
 
-    it('should NOT change risk level when EDD triggers fire at LOW', () => {
+    it('should NOT change risk level when non-automatic EDD triggers fire at LOW', () => {
       const answers: FormAnswers = {
         ...INDIVIDUAL_FIXTURES.lowRisk,
-        '35': 'Yes',
-        '36': 'Yes', // Client account trigger
+        '50': 'Yes', // TCSP trigger (EDD trigger only, not automatic HIGH)
       };
       const result = assessIndividual(answers);
 
-      // Risk level should remain LOW - triggers don't change it
+      // Risk level should remain LOW - TCSP EDD trigger doesn't change it
       expect(result.riskLevel).toBe('LOW');
       expect(result.eddTriggers.length).toBeGreaterThan(0);
+    });
+
+    it('should trigger automatic HIGH when client account funds = Yes', () => {
+      const answers: FormAnswers = {
+        ...INDIVIDUAL_FIXTURES.lowRisk,
+        '35': 'Yes',
+        '36': 'Yes', // Client account funds
+      };
+      const result = assessIndividual(answers);
+
+      // Client account funds = Yes triggers automatic HIGH per PWRA §2.4
+      expect(result.riskLevel).toBe('HIGH');
+      expect(result.automaticOutcome).not.toBeNull();
+      expect(result.automaticOutcome!.outcomeId).toBe('HIGH_RISK_EDD_REQUIRED');
     });
 
     it('should inject EDD actions when triggers present at LOW risk', () => {
       const answers: FormAnswers = {
         ...INDIVIDUAL_FIXTURES.lowRisk,
-        '35': 'Yes',
-        '36': 'Yes', // Client account trigger
+        '50': 'Yes', // TCSP trigger
       };
       const result = assessIndividual(answers);
 

@@ -4,11 +4,18 @@
 
 import Link from 'next/link';
 import { getMatters } from '@/app/actions/matters';
+import { getUserProfile } from '@/lib/supabase/server';
+import { canDeleteEntities } from '@/lib/auth/roles';
 import { MattersList } from './MattersList';
 import styles from './matters.module.css';
 
 export default async function MattersPage() {
-  const matters = await getMatters();
+  const [matters, profile] = await Promise.all([
+    getMatters(),
+    getUserProfile(),
+  ]);
+
+  const canDelete = profile ? canDeleteEntities(profile.role) : false;
 
   return (
     <>
@@ -24,7 +31,7 @@ export default async function MattersPage() {
           <p>No matters yet. Create your first matter to get started.</p>
         </div>
       ) : (
-        <MattersList matters={matters} />
+        <MattersList matters={matters} canDelete={canDelete} />
       )}
     </>
   );

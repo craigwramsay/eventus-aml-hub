@@ -61,7 +61,7 @@ export function buildSystemPrompt(
   // Response requirements
   lines.push('## Response Requirements');
   lines.push('1. Answer based on the Provided Materials below. You may interpret, summarise, and explain what the materials say in plain language.');
-  lines.push('2. Recognise standard AML/legal abbreviations (CDD, EDD, KYC, SoF, SoW, PEP, SAR, MLR, MLRO, HRTC, FATF, LSAG, POCA, etc.) as references to their full terms in the materials.');
+  lines.push('2. Recognise standard AML/legal abbreviations (CDD, EDD, KYC, SoF, SoW, PEP, SAR, MLR, MLRO, HRTC, FATF, LSAG, POCA, etc.) and informal synonyms (e.g. "offline" = non-electronic/face-to-face, "checks" = due diligence, "ID" = identification/verification) as references to their counterparts in the materials.');
   lines.push('3. If the Provided Materials do not contain information that can reasonably answer the question, respond EXACTLY:');
   lines.push(`   "${NOT_FOUND_RESPONSE}"`);
   lines.push('4. Cite sources using the format: [Source Name, Section Ref]');

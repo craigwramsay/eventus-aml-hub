@@ -1,0 +1,74 @@
+/* InlineDeleteButton — inline delete with confirmation */
+
+.deleteButton {
+  background: none;
+  border: none;
+  color: var(--danger, #dc3545);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm, 4px);
+  white-space: nowrap;
+}
+
+.deleteButton:hover {
+  background-color: color-mix(in srgb, var(--danger, #dc3545) 10%, transparent);
+  text-decoration: underline;
+}
+
+.confirmRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.confirmText {
+  color: var(--text-secondary, #666);
+}
+
+.confirmYes {
+  background: none;
+  border: none;
+  color: var(--danger, #dc3545);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.confirmYes:hover {
+  background-color: color-mix(in srgb, var(--danger, #dc3545) 10%, transparent);
+}
+
+.confirmYes:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmCancel {
+  background: none;
+  border: none;
+  color: var(--text-muted, #999);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.confirmCancel:hover {
+  color: var(--foreground);
+}
+
+.confirmCancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--danger, #dc3545);
+  font-size: 0.75rem;
+  cursor: help;
+}

@@ -5,11 +5,18 @@
  */
 
 import { getAllAssessments } from '@/app/actions/assessments';
+import { getUserProfile } from '@/lib/supabase/server';
+import { canDeleteEntities } from '@/lib/auth/roles';
 import { AssessmentsList } from './AssessmentsList';
 import styles from './assessments.module.css';
 
 export default async function AssessmentsPage() {
-  const assessments = await getAllAssessments();
+  const [assessments, profile] = await Promise.all([
+    getAllAssessments(),
+    getUserProfile(),
+  ]);
+
+  const canDelete = profile ? canDeleteEntities(profile.role) : false;
 
   return (
     <>
@@ -22,7 +29,7 @@ export default async function AssessmentsPage() {
           <p>No assessments yet. Create one from a matter page.</p>
         </div>
       ) : (
-        <AssessmentsList assessments={assessments} />
+        <AssessmentsList assessments={assessments} canDelete={canDelete} />
       )}
     </>
   );

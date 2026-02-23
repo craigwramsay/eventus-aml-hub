@@ -8,12 +8,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { Client } from '@/lib/supabase/types';
 import { SortableTable, type ColumnConfig } from '@/components/tables/SortableTable';
+import { InlineDeleteButton } from '@/components/tables/InlineDeleteButton';
+import { deleteClient } from '@/app/actions/clients';
 import styles from './clients.module.css';
 
 type TypeFilter = 'all' | 'individual' | 'corporate';
 
 interface ClientsListProps {
   clients: Client[];
+  canDelete?: boolean;
 }
 
 function formatDate(dateString: string): string {
@@ -24,7 +27,7 @@ function formatDate(dateString: string): string {
   });
 }
 
-export function ClientsList({ clients }: ClientsListProps) {
+export function ClientsList({ clients, canDelete }: ClientsListProps) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
@@ -68,7 +71,7 @@ export function ClientsList({ clients }: ClientsListProps) {
               : styles.badgeCorporate
           }`}
         >
-          {row.client_type}
+          {row.client_type.charAt(0).toUpperCase() + row.client_type.slice(1)}
         </span>
       ),
     },
@@ -79,6 +82,21 @@ export function ClientsList({ clients }: ClientsListProps) {
       sortValue: (row) => row.created_at,
       render: (row) => formatDate(row.created_at),
     },
+    ...(canDelete
+      ? [
+          {
+            key: 'actions',
+            label: '',
+            render: (row: Client) => (
+              <InlineDeleteButton
+                label="Delete"
+                confirmMessage={`Delete ${row.name}?`}
+                onDelete={() => deleteClient(row.id)}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

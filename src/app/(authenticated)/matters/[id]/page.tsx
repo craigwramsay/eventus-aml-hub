@@ -31,7 +31,7 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
   return (
     <>
       <div className={styles.header}>
-        <h1 className={styles.title}>{matter.reference}</h1>
+        <h1 className={styles.title}>{matter.description || matter.reference}</h1>
         <span
           className={`${styles.badge} ${
             matter.status === 'open' ? styles.badgeOpen : styles.badgeClosed
@@ -44,9 +44,9 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Matter Details</h2>
         <div className={styles.detailGrid}>
-          <div className={styles.detailField}>
-            <div className={styles.detailLabel}>Matter ID</div>
-            <div className={styles.detailValue}>{matter.id}</div>
+          <div className={styles.detailField} style={{ gridColumn: '1 / -1' }}>
+            <div className={styles.detailLabel}>Description</div>
+            <div className={styles.detailValue}>{matter.description || '-'}</div>
           </div>
           <div className={styles.detailField}>
             <div className={styles.detailLabel}>Reference</div>
@@ -65,7 +65,7 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
           </div>
           <div className={styles.detailField}>
             <div className={styles.detailLabel}>Client Type</div>
-            <div className={styles.detailValue}>{matter.client.client_type}</div>
+            <div className={styles.detailValue}>{matter.client.client_type.charAt(0).toUpperCase() + matter.client.client_type.slice(1)}</div>
           </div>
           <div className={styles.detailField}>
             <div className={styles.detailLabel}>Status</div>
@@ -77,12 +77,10 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
               {new Date(matter.created_at).toLocaleString()}
             </div>
           </div>
-          {matter.description && (
-            <div className={styles.detailField} style={{ gridColumn: '1 / -1' }}>
-              <div className={styles.detailLabel}>Description</div>
-              <div className={styles.detailValue}>{matter.description}</div>
-            </div>
-          )}
+          <div className={styles.detailField}>
+            <div className={styles.detailLabel}>Matter ID</div>
+            <div className={styles.detailValue}>{matter.id}</div>
+          </div>
         </div>
       </div>
 
@@ -110,6 +108,7 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
                 <th>Score</th>
                 <th>Status</th>
                 <th>Created</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -155,6 +154,16 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
                   </td>
                   <td>
                     {new Date(assessment.created_at).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <a
+                      href={`/assessments/${assessment.id}/determination?print=true`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.tableLink}
+                    >
+                      PDF
+                    </a>
                   </td>
                 </tr>
               ))}

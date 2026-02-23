@@ -339,6 +339,7 @@ describe('renderDetermination', () => {
         'HEADING',
         'ASSESSMENT DETAILS',
         'RISK DETERMINATION',
+        'SCORING BREAKDOWN',
         'CDD REQUIREMENTS',
         'RISK FACTORS',
         'POLICY REFERENCES',

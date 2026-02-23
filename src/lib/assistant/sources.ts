@@ -191,7 +191,7 @@ async function retrieveSourcesByVector(
 
   const { data, error } = await supabase.rpc('match_assistant_sources', {
     query_embedding: JSON.stringify(queryEmbedding),
-    match_threshold: 0.5,
+    match_threshold: 0.3,
     match_count: limit,
   });
 
@@ -239,8 +239,11 @@ async function retrieveSourcesByKeyword(
 /**
  * Retrieve relevant sources for a question
  *
- * Tries vector similarity search first when configured.
- * Falls back to keyword matching if vector search is unavailable or returns empty.
+ * Uses hybrid retrieval: vector similarity + keyword topic matching, merged and
+ * deduplicated. This ensures topic-matched sources are always included even when
+ * vector search returns results that miss keyword-obvious matches (e.g. "offline
+ * verification" failing to surface face-to-face verification sections via
+ * embeddings alone).
  *
  * @param firmId - The firm ID for RLS
  * @param questionText - The user's question
@@ -251,21 +254,52 @@ export async function retrieveRelevantSources(
   questionText: string,
   limit: number = 10
 ): Promise<AssistantSource[]> {
-  // Try vector search first
+  let vectorResults: AssistantSource[] = [];
+
+  // Try vector search
   if (isEmbeddingConfigured()) {
     try {
-      const vectorResults = await retrieveSourcesByVector(firmId, questionText, limit);
-      if (vectorResults.length > 0) {
-        return vectorResults;
-      }
-      // Vector search returned empty — fall through to keyword matching
+      vectorResults = await retrieveSourcesByVector(firmId, questionText, limit);
     } catch (error) {
-      console.error('Vector search error, falling back to keyword matching:', error);
+      console.error('Vector search error, continuing with keyword matching:', error);
     }
   }
 
-  // Fallback: keyword-based topic matching
-  return retrieveSourcesByKeyword(firmId, questionText, limit);
+  // Always run keyword search as well
+  const keywordResults = await retrieveSourcesByKeyword(firmId, questionText, limit);
+
+  // Interleave: alternate keyword and vector results so both strategies contribute.
+  // Keyword results go first at each step because they're topic-matched (high precision).
+  const seen = new Set<string>();
+  const merged: AssistantSource[] = [];
+  let vi = 0;
+  let ki = 0;
+
+  while (merged.length < limit && (vi < vectorResults.length || ki < keywordResults.length)) {
+    // Take next unseen keyword result
+    while (ki < keywordResults.length) {
+      if (!seen.has(keywordResults[ki].id)) {
+        seen.add(keywordResults[ki].id);
+        merged.push(keywordResults[ki]);
+        ki++;
+        break;
+      }
+      ki++;
+    }
+    if (merged.length >= limit) break;
+    // Take next unseen vector result
+    while (vi < vectorResults.length) {
+      if (!seen.has(vectorResults[vi].id)) {
+        seen.add(vectorResults[vi].id);
+        merged.push(vectorResults[vi]);
+        vi++;
+        break;
+      }
+      vi++;
+    }
+  }
+
+  return merged;
 }
 
 /**

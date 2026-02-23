@@ -361,6 +361,118 @@ function renderVerificationEvidence(evidence: EvidenceForDetermination[]): Deter
 }
 
 /**
+ * Render the scoring breakdown showing every scoring factor, its answer, and score.
+ * Uses the scoring config (not the output snapshot) to enumerate all factors,
+ * then looks up answers from input_snapshot.formAnswers and scores from output_snapshot.riskFactors.
+ */
+function renderScoringBreakdown(assessment: AssessmentRecord): DeterminationSection {
+  const { input_snapshot, output_snapshot } = assessment;
+  const clientType = input_snapshot.clientType;
+  const formAnswers = input_snapshot.formAnswers;
+  const config = getRiskScoringConfig();
+  const sections = config.scoringFactors[clientType];
+
+  // Build a lookup from factorId to the computed risk factor result
+  const riskFactorMap = new Map<string, RiskFactorSnapshot>();
+  for (const rf of output_snapshot.riskFactors) {
+    riskFactorMap.set(rf.factorId, rf);
+  }
+
+  // Column layout matching the 70-char document width
+  // Factor (42)  Answer (22)  Score (6, right-aligned)
+  const COL_FACTOR = 42;
+  const COL_ANSWER = 22;
+  const COL_SCORE = 6;
+  const TABLE_WIDTH = COL_FACTOR + COL_ANSWER + COL_SCORE;
+
+  const lines: string[] = [];
+  lines.push(
+    padRight('Factor', COL_FACTOR) +
+    padRight('Answer', COL_ANSWER) +
+    padLeft('Score', COL_SCORE)
+  );
+  lines.push('\u2500'.repeat(TABLE_WIDTH));
+
+  let total = 0;
+
+  for (const sectionKey of Object.keys(sections)) {
+    const section = sections[sectionKey];
+
+    for (const factor of section.factors) {
+      // Skip unscored/context-only factors
+      if (factor.scored === false) continue;
+
+      const label = truncate(factor.label, COL_FACTOR - 2);
+
+      // Check if the engine computed this factor
+      const computed = riskFactorMap.get(factor.id);
+
+      if (computed) {
+        const answerDisplay = truncate(
+          formatAnswer(computed.selectedAnswer),
+          COL_ANSWER - 2
+        );
+        const scoreDisplay = computed.score > 0 ? `+${computed.score}` : '0';
+        total += computed.score;
+
+        lines.push(
+          padRight(label, COL_FACTOR) +
+          padRight(answerDisplay, COL_ANSWER) +
+          padLeft(scoreDisplay, COL_SCORE)
+        );
+      } else {
+        // Factor not in output — check if form answer exists
+        const rawAnswer = formAnswers[factor.formFieldId];
+
+        if (rawAnswer !== undefined && rawAnswer !== '' && !(Array.isArray(rawAnswer) && rawAnswer.length === 0)) {
+          const answerDisplay = truncate(formatAnswer(rawAnswer), COL_ANSWER - 2);
+          lines.push(
+            padRight(label, COL_FACTOR) +
+            padRight(answerDisplay, COL_ANSWER) +
+            padLeft('0', COL_SCORE)
+          );
+        } else {
+          lines.push(
+            padRight(label, COL_FACTOR) +
+            padRight('(not applicable)', COL_ANSWER) +
+            padLeft('-', COL_SCORE)
+          );
+        }
+      }
+    }
+  }
+
+  lines.push('\u2500'.repeat(TABLE_WIDTH));
+  lines.push(
+    padRight('TOTAL', COL_FACTOR + COL_ANSWER) +
+    padLeft(String(total), COL_SCORE)
+  );
+
+  return {
+    title: 'SCORING BREAKDOWN',
+    body: lines.join('\n'),
+  };
+}
+
+/** Pad a string to a fixed width with trailing spaces (left-aligned) */
+function padRight(str: string, width: number): string {
+  if (str.length >= width) return str.substring(0, width);
+  return str + ' '.repeat(width - str.length);
+}
+
+/** Pad a string to a fixed width with leading spaces (right-aligned) */
+function padLeft(str: string, width: number): string {
+  if (str.length >= width) return str.substring(0, width);
+  return ' '.repeat(width - str.length) + str;
+}
+
+/** Truncate a string with ellipsis if it exceeds maxLen */
+function truncate(str: string, maxLen: number): string {
+  if (str.length <= maxLen) return str;
+  return str.substring(0, maxLen - 1) + '\u2026';
+}
+
+/**
  * Render the triggered risk factors section
  */
 function renderRiskFactors(assessment: AssessmentRecord): DeterminationSection {
@@ -471,13 +583,14 @@ export interface RenderDeterminationOptions {
  * 1. HEADING
  * 2. ASSESSMENT DETAILS
  * 3. RISK DETERMINATION
- * 4. CDD REQUIREMENTS (numbered, with EDD sub-section)
- * 5. EDD TRIGGERS (conditional)
- * 6. WARNINGS (conditional)
- * 7. VERIFICATION EVIDENCE (conditional)
- * 8. RISK FACTORS
- * 9. POLICY REFERENCES
- * 10. RISK APPETITE
+ * 4. SCORING BREAKDOWN (all factors with answers and scores)
+ * 5. CDD REQUIREMENTS (numbered, with EDD sub-section)
+ * 6. EDD TRIGGERS (conditional)
+ * 7. WARNINGS (conditional)
+ * 8. VERIFICATION EVIDENCE (conditional)
+ * 9. RISK FACTORS (triggered only, for backward compatibility)
+ * 10. POLICY REFERENCES
+ * 11. RISK APPETITE
  *
  * @param assessment - The assessment record with snapshots
  * @param options - Optional configuration (jurisdiction, evidence)
@@ -494,6 +607,7 @@ export function renderDetermination(
     renderHeading(),
     renderDetails(assessment, jurisdiction),
     renderRiskDetermination(assessment),
+    renderScoringBreakdown(assessment),
     renderCDDRequirements(assessment),
   ];
 

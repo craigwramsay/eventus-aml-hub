@@ -41,10 +41,10 @@ The system is designed around regulatory defensibility: every assessment is repr
 Key regulatory requirements enforced by the system:
 - Risk-based approach to CDD (MLR 2017 reg. 28).
 - Enhanced due diligence for high-risk situations (MLR 2017 regs. 33, 35).
-- EDD triggers from PCP s.20 (client account, TCSP, cross-border, third-party funder) — these inject EDD actions without changing the risk level.
+- EDD triggers from PCP s.20 (TCSP, cross-border, third-party funder) — these inject EDD actions without changing the risk level.
 - Source of wealth and source of funds verification where required. New clients at LOW risk require SoW form (PCP s.11).
 - Ongoing monitoring obligations.
-- Automatic HIGH risk escalation for specific triggers (e.g., PEP status, sanctioned jurisdictions).
+- Automatic HIGH risk escalation for specific triggers (PEP status, receipt of funds into client account — per PWRA §2.4, LSAG §6.2.3).
 - Entity type exclusion warnings (trusts, charities, overseas entities, etc.) with MLRO escalation.
 
 ---
@@ -144,8 +144,11 @@ eventus-aml-hub/
 │   │       ├── assistant/route.ts    # POST endpoint for AI assistant (rate-limited)
 │   │       ├── admin/backfill-embeddings/route.ts  # POST trigger for embedding backfill
 │   │       └── health/route.ts       # Health check endpoint
+│   ├── data/
+│   │   └── countries.ts              # Standard country list (195 countries) for multi-select
 │   ├── components/
 │   │   ├── assistant/                # AssistantPanel, GlobalAssistantButton, QuestionHelperButton, AuthenticatedAssistant
+│   │   ├── forms/                    # Shared form components (CountryMultiSelect)
 │   │   ├── shell/                    # App shell components (authenticated layout)
 │   │   │   ├── Sidebar.tsx           # Collapsible navigation sidebar
 │   │   │   ├── SidebarContext.tsx     # Sidebar open/collapsed state provider
@@ -280,13 +283,15 @@ runAssessment({ clientType: 'individual' | 'corporate', formAnswers: Record<stri
 2. **Deterministic.** Identical input + identical config = identical output. Always.
 3. **No LLM involvement.** The rules engine never calls any AI service.
 4. **Config-versioned.** The scoring model has a version (`v3.8`) and version date. Config changes are tracked.
-5. **Automatic outcomes.** Certain answers (e.g., PEP = Yes) trigger automatic HIGH risk with mandatory EDD, regardless of score.
+5. **Automatic outcomes.** Certain answers (PEP = Yes, client account funds = Yes) trigger automatic HIGH risk with mandatory EDD, regardless of score.
 6. **Threshold-based risk levels.** LOW: 0-4, MEDIUM: 5-8, HIGH: 9+.
 7. **Snapshot pattern.** Both `input_snapshot` (including jurisdiction) and `output_snapshot` are stored in the assessment record at creation time.
 
 ### Key engine concepts
 
-**EDD Triggers (PCP s.20):** Config-driven triggers (client account, TCSP activity, cross-border funds, third-party funder) that inject EDD actions into the mandatory actions list without changing the risk level. A LOW-risk assessment with an EDD trigger stays LOW but gains EDD actions. The PEP trigger remains the only thing that forces automatic HIGH (per MLR reg. 35).
+**EDD Triggers (PCP s.20):** Config-driven triggers (TCSP activity, cross-border funds, third-party funder) that inject EDD actions into the mandatory actions list without changing the risk level. A LOW-risk assessment with an EDD trigger stays LOW but gains EDD actions.
+
+**Automatic HIGH Outcomes:** Two triggers force automatic HIGH risk regardless of score: (1) PEP status = Yes (per MLR reg. 35, PCP §15), and (2) receipt of funds into Eventus' client account = Yes (per PWRA §2.4, LSAG §6.2.3, PCP §20). Client account involvement is also an EDD trigger, so it both escalates the risk level AND injects EDD actions.
 
 **Entity Exclusions:** When a corporate entity type falls outside the standard CDD ruleset (trusts, charities, unincorporated associations, overseas entities, etc.), the engine produces warnings requiring MLRO escalation. The engine still runs and produces a full assessment — warnings are advisory, not blockers.
 
@@ -308,12 +313,14 @@ runAssessment({ clientType: 'individual' | 'corporate', formAnswers: Record<stri
 Single consolidated renderer that produces formal risk determination documents from stored snapshots. Includes:
 - Policy references (PCP, MLR 2017, LSAG 2025 section numbers) linked to risk factors, mandatory actions, and EDD triggers
 - Jurisdiction-aware regulator details (Law Society of Scotland / SRA) — read from `input_snapshot.jurisdiction` (stored at assessment creation)
+- Scoring breakdown table showing every scoring factor with its answer and score (not just triggered factors)
 - Evidence types shown as sub-lists under applicable mandatory actions
-- EDD Triggers section (when present) — listed after RISK DETERMINATION, before TRIGGERED RISK FACTORS
-- Warnings section (when present) — shown after MANDATORY ACTIONS with MLRO escalation messaging
+- EDD Triggers section (when present) — listed after CDD REQUIREMENTS, before RISK FACTORS
+- Warnings section (when present) — shown after CDD REQUIREMENTS with MLRO escalation messaging
+- Verification evidence section (when present) — Companies House reports, file uploads, manual records
 - `[Recommended]` label on non-mandatory actions (e.g., evidence at LOW risk)
 
-Standard sections: heading, assessment details, risk determination, [EDD triggers], triggered risk factors, mandatory actions, [warnings], policy references, risk appetite
+Standard sections: heading, assessment details, risk determination, scoring breakdown, CDD requirements, [EDD triggers], [warnings], [verification evidence], risk factors, policy references, risk appetite
 
 **Deterministic**: no LLM, no recomputation, no conditional language ("if", "consider", "may" are prohibited in output). Same input always produces identical text.
 
@@ -430,19 +437,21 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Dashboard (navigation hub, role-aware, conditional admin cards)
 - [x] Client CRUD (list, create, view with matters, delete — MLRO/platform_admin)
 - [x] Matter CRUD (list, create, view with assessments, delete with cascade — MLRO/platform_admin)
-- [x] Assessment form (config-driven, dynamic fields, conditional visibility, individual + corporate)
+- [x] Assessment form (config-driven, dynamic fields, conditional visibility, individual + corporate, date picker for DOB, country multi-select with typeahead)
 - [x] Assessment references (human-readable `A-XXXXX-YYYY` pattern, unique, shown in lists and detail headers)
 - [x] Deterministic rules engine (scoring, risk levels, automatic outcomes, mandatory actions, EDD triggers, entity exclusions, evidence types)
-- [x] EDD trigger detection (PCP s.20: client account, TCSP, cross-border, third-party funder)
+- [x] EDD trigger detection (PCP s.20: TCSP, cross-border, third-party funder)
+- [x] Automatic HIGH for client account funds (PWRA §2.4, LSAG §6.2.3 — receipt of funds into client account triggers automatic HIGH + EDD)
 - [x] Entity exclusion warnings (trusts, unincorporated associations → MLRO escalation)
 - [x] New client SoW at LOW risk (form required, evidence recommended)
 - [x] Evidence types propagated from CDD config to mandatory actions
 - [x] Delivery channel scoring factor (LSAG 5.6.4)
 - [x] Assessment result view (score, risk level, contributing factors, mandatory actions, EDD triggers, warnings)
-- [x] Determination rendering (consolidated renderer with policy references, jurisdiction, EDD triggers, warnings, evidence types)
+- [x] Determination rendering (consolidated renderer with policy references, jurisdiction, scoring breakdown, EDD triggers, warnings, verification evidence)
 - [x] Assessment finalisation (immutable lock with audit event, role-gated)
 - [x] Assessment deletion (MLRO/platform_admin, cascades evidence + progress + storage files)
 - [x] Determination copy-to-clipboard
+- [x] Determination back-to-assessment navigation
 - [x] AI assistant panel (question input, source-grounded answers, citations, jurisdiction-aware)
 - [x] AI assistant floating button (authenticated-only, all pages via root layout)
 - [x] Per-question helper buttons on assessment form
@@ -467,7 +476,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Client/matter/assessment search and filtering (text search + type/status pill filters)
 - [x] Entity deletion with RLS policies (clients, matters, assessments, evidence, CDD progress — MLRO/admin/platform_admin)
 - [x] Interactive CDD checklist with per-item evidence upload
-- [x] Companies House integration (company lookup card on corporate assessments)
+- [x] Companies House integration (company lookup card on corporate assessments, registered number extracted from form answers when not on client record)
 - [x] Monitoring statement on assessment detail page
 
 ### Pending SQL Migrations (not yet applied to Supabase)
@@ -503,6 +512,8 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 1. Form validation on the assessment form is minimal -- required field checks exist but no comprehensive validation before submission.
 2. Invite acceptance flow sends users to `/invite/accept` but the email template in Supabase Auth needs to be configured to point to this URL.
 3. The CSP header includes `'unsafe-inline'` and `'unsafe-eval'` for `script-src` (required by Next.js). Should be tightened with nonce-based CSP in a future iteration.
+4. Client creation form does not capture `registered_number` for corporate clients. CH integration currently relies on the assessment form answer (field 4) as fallback. Consider adding registered number to the client creation form.
+5. `aml_regulated` field on clients table has no UI for setting it. The field defaults to null on new clients. Field 51 on the corporate assessment form ("Is the client subject to AML supervision?") is not pre-filled — solicitor answers it during assessment.
 
 ---
 
@@ -517,7 +528,7 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 7. **Audit logging is mandatory.** All assessment creation, finalisation, and significant actions must produce an `audit_events` record.
 8. **Determination language must be declarative.** No conditional words ("if", "consider", "may", "where required") in rendered determinations. Mandatory actions are stated as directives.
 9. **Config is the single source of truth for business rules.** Scoring factors, thresholds, CDD actions, EDD triggers, and form definitions live in JSON config files. Code reads config; code does not contain rules.
-10. **EDD triggers preserve risk level.** EDD triggers (PCP s.20) inject EDD actions but do NOT change the risk level. A LOW-risk assessment with an EDD trigger stays LOW. Only automatic outcomes (e.g., PEP) can override risk level.
+10. **EDD triggers preserve risk level.** EDD triggers (PCP s.20) inject EDD actions but do NOT change the risk level. A LOW-risk assessment with an EDD trigger stays LOW. Only automatic outcomes (PEP status, client account funds) can override risk level.
 11. **Entity exclusions are warnings, not blockers.** When an excluded entity type is detected, the engine still runs and produces a full assessment. Warnings require MLRO escalation but do not prevent the assessment.
 
 ---
@@ -566,7 +577,7 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 2. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
 3. **SAR workflow.** Suspicious Activity Report submission and tracking.
 4. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
-5. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 163 tests across 6 suites (rules engine: 43, determination: 67, auth: 15+, assistant validation: 17, Companies House client: 10, embeddings client: 11).
+5. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 176 tests across 6 suites (rules engine: 44, determination: 67, auth: 27, assistant validation: 17, Companies House client: 10, embeddings client: 11).
 6. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
 7. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
 8. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
@@ -619,4 +630,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 23 Feb 2026. Recent changes: app shell (sidebar/topbar), route groups (authenticated/public), platform admin role with firm switcher, entity deletion (client/matter/assessment cascade with RLS), assessment references (A-XXXXX-YYYY), sortable/filterable list tables, interactive CDD checklist with evidence. 3 pending SQL migrations. 163 tests passing across 6 suites. Update when architectural decisions change.*
+*Last updated: 23 Feb 2026. Recent changes: scoring breakdown in determination, client account funds automatic HIGH outcome (PWRA §2.4), date picker and country multi-select on assessment form, QuestionHelperButton type="button" fix, determination back-navigation, CH registered number fallback from form answers, removed bogus aml_regulated pre-fill. 3 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*
