@@ -12,12 +12,22 @@ import { createClient } from '@/lib/supabase/server';
 import { runAssessment } from '@/lib/rules-engine';
 import type { FormAnswers, ClientType, AssessmentOutput } from '@/lib/rules-engine/types';
 import type { Assessment, Client, Matter } from '@/lib/supabase/types';
-import { canCreateAssessment, canFinaliseAssessment } from '@/lib/auth/roles';
+import { canCreateAssessment, canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import type { UserRole } from '@/lib/auth/roles';
 
 /** Matter with joined client data */
 export interface MatterWithClient extends Matter {
   client: Client;
+}
+
+/**
+ * Generate a unique assessment reference (pattern: A-XXXXX-YYYY)
+ * Mirrors generateMatterRef() in matters.ts
+ */
+function generateAssessmentRef(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `A-${timestamp}-${random}`;
 }
 
 /** Input for submitting an assessment */
@@ -208,6 +218,7 @@ export async function submitAssessment(
       .insert({
         firm_id: profile.firm_id,
         matter_id,
+        reference: generateAssessmentRef(),
         input_snapshot: inputSnapshot,
         output_snapshot: assessmentOutput,
         risk_level: assessmentOutput.riskLevel,
@@ -307,11 +318,13 @@ export async function getAssessmentsForMatter(
 /** Assessment list item with client and matter names */
 export interface AssessmentListItem {
   id: string;
+  reference: string;
   risk_level: string;
   score: number;
   created_at: string;
   finalised_at: string | null;
   client_name: string;
+  matter_id: string;
   matter_description: string | null;
   matter_reference: string;
 }
@@ -327,7 +340,7 @@ export async function getAllAssessments(): Promise<AssessmentListItem[]> {
 
     const { data, error: fetchErr } = await supabase
       .from('assessments')
-      .select('id, risk_level, score, created_at, finalised_at, matter_id')
+      .select('id, reference, risk_level, score, created_at, finalised_at, matter_id')
       .order('created_at', { ascending: false });
 
     if (fetchErr || !data) {
@@ -366,11 +379,13 @@ export async function getAllAssessments(): Promise<AssessmentListItem[]> {
       const matter = matterMap.get(assessment.matter_id);
       return {
         id: assessment.id,
+        reference: assessment.reference,
         risk_level: assessment.risk_level,
         score: assessment.score,
         created_at: assessment.created_at,
         finalised_at: assessment.finalised_at,
         client_name: matter?.client?.name || 'Unknown',
+        matter_id: assessment.matter_id,
         matter_description: matter?.description || null,
         matter_reference: matter?.reference || 'Unknown',
       };
@@ -602,4 +617,109 @@ export async function checkAssessmentModifiable(
   }
 
   return null;
+}
+
+/** Result of deleting an assessment */
+export type DeleteAssessmentResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Delete an assessment and all related data (MLRO only).
+ * MLRO authority overrides finalised-assessment immutability for deletion.
+ */
+export async function deleteAssessment(
+  assessmentId: string
+): Promise<DeleteAssessmentResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+
+    if (!canDeleteEntities(profile.role as UserRole)) {
+      return { success: false, error: 'Only the MLRO can delete assessments' };
+    }
+
+    // Fetch assessment, verify firm ownership
+    const { data: assessment, error: fetchErr } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('id', assessmentId)
+      .single();
+
+    if (fetchErr || !assessment) {
+      return { success: false, error: 'Assessment not found or access denied' };
+    }
+
+    if (assessment.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Assessment does not belong to your firm' };
+    }
+
+    // Fetch evidence records for storage cleanup
+    const { data: evidenceRows } = await supabase
+      .from('assessment_evidence')
+      .select('id, file_path')
+      .eq('assessment_id', assessmentId);
+
+    // Delete CDD progress
+    const { error: progressErr } = await supabase
+      .from('cdd_item_progress')
+      .delete()
+      .eq('assessment_id', assessmentId);
+
+    const progressDeleted = !progressErr;
+
+    // Delete evidence rows
+    const { error: evidenceErr } = await supabase
+      .from('assessment_evidence')
+      .delete()
+      .eq('assessment_id', assessmentId);
+
+    const evidenceDeleted = !evidenceErr;
+
+    // Remove storage files (best-effort)
+    const filePaths = (evidenceRows || [])
+      .map((e) => e.file_path)
+      .filter((p): p is string => !!p);
+
+    if (filePaths.length > 0) {
+      await supabase.storage.from('evidence').remove(filePaths);
+    }
+
+    // Delete assessment row
+    const { error: deleteErr } = await supabase
+      .from('assessments')
+      .delete()
+      .eq('id', assessmentId);
+
+    if (deleteErr) {
+      console.error('Failed to delete assessment:', deleteErr);
+      return { success: false, error: 'Failed to delete assessment' };
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'assessment',
+      entity_id: assessmentId,
+      action: 'assessment_deleted',
+      metadata: {
+        matter_id: assessment.matter_id,
+        risk_level: assessment.risk_level,
+        was_finalised: assessment.finalised_at !== null,
+        evidence_deleted: evidenceDeleted ? (evidenceRows?.length ?? 0) : 0,
+        progress_deleted: progressDeleted,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in deleteAssessment:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
 }

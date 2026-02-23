@@ -8,8 +8,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { UserProfile, UserInvitation } from '@/lib/supabase/types';
-import { canManageUsers, ROLES } from '@/lib/auth/roles';
-import type { UserRole } from '@/lib/auth/roles';
+import { canManageUsers, ASSIGNABLE_ROLES } from '@/lib/auth/roles';
+import type { UserRole, AssignableRole } from '@/lib/auth/roles';
 
 async function getUserAndProfile() {
   const supabase = await createClient();
@@ -70,7 +70,7 @@ export async function inviteUser(input: InviteUserInput): Promise<InviteUserResu
       return { success: false, error: 'Email, name, and role are required' };
     }
 
-    if (!ROLES.includes(role)) {
+    if (!(ASSIGNABLE_ROLES as readonly string[]).includes(role)) {
       return { success: false, error: 'Invalid role' };
     }
 
@@ -230,7 +230,7 @@ export async function updateUserRole(
       return { success: false, error: 'Only administrators can update roles' };
     }
 
-    if (!ROLES.includes(newRole)) {
+    if (!(ASSIGNABLE_ROLES as readonly string[]).includes(newRole)) {
       return { success: false, error: 'Invalid role' };
     }
 

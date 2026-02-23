@@ -69,6 +69,7 @@ export interface Assessment {
   id: string;
   firm_id: string;
   matter_id: string;
+  reference: string;
   input_snapshot: Json;
   output_snapshot: Json;
   risk_level: RiskLevel;
@@ -172,7 +173,7 @@ export interface Database {
       };
       assessments: {
         Row: Assessment;
-        Insert: Partial<Assessment> & Pick<Assessment, 'firm_id' | 'matter_id' | 'input_snapshot' | 'output_snapshot' | 'risk_level' | 'score' | 'created_by'>;
+        Insert: Partial<Assessment> & Pick<Assessment, 'firm_id' | 'matter_id' | 'reference' | 'input_snapshot' | 'output_snapshot' | 'risk_level' | 'score' | 'created_by'>;
         Update: Pick<Assessment, 'finalised_at' | 'finalised_by'>;
       };
       audit_events: {

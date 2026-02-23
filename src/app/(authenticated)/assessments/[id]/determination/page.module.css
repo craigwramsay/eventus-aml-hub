@@ -1,0 +1,190 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 var(--space-2) 0;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.headerButtons {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.printButton {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: background-color 0.2s;
+}
+
+.printButton:hover {
+  background-color: var(--accent-hover);
+}
+
+.printButton:active {
+  background-color: var(--accent-text);
+}
+
+.copyButton {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: background-color 0.2s;
+}
+
+.copyButton:hover {
+  background-color: var(--accent-hover);
+}
+
+.copyButton:active {
+  background-color: var(--accent-text);
+}
+
+.copyButtonSuccess {
+  background-color: var(--status-low);
+}
+
+.copyButtonSuccess:hover {
+  background-color: #047857;
+}
+
+.determinationBlock {
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: var(--space-4);
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.errorContainer {
+  max-width: 600px;
+  margin: 4rem auto;
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.errorTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  color: var(--status-high-text);
+}
+
+.errorMessage {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-left: var(--space-2);
+}
+
+.statusFinalised {
+  background-color: var(--status-low-bg);
+  color: var(--status-low-text);
+}
+
+.statusDraft {
+  background-color: var(--status-medium-bg);
+  color: var(--status-medium-text);
+}
+
+@media print {
+  @page {
+    margin: 2cm;
+  }
+
+  .backLink,
+  .headerButtons,
+  .subtitle {
+    display: none !important;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+    color: #000;
+  }
+
+  .statusBadge {
+    color: #000;
+    background-color: transparent;
+    border: 1px solid #000;
+  }
+
+  .determinationBlock {
+    background-color: #fff;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+}

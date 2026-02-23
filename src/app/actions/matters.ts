@@ -6,6 +6,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { Matter, Client, Assessment } from '@/lib/supabase/types';
+import { canDeleteEntities } from '@/lib/auth/roles';
+import type { UserRole } from '@/lib/auth/roles';
 
 /** Matter with joined client data */
 export interface MatterWithClient extends Matter {
@@ -239,5 +241,137 @@ export async function getAssessmentsForMatter(matterId: string): Promise<Assessm
   } catch (error) {
     console.error('Error in getAssessmentsForMatter:', error);
     return [];
+  }
+}
+
+/** Result of deleting a matter */
+export type DeleteMatterResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Delete a matter and all its assessments (MLRO only).
+ * Cascades: assessments → evidence + progress → storage files.
+ */
+export async function deleteMatter(
+  matterId: string
+): Promise<DeleteMatterResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+
+    if (!canDeleteEntities(profile.role as UserRole)) {
+      return { success: false, error: 'Only the MLRO can delete matters' };
+    }
+
+    // Fetch matter, verify firm ownership
+    const { data: matter, error: fetchErr } = await supabase
+      .from('matters')
+      .select('*')
+      .eq('id', matterId)
+      .single();
+
+    if (fetchErr || !matter) {
+      return { success: false, error: 'Matter not found or access denied' };
+    }
+
+    if (matter.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Matter does not belong to your firm' };
+    }
+
+    // Fetch all assessments for this matter
+    const { data: assessments } = await supabase
+      .from('assessments')
+      .select('id, risk_level, finalised_at')
+      .eq('matter_id', matterId);
+
+    const assessmentIds = (assessments || []).map((a) => a.id);
+
+    if (assessmentIds.length > 0) {
+      // Fetch evidence file paths for storage cleanup
+      const { data: evidenceRows } = await supabase
+        .from('assessment_evidence')
+        .select('id, file_path, assessment_id')
+        .in('assessment_id', assessmentIds);
+
+      // Delete CDD progress for all assessments
+      await supabase
+        .from('cdd_item_progress')
+        .delete()
+        .in('assessment_id', assessmentIds);
+
+      // Delete evidence rows
+      await supabase
+        .from('assessment_evidence')
+        .delete()
+        .in('assessment_id', assessmentIds);
+
+      // Remove storage files (best-effort)
+      const filePaths = (evidenceRows || [])
+        .map((e) => e.file_path)
+        .filter((p): p is string => !!p);
+
+      if (filePaths.length > 0) {
+        await supabase.storage.from('evidence').remove(filePaths);
+      }
+
+      // Delete assessment rows
+      await supabase
+        .from('assessments')
+        .delete()
+        .in('id', assessmentIds);
+
+      // Audit log each assessment deletion
+      for (const a of assessments || []) {
+        await supabase.from('audit_events').insert({
+          firm_id: profile.firm_id,
+          entity_type: 'assessment',
+          entity_id: a.id,
+          action: 'assessment_deleted',
+          metadata: {
+            matter_id: matterId,
+            risk_level: a.risk_level,
+            was_finalised: a.finalised_at !== null,
+            deleted_via: 'matter_cascade',
+          },
+          created_by: user.id,
+        });
+      }
+    }
+
+    // Delete matter row
+    const { error: deleteErr } = await supabase
+      .from('matters')
+      .delete()
+      .eq('id', matterId);
+
+    if (deleteErr) {
+      console.error('Failed to delete matter:', deleteErr);
+      return { success: false, error: 'Failed to delete matter' };
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'matter',
+      entity_id: matterId,
+      action: 'matter_deleted',
+      metadata: {
+        client_id: matter.client_id,
+        reference: matter.reference,
+        assessments_deleted: assessmentIds.length,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in deleteMatter:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
   }
 }

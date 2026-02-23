@@ -1,0 +1,92 @@
+/* SortableTable — shared sortable/filterable table styles */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background-color: var(--surface-secondary);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--surface-secondary);
+}
+
+/* Sortable header */
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortableHeader:hover {
+  color: var(--accent);
+}
+
+.headerContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sortArrow {
+  display: inline-block;
+  font-size: 0.625rem;
+  opacity: 0.5;
+  width: 1em;
+}
+
+.sortArrowActive {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* Column filter row */
+.filterRow th {
+  padding: var(--space-1) var(--space-4) var(--space-2);
+  background-color: var(--surface-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.columnFilter {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.columnFilter:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}

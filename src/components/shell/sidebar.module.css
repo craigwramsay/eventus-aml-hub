@@ -1,0 +1,346 @@
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: var(--sidebar-width);
+  background-color: var(--surface);
+  box-shadow: 1px 0 0 0 var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: var(--z-sidebar);
+  transition: width 0.2s ease;
+  overflow-x: hidden;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* Firm header */
+.firmHeader {
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--border);
+  height: var(--topbar-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.firmName {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.firmJurisdiction {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+  text-transform: capitalize;
+}
+
+.firmLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background-color: var(--brand);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin: 0 auto;
+}
+
+/* Mobile close */
+.mobileClose {
+  display: none;
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.mobileClose:hover {
+  color: var(--text-primary);
+  background-color: var(--surface-secondary);
+}
+
+/* Navigation */
+.nav {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.navItemActive {
+  background-color: var(--accent-light);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+.navItemActive:hover {
+  background-color: var(--accent-light);
+  color: var(--accent-text);
+}
+
+.navIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Spacer */
+.spacer {
+  flex: 1;
+}
+
+/* Collapse toggle */
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.collapseToggle:hover {
+  background-color: var(--surface-secondary);
+  color: var(--text-secondary);
+}
+
+/* User section */
+.userSection {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.userName {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userRole {
+  font-size: 0.75rem;
+  color: var(--accent-text);
+  background-color: var(--accent-light);
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-1);
+  font-weight: 500;
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--brand);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 auto;
+}
+
+.logoutButton {
+  display: block;
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.logoutButton:hover {
+  background-color: var(--status-high-bg);
+  color: var(--status-high-text);
+  border-color: var(--status-high);
+}
+
+/* Overlay */
+.overlay {
+  display: none;
+}
+
+/* ---- Responsive ---- */
+
+/* Tablet: auto-collapse */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .sidebar {
+    width: var(--sidebar-collapsed-width);
+  }
+
+  .firmName,
+  .firmJurisdiction,
+  .navLabel,
+  .userName,
+  .userRole,
+  .logoutButton,
+  .collapseToggle span {
+    display: none;
+  }
+
+  .firmHeader {
+    align-items: center;
+  }
+
+  .firmLogo {
+    display: flex;
+  }
+
+  .userSection {
+    display: flex;
+    justify-content: center;
+  }
+
+  .collapseToggle {
+    justify-content: center;
+  }
+}
+
+/* Mobile: off-canvas */
+@media (max-width: 767px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    width: var(--sidebar-width);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.mobileOpen {
+    transform: translateX(0);
+  }
+
+  .sidebar.collapsed {
+    width: var(--sidebar-width);
+  }
+
+  .mobileClose {
+    display: block;
+  }
+
+  .collapseToggle {
+    display: none;
+  }
+
+  .firmName,
+  .firmJurisdiction,
+  .navLabel,
+  .userName,
+  .userRole,
+  .logoutButton {
+    display: revert;
+  }
+
+  .firmHeader {
+    align-items: flex-start;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: calc(var(--z-sidebar) - 1);
+  }
+}
+
+/* Firm Switcher (platform admin) */
+.firmSwitcher {
+  margin-top: var(--space-2);
+}
+
+.firmSelect {
+  width: 100%;
+  padding: 0.375rem var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.firmSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.firmSwitching {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.firmSwitchError {
+  color: var(--status-high-text);
+  font-size: 0.75rem;
+  margin-top: var(--space-1);
+}
+
+/* Print: hide sidebar */
+@media print {
+  .sidebar,
+  .overlay {
+    display: none;
+  }
+}

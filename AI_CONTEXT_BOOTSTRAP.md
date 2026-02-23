@@ -113,34 +113,50 @@ eventus-aml-hub/
 │   │   ├── page.tsx                  # Landing page
 │   │   ├── error.tsx                 # Global error boundary
 │   │   ├── not-found.tsx             # 404 page
-│   │   ├── login/                    # Authentication
-│   │   ├── auth/callback/            # OAuth/magic link callback
-│   │   ├── set-password/             # Password setup page
-│   │   ├── mfa/setup/                # TOTP MFA enrolment (QR code)
-│   │   ├── mfa/verify/               # TOTP MFA challenge
-│   │   ├── dashboard/                # Post-login dashboard (role-aware)
-│   │   ├── clients/                  # Client CRUD (/clients, /clients/new, /clients/[id])
-│   │   ├── matters/                  # Matter CRUD (/matters, /matters/new, /matters/[id])
-│   │   ├── assessments/
-│   │   │   ├── new/                  # Assessment form (config-driven, dynamic)
-│   │   │   └── [id]/
-│   │   │       ├── page.tsx          # Assessment result view (EDD triggers, warnings, role-gated finalise)
-│   │   │       ├── FinaliseButton.tsx
-│   │   │       └── determination/    # Formal determination document view
-│   │   ├── users/                    # User management (admin-only)
-│   │   │   ├── page.tsx              # User list + pending invitations
-│   │   │   ├── invite/               # Invite user form
-│   │   │   └── [id]/                 # User detail / role edit / deactivate
-│   │   ├── invite/accept/            # Invitation acceptance + password setup
-│   │   ├── actions/                  # Server Actions (auth, assessments, clients, matters, users, assistant-sources)
+│   │   ├── (public)/                 # Route group for unauthenticated pages
+│   │   │   ├── layout.tsx            # Public layout (centered, no shell)
+│   │   │   ├── login/                # Authentication
+│   │   │   ├── auth/callback/        # OAuth/magic link callback
+│   │   │   ├── auth/confirm/         # Email confirmation route
+│   │   │   ├── set-password/         # Password setup page
+│   │   │   ├── mfa/setup/            # TOTP MFA enrolment (QR code)
+│   │   │   ├── mfa/verify/           # TOTP MFA challenge
+│   │   │   └── invite/accept/        # Invitation acceptance + password setup
+│   │   ├── (authenticated)/          # Route group for authenticated pages (app shell)
+│   │   │   ├── layout.tsx            # Authenticated layout (Sidebar + Topbar shell, auth redirect)
+│   │   │   ├── dashboard/            # Post-login dashboard (role-aware)
+│   │   │   ├── clients/              # Client CRUD (/clients, /clients/new, /clients/[id])
+│   │   │   ├── matters/              # Matter CRUD (/matters, /matters/new, /matters/[id])
+│   │   │   ├── assessments/
+│   │   │   │   ├── AssessmentsList.tsx  # List with sortable table + search + pill filters
+│   │   │   │   ├── new/              # Assessment form (config-driven, dynamic)
+│   │   │   │   └── [id]/
+│   │   │   │       ├── page.tsx      # Assessment result view (EDD triggers, warnings, role-gated finalise)
+│   │   │   │       ├── FinaliseButton.tsx
+│   │   │   │       ├── DeleteAssessmentButton.tsx
+│   │   │   │       └── determination/  # Formal determination document view
+│   │   │   └── users/                # User management (admin-only)
+│   │   │       ├── page.tsx          # User list + pending invitations
+│   │   │       ├── invite/           # Invite user form
+│   │   │       └── [id]/             # User detail / role edit / deactivate
+│   │   ├── actions/                  # Server Actions (assessments, clients, matters, users, firms, evidence, progress)
 │   │   └── api/
 │   │       ├── assistant/route.ts    # POST endpoint for AI assistant (rate-limited)
 │   │       ├── admin/backfill-embeddings/route.ts  # POST trigger for embedding backfill
 │   │       └── health/route.ts       # Health check endpoint
 │   ├── components/
-│   │   └── assistant/                # AssistantPanel, GlobalAssistantButton, QuestionHelperButton, AuthenticatedAssistant
+│   │   ├── assistant/                # AssistantPanel, GlobalAssistantButton, QuestionHelperButton, AuthenticatedAssistant
+│   │   ├── shell/                    # App shell components (authenticated layout)
+│   │   │   ├── Sidebar.tsx           # Collapsible navigation sidebar
+│   │   │   ├── SidebarContext.tsx     # Sidebar open/collapsed state provider
+│   │   │   ├── Topbar.tsx            # Top bar with hamburger toggle
+│   │   │   ├── LogoutButton.tsx      # Logout button (client component)
+│   │   │   └── FirmSwitcher.tsx      # Platform admin firm switcher dropdown
+│   │   └── tables/                   # Shared table components
+│   │       ├── SortableTable.tsx     # Generic sortable/filterable table (client component)
+│   │       └── sortableTable.module.css
 │   ├── lib/
-│   │   ├── auth/                     # RBAC: roles, permission checks (solicitor/mlro/admin)
+│   │   ├── auth/                     # RBAC: roles, permission checks (solicitor/mlro/admin/platform_admin)
 │   │   ├── rules-engine/             # Deterministic AML scoring engine
 │   │   │   ├── types.ts             # All engine types (including EDDTriggerResult, AssessmentWarning)
 │   │   │   ├── config-loader.ts     # JSON config importer (singleton cache)
@@ -177,7 +193,7 @@ eventus-aml-hub/
 | `user_invitations` | Pending user invites | `id`, `firm_id`, `email`, `role`, `invited_by`, `accepted_at`, `created_at` |
 | `clients` | Clients of the firm | `id`, `firm_id`, `name`, `entity_type`, `client_type` |
 | `matters` | Legal matters | `id`, `firm_id`, `client_id`, `reference`, `description`, `status` |
-| `assessments` | Risk assessments | `id`, `firm_id`, `matter_id`, `input_snapshot` (JSON), `output_snapshot` (JSON), `risk_level`, `score`, `created_by`, `finalised_at`, `finalised_by` |
+| `assessments` | Risk assessments | `id`, `firm_id`, `matter_id`, `reference` (unique, `A-XXXXX-YYYY`), `input_snapshot` (JSON), `output_snapshot` (JSON), `risk_level`, `score`, `created_by`, `finalised_at`, `finalised_by` |
 | `audit_events` | Complete activity log | `id`, `firm_id`, `entity_type`, `entity_id`, `action`, `metadata` (JSON), `created_by` |
 | `assistant_sources` | Curated knowledge base | `id`, `firm_id`, `source_type` (external/internal), `source_name`, `section_ref`, `topics` (text[]), `content`, `effective_date`, `embedding` (vector(1536), nullable) |
 
@@ -202,6 +218,7 @@ Firm ──< AssistantSource
 - **All tables have `firm_id`**. RLS policies enforce firm isolation at the PostgreSQL level.
 - **`assessments.input_snapshot`** stores a complete copy of form answers at submission time, plus the firm's `jurisdiction` at assessment creation. This is the reproducibility guarantee.
 - **`assessments.output_snapshot`** stores the complete engine output (score, riskLevel, riskFactors, mandatoryActions, rationale, automaticOutcome, eddTriggers, warnings, timestamp). MandatoryActions may include `evidenceTypes` arrays.
+- **`assessments.reference`** — human-readable identifier (pattern `A-XXXXX-YYYY`, like matters have `M-XXXXX-YYYY`). Generated at creation time, unique, NOT NULL.
 - **`assessments.finalised_at`** -- when non-null, the assessment is immutable. No further writes permitted.
 - **`audit_events`** logs action type and metadata but **never logs assistant question content** (privacy).
 - **No service role key** is used at runtime. All Supabase operations use the authenticated user session.
@@ -382,7 +399,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 | **Authentication** | Supabase Auth (email/password) |
 | **MFA** | TOTP-based via Supabase Auth (`src/app/mfa/`). Middleware enforces AAL2 for all authenticated routes. |
 | **Session management** | Cookie-based via `@supabase/ssr` with 30-minute idle timeout (`aml_last_activity` cookie in middleware) |
-| **RBAC** | Three roles: `solicitor`, `mlro`, `admin`. Permission checks in `src/lib/auth/roles.ts`. Enforced in server actions and UI. |
+| **RBAC** | Four roles: `solicitor`, `mlro`, `admin`, `platform_admin`. Permission checks in `src/lib/auth/roles.ts`. Enforced in server actions and UI. `platform_admin` is a superuser that can switch between firms. |
 | **Route protection** | Next.js middleware redirects unauthenticated users to `/login`, enforces MFA, manages session timeout |
 | **HTTP security headers** | HSTS, CSP, X-Frame-Options (DENY), X-Content-Type-Options, Referrer-Policy, Permissions-Policy — configured in `next.config.ts` |
 | **Rate limiting** | In-memory sliding window (`src/lib/security/rate-limiter.ts`): login 5/15min, assistant 20/min, server actions 60/min |
@@ -405,12 +422,16 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Authentication (login/logout, session refresh, middleware protection)
 - [x] MFA (TOTP enrolment + verification, middleware-enforced AAL2)
 - [x] Session idle timeout (30 minutes)
-- [x] Role-based access control (solicitor/mlro/admin, server-side enforcement)
+- [x] Role-based access control (solicitor/mlro/admin/platform_admin, server-side enforcement)
+- [x] Platform admin role (superuser: can view all firms, switch active firm via FirmSwitcher)
 - [x] User management (admin invite flow, role editing, deactivation)
+- [x] App shell with sidebar navigation (collapsible Sidebar, Topbar with hamburger toggle)
+- [x] Route groups: `(authenticated)` with app shell layout, `(public)` for login/MFA/invite flows
 - [x] Dashboard (navigation hub, role-aware, conditional admin cards)
-- [x] Client CRUD (list, create, view with matters)
-- [x] Matter CRUD (list, create, view with assessments)
+- [x] Client CRUD (list, create, view with matters, delete — MLRO/platform_admin)
+- [x] Matter CRUD (list, create, view with assessments, delete with cascade — MLRO/platform_admin)
 - [x] Assessment form (config-driven, dynamic fields, conditional visibility, individual + corporate)
+- [x] Assessment references (human-readable `A-XXXXX-YYYY` pattern, unique, shown in lists and detail headers)
 - [x] Deterministic rules engine (scoring, risk levels, automatic outcomes, mandatory actions, EDD triggers, entity exclusions, evidence types)
 - [x] EDD trigger detection (PCP s.20: client account, TCSP, cross-border, third-party funder)
 - [x] Entity exclusion warnings (trusts, unincorporated associations → MLRO escalation)
@@ -420,6 +441,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Assessment result view (score, risk level, contributing factors, mandatory actions, EDD triggers, warnings)
 - [x] Determination rendering (consolidated renderer with policy references, jurisdiction, EDD triggers, warnings, evidence types)
 - [x] Assessment finalisation (immutable lock with audit event, role-gated)
+- [x] Assessment deletion (MLRO/platform_admin, cascades evidence + progress + storage files)
 - [x] Determination copy-to-clipboard
 - [x] AI assistant panel (question input, source-grounded answers, citations, jurisdiction-aware)
 - [x] AI assistant floating button (authenticated-only, all pages via root layout)
@@ -439,12 +461,24 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Environment variable validation
 - [x] Deployment infrastructure (Dockerfile, docker-compose, CI/CD, health check)
 - [x] Error boundaries (error.tsx, not-found.tsx)
+- [x] Assessment re-run workflow (re-run button, pre-populate from previous answers, assessment history on matter page)
+- [x] PDF export of determinations (browser print with `@media print` styles)
+- [x] Sortable tables on all list pages (click column headers for asc/desc, per-column dropdown filters for Risk level)
+- [x] Client/matter/assessment search and filtering (text search + type/status pill filters)
+- [x] Entity deletion with RLS policies (clients, matters, assessments, evidence, CDD progress — MLRO/admin/platform_admin)
+- [x] Interactive CDD checklist with per-item evidence upload
+- [x] Companies House integration (company lookup card on corporate assessments)
+- [x] Monitoring statement on assessment detail page
+
+### Pending SQL Migrations (not yet applied to Supabase)
+
+The following migrations exist in `supabase/migrations/` but have not yet been applied:
+- `20260223_entity_delete_policies.sql` — DELETE RLS policies for clients, matters, assessments, evidence, CDD progress
+- `20260223_platform_admin_role.sql` — Widens role CHECK constraints, adds platform_admin RLS policies, sets initial platform_admin user
+- `20260223_assessment_reference.sql` — Adds `reference` column to assessments (backfill + NOT NULL + UNIQUE)
 
 ### Incomplete / Not Yet Built
 
-- [x] Assessment re-run workflow (re-run button, pre-populate from previous answers, assessment history on matter page)
-- [x] PDF export of determinations (browser print with `@media print` styles)
-- [x] Client/matter/assessment search and filtering (text search + type/status filter buttons)
 - [ ] Dashboard analytics / reporting
 - [ ] Ongoing monitoring tracking
 - [ ] SAR (Suspicious Activity Report) workflow
@@ -460,6 +494,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 2. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
 3. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
 4. **Source documents and runtime configs in separate locations.** Original policy documents live in `sources/` while the JSON configs imported by the rules engine live in `src/config/eventus/`. Changes to the source documents require manual translation into the JSON configs.
+5. **Pending SQL migrations.** Three migrations created but not yet applied to the live Supabase instance (entity delete policies, platform admin role, assessment reference). These need to be run in the Supabase SQL Editor in order.
 
 ---
 
@@ -531,13 +566,14 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 2. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
 3. **SAR workflow.** Suspicious Activity Report submission and tracking.
 4. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
-5. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 163 tests across 6 suites (rules engine: 43, determination: 67, auth: 15, assistant validation: 17, Companies House client: 10, embeddings client: 11).
+5. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 163 tests across 6 suites (rules engine: 43, determination: 67, auth: 15+, assistant validation: 17, Companies House client: 10, embeddings client: 11).
 6. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
 7. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
 8. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
+
 ### Roadmap: Explore
 
-12. **Per-firm rules engine config and assessment form (multi-tenant calibration).** Move rules engine config (scoring model, CDD ruleset, AND form questions) from static JSON files to per-firm database-stored config, keyed by `firm_id`. The engine code stays the same (already config-driven); what changes per firm is the config it reads. Form questions and scoring rules are tightly coupled — each question captures a risk factor, each answer gets scored. **No AI in the config pipeline** — config is created by a human who understands the firm's policies, not extracted by an LLM. Determinism is non-negotiable for anything that drives scoring or CDD requirements.
+9. **Per-firm rules engine config and assessment form (multi-tenant calibration).** Move rules engine config (scoring model, CDD ruleset, AND form questions) from static JSON files to per-firm database-stored config, keyed by `firm_id`. The engine code stays the same (already config-driven); what changes per firm is the config it reads. Form questions and scoring rules are tightly coupled — each question captures a risk factor, each answer gets scored. **No AI in the config pipeline** — config is created by a human who understands the firm's policies, not extracted by an LLM. Determinism is non-negotiable for anything that drives scoring or CDD requirements.
     - **Regulatory baseline template** — standard config encoding all mandatory requirements from MLR 2017 and LSAG 2025. Includes: core form questions (mandatory, can't be removed — client type, jurisdiction, PEP status, SoF complexity, service type, delivery channel, transaction value), core scoring rules, minimum CDD actions, mandatory EDD triggers. This is a starting point for config creation, NOT a usable default — firms cannot run assessments until onboarded.
     - **Firm-specific form questions** — MLRO can add questions specific to their practice (e.g., payment method, referral source, practice-area-specific questions). Each added question must map to a scoring rule. Core questions cannot be removed.
     - **Firm-specific calibration** — derived from the firm's PWRA (risk appetite, practice area weighting, threshold positioning) and AML Policy/PCPs (additional CDD actions, escalation rules, evidence requirements beyond statutory minimum).
@@ -557,7 +593,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
       - *Practice area change* — MLRO adds new practice areas, configures relevant additional risk factors and CDD requirements via admin UI.
     - Inputs: firm's PWRA + AML Policy/PCPs → human-configured config. One engine, many configs.
 
-13. **AI assistant source strategy and ingestion.** Three use cases, three phases. AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
+10. **AI assistant source strategy and ingestion.** Three use cases, three phases. AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
     - **Phase 1 — External source library (platform-wide). ✅ LARGELY COMPLETE.** 47 verbatim excerpt files covering: MLR 2017 (15 key regs), POCA 2002 (7 sections), LSAG 2025 (15 excerpts split from 4 large chapters — CDD, EDD, red flags, corporate structures, plus 4 smaller sections), FATF black/grey lists, NRA 2025, Scottish Sectoral Risk 2022, LSS Rule B9. All content is verbatim text extracted from source PDFs (not paraphrased). Raw extracts stored in `sources/sources_external/extracted/` (35 files). Introduce `source_scope` concept: `platform` (shared, all firms) vs `firm` (firm-specific). Remaining: LSAG s5 risk assessment (no raw extract yet), potential additional MLR regs or LSAG sub-sections as gaps are identified in assistant testing.
     - **Phase 2 — Firm source ingestion.** Admin UI for MLRO to upload/paste PCP content. Human-curated chunking: MLRO identifies section boundaries, assigns topic tags, and reviews content before it becomes a source excerpt. Embeddings generated automatically for vector search (already built). Covers firm-specific procedural questions (use case 2) — e.g., "What documents do we need to verify an instructing director offline?"
     - **Phase 3 — Form question contextual help.** Wire existing `QuestionHelperButton` into assessment form fields (component exists, not yet integrated). Optionally pre-map form questions to source topics for better retrieval. Assistant opens with question context loaded, user can ask follow-ups. Quality improves as phases 1 and 2 add source material. Covers use case 3.
@@ -583,4 +619,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 22 Feb 2026, after Phase A.1 verbatim source excerpt replacement. 163 tests passing across 6 suites. Update when architectural decisions change.*
+*Last updated: 23 Feb 2026. Recent changes: app shell (sidebar/topbar), route groups (authenticated/public), platform admin role with firm switcher, entity deletion (client/matter/assessment cascade with RLS), assessment references (A-XXXXX-YYYY), sortable/filterable list tables, interactive CDD checklist with evidence. 3 pending SQL migrations. 163 tests passing across 6 suites. Update when architectural decisions change.*

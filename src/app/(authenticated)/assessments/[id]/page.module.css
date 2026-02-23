@@ -1,0 +1,1055 @@
+/* ── Header ── */
+
+.header {
+  margin-bottom: var(--space-6);
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.statusFinalised {
+  color: var(--status-low);
+  font-weight: 600;
+}
+
+.statusDraft {
+  color: var(--status-medium-text);
+  font-weight: 600;
+}
+
+/* ── Risk Level Hero ── */
+
+.riskHero {
+  border-radius: var(--radius-xl);
+  padding: var(--space-6) var(--space-8);
+  margin-bottom: var(--space-6);
+}
+
+.riskHeroLow {
+  background-color: var(--status-low-bg);
+  border: 2px solid var(--status-low);
+}
+
+.riskHeroMedium {
+  background-color: var(--status-medium-bg);
+  border: 2px solid var(--status-medium);
+}
+
+.riskHeroHigh {
+  background-color: var(--status-high-bg);
+  border: 2px solid var(--status-high);
+}
+
+.riskHeroContent {
+  text-align: center;
+}
+
+.riskHeroLevel {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.riskHeroLow .riskHeroLevel { color: var(--status-low-text); }
+.riskHeroMedium .riskHeroLevel { color: var(--status-medium-text); }
+.riskHeroHigh .riskHeroLevel { color: var(--status-high-text); }
+
+.riskHeroScore {
+  font-size: 1.125rem;
+  color: var(--text-primary);
+}
+
+.riskHeroThreshold {
+  margin-left: var(--space-2);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.riskHeroOutcome {
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  display: inline-block;
+}
+
+.riskHeroEdd {
+  margin-top: var(--space-2);
+  font-weight: 600;
+  color: var(--status-medium-text);
+}
+
+/* ── Sections ── */
+
+.section {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── CDD Checklist ── */
+
+.cddCategory {
+  margin-bottom: var(--space-5);
+}
+
+.cddCategory:last-child {
+  margin-bottom: 0;
+}
+
+.cddCategoryLabel {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.cddChecklist {
+  list-style: none;
+  padding: 0;
+  counter-reset: none;
+}
+
+.cddChecklistItem {
+  display: list-item;
+  list-style-type: decimal;
+  margin-left: 1.75rem;
+  padding: 0.375rem 0;
+  line-height: 1.5;
+  font-size: 0.9375rem;
+}
+
+.recommendedBadge {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.8125rem;
+}
+
+/* ── EDD Section ── */
+
+.eddSection {
+  border-color: var(--status-medium);
+  background-color: var(--status-medium-bg);
+}
+
+.eddTriggerNote {
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  font-size: 0.875rem;
+}
+
+.eddTriggerList {
+  margin: 0.25rem 0 0 1.25rem;
+  padding: 0;
+}
+
+.eddTriggerList li {
+  margin-bottom: 0.125rem;
+}
+
+/* ── Warnings Section ── */
+
+.warningSection {
+  border-color: var(--status-high);
+  background-color: var(--status-high-bg);
+}
+
+.warningList {
+  list-style: none;
+  padding: 0;
+}
+
+.warningItem {
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--status-high);
+  line-height: 1.5;
+}
+
+.warningItem:last-child {
+  margin-bottom: 0;
+}
+
+.warningAuthority {
+  font-size: 0.75rem;
+  color: var(--status-high-text);
+  margin-top: 0.25rem;
+}
+
+/* ── Evidence Section ── */
+
+.evidenceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.evidenceCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.evidenceCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+button.evidenceCardHeader:hover {
+  background-color: var(--surface-secondary);
+}
+
+.evidenceCardBody {
+  padding: var(--space-4);
+  border-top: 1px solid var(--border);
+  background-color: var(--surface-secondary);
+}
+
+.evidenceBadgeCH {
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.evidenceBadgeFile {
+  background-color: var(--accent-light);
+  color: var(--accent-text);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.evidenceBadgeManual {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.evidenceLabel {
+  flex: 1;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.evidenceFileSize {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.evidenceNotes {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-light);
+}
+
+.evidenceMeta {
+  padding: 0.25rem var(--space-4) var(--space-2);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.evidenceEmpty {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: var(--space-4);
+}
+
+.evidenceError {
+  background-color: var(--status-high-bg);
+  color: var(--status-high-text);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-4);
+}
+
+.evidenceActions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+.chLookupButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background-color: #1e40af;
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.chLookupButton:hover:not(:disabled) {
+  background-color: #1e3a8a;
+}
+
+.chLookupButton:disabled {
+  background-color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.evidenceActionButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.evidenceActionButton:hover:not(:disabled) {
+  background-color: var(--border);
+}
+
+.evidenceActionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Evidence Forms ── */
+
+.evidenceForm {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.formField {
+  margin-bottom: var(--space-3);
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.formInput {
+  display: block;
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.formTextarea {
+  display: block;
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  resize: vertical;
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.formSubmit {
+  display: inline-flex;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.formSubmit:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+
+.formSubmit:disabled {
+  background-color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* ── Companies House Card Details ── */
+
+.chStatus {
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.chStatusActive {
+  background-color: var(--status-low-bg);
+  color: var(--status-low-text);
+}
+
+.chStatusOther {
+  background-color: var(--status-high-bg);
+  color: var(--status-high-text);
+}
+
+.expandIcon {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.chGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.chField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.chFieldLabel {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.chWarning {
+  color: var(--status-high);
+  font-weight: 600;
+}
+
+.chOfficers {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.chOfficersTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.chOfficerList {
+  list-style: none;
+  padding: 0;
+}
+
+.chOfficerItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.chOfficerItem:last-child {
+  border-bottom: none;
+}
+
+.chOfficerName {
+  font-weight: 500;
+}
+
+.chOfficerRole {
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.chLookupDate {
+  margin-top: var(--space-3);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* ── Collapsible Detail Section ── */
+
+.collapsibleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
+.collapsibleHeader .sectionTitle {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.collapsibleContent {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-2);
+}
+
+.detailSubheading {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.detailSubheading:first-child {
+  margin-top: 0;
+}
+
+.detailEmpty {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* ── Risk Factors (inside detail) ── */
+
+.factorList {
+  list-style: none;
+  padding: 0;
+}
+
+.factorItem {
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  background-color: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent);
+}
+
+.factorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.factorLabel {
+  font-weight: 500;
+}
+
+.factorScore {
+  font-size: 0.875rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.factorAnswer {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.factorRationale {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* ── Rationale ── */
+
+.rationaleList {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.rationaleItem {
+  margin-bottom: var(--space-2);
+  line-height: 1.5;
+}
+
+/* ── Metadata ── */
+
+.metadata {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Action Buttons ── */
+
+.actionButtons {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  align-items: flex-start;
+}
+
+.determinationButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.determinationButton:hover {
+  background-color: var(--accent-hover);
+}
+
+.rerunButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  background-color: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-button);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.rerunButton:hover {
+  background-color: var(--accent);
+  color: white;
+}
+
+.finaliseContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.finaliseButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--status-low);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.finaliseButton:hover:not(:disabled) {
+  background-color: #047857;
+}
+
+.finaliseButton:disabled {
+  background-color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.finaliseError {
+  background-color: var(--status-high-bg);
+  color: var(--status-high-text);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+/* ── Error Page ── */
+
+.errorContainer {
+  max-width: 600px;
+  margin: 4rem auto;
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.errorTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  color: var(--status-high-text);
+}
+
+.errorMessage {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.backLink {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.backLink:hover {
+  color: var(--accent-hover);
+}
+
+/* ── Nav Row ── */
+
+.navRow {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.navLink {
+  font-size: 0.875rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.navLink:hover {
+  text-decoration: underline;
+  color: var(--accent-hover);
+}
+
+/* ── CDD Item Cards ── */
+
+.cddItemCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+  transition: border-color 0.15s;
+}
+
+.cddItemCard:last-child {
+  margin-bottom: 0;
+}
+
+.cddItemCompleted {
+  border-color: var(--status-low);
+  background-color: rgba(16, 185, 129, 0.04);
+}
+
+.cddItemHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cddItemCheckbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+
+.cddCheckboxInput {
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--status-low);
+  cursor: pointer;
+}
+
+.cddCheckboxInput:disabled {
+  cursor: default;
+}
+
+.cddItemNumber {
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  margin-top: 0.0625rem;
+}
+
+.cddItemText {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.cddItemTextDone {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.cddItemBadges {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.evidenceCountBadge {
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cddItemEvidence {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.cddEvidenceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+}
+
+.cddItemActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-light);
+}
+
+/* ── Monitoring Statement ── */
+
+.monitoringSection {
+  border-color: var(--accent);
+  background-color: var(--accent-light);
+}
+
+.monitoringStatement {
+  margin-bottom: var(--space-3);
+}
+
+.monitoringStatement:last-child {
+  margin-bottom: 0;
+}
+
+.monitoringText {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin-bottom: 0.25rem;
+}
+
+.monitoringAuthority {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.monitoringEnhanced {
+  padding: var(--space-3) var(--space-4);
+  background-color: rgba(99, 102, 241, 0.08);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent);
+}
+
+/* ── Finalise Confirm Box ── */
+
+.finaliseConfirmBox {
+  padding: var(--space-4);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.finaliseConfirmText {
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-3);
+  line-height: 1.5;
+}
+
+.finaliseConfirmActions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.finaliseCancelButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.finaliseCancelButton:hover {
+  background-color: var(--border);
+}
+
+/* ── Danger Zone ── */
+
+.dangerSection {
+  background-color: var(--surface);
+  border: 1px solid var(--status-high-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.dangerSection .sectionTitle {
+  color: var(--status-high-text);
+  border-bottom-color: var(--status-high-border);
+}
+
+.dangerButton {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--status-high-bg);
+  color: var(--status-high-text);
+  border: 1px solid var(--status-high-border);
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dangerButton:hover {
+  background-color: var(--status-high-border);
+}
+
+.dangerButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deleteConfirmBox {
+  padding: var(--space-4);
+  background-color: var(--status-high-bg);
+  border: 1px solid var(--status-high-border);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-3);
+}
+
+.deleteConfirmText {
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-3);
+  line-height: 1.5;
+}
+
+.deleteConfirmActions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.deleteCancelButton {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.deleteCancelButton:hover {
+  background-color: var(--border);
+}
+
+.deleteError {
+  background-color: var(--status-high-bg);
+  color: var(--status-high-text);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-3);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 640px) {
+  .chGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .evidenceActions {
+    flex-direction: column;
+  }
+
+  .cddItemActions {
+    flex-direction: column;
+  }
+
+  .finaliseConfirmActions {
+    flex-direction: column;
+  }
+
+  .deleteConfirmActions {
+    flex-direction: column;
+  }
+
+  .navRow {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
