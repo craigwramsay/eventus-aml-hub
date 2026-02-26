@@ -170,15 +170,17 @@ export function AssessmentForm({
     if (!field.label) return '';
     const raw = typeof field.label === 'string' ? field.label : field.label.value;
 
-    // Dynamic wording for ownership/control fields
-    if (field.id === '20') {
-      return `Number of ${officerTitle}`;
-    }
-    if (field.id === '22') {
-      return `In what countries are the ${officerTitle} resident?`;
+    // Dynamic wording for ownership/control fields (corporate form only)
+    if (derivedClientType === 'corporate') {
+      if (field.id === '20') {
+        return `Number of ${officerTitle}`;
+      }
+      if (field.id === '22') {
+        return `In what countries are the ${officerTitle} resident?`;
+      }
     }
     return raw;
-  }, [officerTitle]);
+  }, [derivedClientType, officerTitle]);
 
   const getOptions = (field: FormField): string[] => {
     if (!field.label || typeof field.label === 'string') return [];
