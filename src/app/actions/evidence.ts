@@ -9,7 +9,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
-import type { AssessmentEvidence } from '@/lib/supabase/types';
+import type { AssessmentEvidence, EvidenceType } from '@/lib/supabase/types';
 import { lookupCompany, CompaniesHouseError } from '@/lib/companies-house';
 import type { UserRole } from '@/lib/auth/roles';
 import { canCreateAssessment } from '@/lib/auth/roles';
@@ -138,6 +138,8 @@ export async function uploadEvidence(
 
     const file = formData.get('file') as File | null;
     const notes = formData.get('notes') as string | null;
+    const verifiedAtRaw = formData.get('verified_at') as string | null;
+    const verifiedAt = verifiedAtRaw || null;
 
     if (!file || file.size === 0) {
       return { success: false, error: 'No file provided' };
@@ -170,6 +172,7 @@ export async function uploadEvidence(
         file_name: file.name,
         file_size: file.size,
         notes: notes || null,
+        verified_at: verifiedAt,
         created_by: user.id,
       })
       .select()
@@ -194,6 +197,11 @@ export async function uploadEvidence(
       created_by: user.id,
     });
 
+    // Update client CDD date if this is an identity verification action
+    if (actionId && isIdentityActionId(actionId) && verifiedAt) {
+      await updateClientCddDate(supabase, assessmentId, verifiedAt);
+    }
+
     return { success: true, evidence: data as AssessmentEvidence };
   } catch (err) {
     console.error('Error in uploadEvidence:', err);
@@ -208,7 +216,8 @@ export async function addManualRecord(
   assessmentId: string,
   label: string,
   notes: string,
-  actionId?: string
+  actionId?: string,
+  verifiedAt?: string | null
 ): Promise<SingleEvidenceResult> {
   try {
     const { supabase, user, profile, error } = await getUserAndProfile();
@@ -239,6 +248,7 @@ export async function addManualRecord(
         label: label.trim(),
         source: 'Manual',
         notes: notes.trim() || null,
+        verified_at: verifiedAt || null,
         created_by: user.id,
       })
       .select()
@@ -262,9 +272,98 @@ export async function addManualRecord(
       created_by: user.id,
     });
 
+    // Update client CDD date if this is an identity verification action
+    if (actionId && isIdentityActionId(actionId) && verifiedAt) {
+      await updateClientCddDate(supabase, assessmentId, verifiedAt);
+    }
+
     return { success: true, evidence: data as AssessmentEvidence };
   } catch (err) {
     console.error('Error in addManualRecord:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Save a SoW or SoF form declaration.
+ * Upserts: if a declaration of the same type already exists for this assessment, replaces it.
+ */
+export async function saveSowSofForm(
+  assessmentId: string,
+  formType: 'sow' | 'sof',
+  formData: Record<string, string | string[]>
+): Promise<SingleEvidenceResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit adding evidence' };
+    }
+
+    const access = await validateAssessmentAccess(assessmentId, profile.firm_id);
+    if (!access.valid) {
+      return { success: false, error: access.error };
+    }
+
+    const evidenceType = formType === 'sow' ? 'sow_declaration' : 'sof_declaration';
+    const actionId = formType === 'sow' ? 'sow_form' : 'sof_form';
+    const label = formType === 'sow' ? 'Source of Wealth Declaration' : 'Source of Funds Declaration';
+
+    // Check for existing declaration to replace
+    const { data: existing } = await supabase
+      .from('assessment_evidence')
+      .select('id')
+      .eq('assessment_id', assessmentId)
+      .eq('evidence_type', evidenceType)
+      .maybeSingle();
+
+    if (existing) {
+      // Delete the old one (replace pattern for declarations)
+      await supabase
+        .from('assessment_evidence')
+        .delete()
+        .eq('id', existing.id);
+    }
+
+    const { data, error: insertErr } = await supabase
+      .from('assessment_evidence')
+      .insert({
+        firm_id: profile.firm_id,
+        assessment_id: assessmentId,
+        action_id: actionId,
+        evidence_type: evidenceType as EvidenceType,
+        label,
+        source: 'Declaration form',
+        data: formData as unknown as Record<string, unknown>,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (insertErr || !data) {
+      console.error('Failed to save SoW/SoF declaration:', insertErr);
+      return { success: false, error: 'Failed to save declaration' };
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'assessment_evidence',
+      entity_id: data.id,
+      action: `${formType}_declaration_saved`,
+      metadata: {
+        assessment_id: assessmentId,
+        form_type: formType,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true, evidence: data as AssessmentEvidence };
+  } catch (err) {
+    console.error('Error in saveSowSofForm:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -350,5 +449,65 @@ export async function lookupCompaniesHouse(
   } catch (err) {
     console.error('Error in lookupCompaniesHouse:', err);
     return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Check if an action ID corresponds to an identity verification action.
+ * Mirrors the client-side isIdentityAction() logic.
+ */
+function isIdentityActionId(actionId: string): boolean {
+  return (
+    actionId.includes('identity_verification') ||
+    actionId.includes('verify_identity') ||
+    actionId.includes('identify_and_verify')
+  );
+}
+
+/**
+ * Update the client's last_cdd_verified_at date when identity verification
+ * evidence is recorded. Only updates if the new date is more recent.
+ */
+async function updateClientCddDate(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  assessmentId: string,
+  verifiedAt: string
+): Promise<void> {
+  try {
+    // assessment -> matter -> client
+    const { data: assessment } = await supabase
+      .from('assessments')
+      .select('matter_id')
+      .eq('id', assessmentId)
+      .single();
+
+    if (!assessment) return;
+
+    const { data: matter } = await supabase
+      .from('matters')
+      .select('client_id')
+      .eq('id', assessment.matter_id)
+      .single();
+
+    if (!matter) return;
+
+    const { data: client } = await supabase
+      .from('clients')
+      .select('last_cdd_verified_at')
+      .eq('id', matter.client_id)
+      .single();
+
+    if (!client) return;
+
+    // Only update if the new date is more recent (or no previous date)
+    if (!client.last_cdd_verified_at || verifiedAt > client.last_cdd_verified_at) {
+      await supabase
+        .from('clients')
+        .update({ last_cdd_verified_at: verifiedAt })
+        .eq('id', matter.client_id);
+    }
+  } catch (err) {
+    // Non-fatal — log but don't fail the evidence operation
+    console.error('Failed to update client CDD date:', err);
   }
 }

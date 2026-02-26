@@ -1,0 +1,58 @@
+{
+  "name": "Source of Wealth Declaration - Corporate / LLP",
+  "description": "Declares the source of the entity's overall wealth. Required for all new clients (any risk level) and mandatory with evidence at MEDIUM/HIGH risk.",
+  "instructions": null,
+  "fields": [
+    {
+      "id": "sow_corp_1",
+      "type": "section",
+      "label": "Source of Wealth",
+      "fields": ["sow_corp_2", "sow_corp_3", "sow_corp_4", "sow_corp_5"]
+    },
+    {
+      "id": "sow_corp_2",
+      "type": "checkbox",
+      "label": {
+        "value": "Declared source(s) of wealth — select all that apply",
+        "options": [
+          "Trading profits from ongoing business",
+          "Asset sales (property, equipment, intellectual property)",
+          "Investment returns (dividends, interest, capital gains)",
+          "Shareholder loans or capital contributions",
+          "Grant or government funding",
+          "Other (specify below)"
+        ]
+      },
+      "validation": ["required"],
+      "hint": "Select every source that contributes to the entity's overall wealth"
+    },
+    {
+      "id": "sow_corp_3",
+      "type": "text",
+      "label": "Details for each declared source",
+      "validation": ["required"],
+      "hint": "Describe the nature and origin of each source selected above — e.g. nature of trade, asset type, investment portfolio"
+    },
+    {
+      "id": "sow_corp_4",
+      "type": "radio",
+      "label": {
+        "value": "How long has the entity been trading or operating?",
+        "options": [
+          "Less than 1 year",
+          "1–3 years",
+          "3–5 years",
+          "5–10 years",
+          "Over 10 years"
+        ]
+      },
+      "validation": ["required"]
+    },
+    {
+      "id": "sow_corp_5",
+      "type": "text",
+      "label": "Most recent accounts period (if available)",
+      "hint": "e.g. Year ended 31 March 2025"
+    }
+  ]
+}

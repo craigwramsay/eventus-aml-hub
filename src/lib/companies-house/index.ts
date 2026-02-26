@@ -6,4 +6,4 @@
  */
 
 export { lookupCompany, isValidCompanyNumber, CompaniesHouseError } from './client';
-export type { CompanyProfile, CompanyOfficer, CompanyLookupResult } from './types';
+export type { CompanyProfile, CompanyOfficer, CompanyPSC, CompanyLookupResult } from './types';

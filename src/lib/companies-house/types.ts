@@ -47,8 +47,31 @@ export interface CompanyOfficer {
   };
 }
 
+export interface CompanyPSC {
+  name: string;
+  natures_of_control: string[];
+  kind: string;
+  nationality?: string;
+  country_of_residence?: string;
+  date_of_birth?: { month: number; year: number };
+  address?: {
+    address_line_1?: string;
+    locality?: string;
+    postal_code?: string;
+  };
+  ceased_on?: string;
+  identification?: {
+    legal_authority?: string;
+    legal_form?: string;
+    place_registered?: string;
+    registration_number?: string;
+    country_registered?: string;
+  };
+}
+
 export interface CompanyLookupResult {
   profile: CompanyProfile;
   officers: CompanyOfficer[];
+  pscs: CompanyPSC[];
   looked_up_at: string;
 }

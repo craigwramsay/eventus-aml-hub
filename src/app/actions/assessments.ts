@@ -162,7 +162,7 @@ export async function submitAssessment(
     }
 
     const derivedClientType: ClientType =
-      entityType === 'Individual' ? 'individual' : 'corporate';
+      entityType.toLowerCase() === 'individual' ? 'individual' : 'corporate';
 
     // ---- DERIVE SECTOR RISK FROM CONFIG ----
     const { getSectorMappingConfig } = await import('@/lib/rules-engine/config-loader');

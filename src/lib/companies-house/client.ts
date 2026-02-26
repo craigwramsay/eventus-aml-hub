@@ -5,7 +5,7 @@
  * Uses Basic Auth: API key as username, empty password.
  */
 
-import type { CompanyProfile, CompanyOfficer, CompanyLookupResult } from './types';
+import type { CompanyProfile, CompanyOfficer, CompanyPSC, CompanyLookupResult } from './types';
 
 const CH_API_BASE = 'https://api.company-information.service.gov.uk';
 
@@ -100,6 +100,38 @@ async function fetchCompanyOfficers(
 }
 
 /**
+ * Fetch active persons with significant control for a company from Companies House.
+ */
+async function fetchPSCs(
+  companyNumber: string,
+  apiKey: string
+): Promise<CompanyPSC[]> {
+  const url = `${CH_API_BASE}/company/${encodeURIComponent(companyNumber)}/persons-with-significant-control`;
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: buildAuthHeader(apiKey),
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return [];
+    }
+    throw new CompaniesHouseError(
+      `Companies House PSC API error: ${response.status} ${response.statusText}`,
+      response.status
+    );
+  }
+
+  const data = await response.json() as { items?: CompanyPSC[] };
+  const allPSCs = data.items || [];
+
+  // Return only active PSCs (no ceased_on date)
+  return allPSCs.filter((psc) => !psc.ceased_on);
+}
+
+/**
  * Look up a company at Companies House.
  * Returns the company profile and active officers.
  *
@@ -126,14 +158,16 @@ export async function lookupCompany(
     );
   }
 
-  const [profile, officers] = await Promise.all([
+  const [profile, officers, pscs] = await Promise.all([
     fetchCompanyProfile(normalised, apiKey),
     fetchCompanyOfficers(normalised, apiKey),
+    fetchPSCs(normalised, apiKey),
   ]);
 
   return {
     profile,
     officers,
+    pscs,
     looked_up_at: new Date().toISOString(),
   };
 }

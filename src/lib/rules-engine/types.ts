@@ -44,6 +44,7 @@ export interface MandatoryAction {
   category: 'cdd' | 'edd' | 'sow' | 'sof' | 'monitoring' | 'escalation';
   priority: 'required' | 'recommended';
   evidenceTypes?: string[];
+  verificationNote?: string;
 }
 
 /** EDD trigger result from config-driven detection */
@@ -179,6 +180,7 @@ export interface CDDAction {
   requirements?: string[];
   evidence_types?: string[];
   display_text?: string;
+  verification_note?: string;
 }
 
 export interface CDDRiskLevelConfig {

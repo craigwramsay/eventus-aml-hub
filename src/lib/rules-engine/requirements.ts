@@ -40,6 +40,10 @@ function mapCDDAction(
     mapped.evidenceTypes = action.evidence_types;
   }
 
+  if (action.verification_note) {
+    mapped.verificationNote = action.verification_note;
+  }
+
   return mapped;
 }
 
@@ -47,8 +51,7 @@ function mapCDDAction(
  * Extract actions from a risk level config
  */
 function extractActionsFromConfig(
-  config: CDDRiskLevelConfig,
-  isHighRisk: boolean
+  config: CDDRiskLevelConfig
 ): MandatoryAction[] {
   const actions: MandatoryAction[] = [];
 
@@ -155,18 +158,9 @@ function extractActionsFromConfig(
   }
 
   // Enhanced Due Diligence
-  if (config.edd?.required) {
-    actions.push({
-      actionId: 'edd_required',
-      actionName: 'Enhanced Due Diligence',
-      description: 'Enhanced Due Diligence is required for this risk level',
-      category: 'edd',
-      priority: 'required',
-    });
-    if (config.edd.actions) {
-      for (const action of config.edd.actions) {
-        actions.push(mapCDDAction(action, 'edd', 'required'));
-      }
+  if (config.edd?.required && config.edd.actions) {
+    for (const action of config.edd.actions) {
+      actions.push(mapCDDAction(action, 'edd', 'required'));
     }
   }
 
@@ -257,14 +251,14 @@ export function getMandatoryActions(
     return { actions: [], warnings };
   }
 
-  const actions = extractActionsFromConfig(riskConfig, riskLevel === 'HIGH');
+  const actions = extractActionsFromConfig(riskConfig);
 
   // For MEDIUM and HIGH, we need to include lower-level actions too
   // The config uses "all_low_risk_actions" and "all_medium_risk_actions" references
   if (riskLevel === 'MEDIUM' || riskLevel === 'HIGH') {
     const lowConfig = clientConfig.riskLevels['LOW'];
     if (lowConfig) {
-      const lowActions = extractActionsFromConfig(lowConfig, false);
+      const lowActions = extractActionsFromConfig(lowConfig);
       // Add any low-risk actions not already included
       for (const action of lowActions) {
         if (!actions.find((a) => a.actionId === action.actionId)) {
@@ -277,7 +271,7 @@ export function getMandatoryActions(
   if (riskLevel === 'HIGH') {
     const mediumConfig = clientConfig.riskLevels['MEDIUM'];
     if (mediumConfig) {
-      const mediumActions = extractActionsFromConfig(mediumConfig, false);
+      const mediumActions = extractActionsFromConfig(mediumConfig);
       // Add any medium-risk actions not already included
       for (const action of mediumActions) {
         if (!actions.find((a) => a.actionId === action.actionId)) {
@@ -318,16 +312,6 @@ export function getMandatoryActions(
   if (eddTriggers && eddTriggers.length > 0 && riskLevel !== 'HIGH') {
     const highConfig = clientConfig.riskLevels['HIGH'];
     if (highConfig?.edd?.actions) {
-      // Add the EDD required marker
-      if (!actions.find((a) => a.actionId === 'edd_required')) {
-        actions.push({
-          actionId: 'edd_required',
-          actionName: 'Enhanced Due Diligence',
-          description: 'Enhanced Due Diligence is required due to EDD triggers detected',
-          category: 'edd',
-          priority: 'required',
-        });
-      }
       // Add individual EDD actions from HIGH config
       for (const eddAction of highConfig.edd.actions) {
         if (!actions.find((a) => a.actionId === eddAction.action)) {

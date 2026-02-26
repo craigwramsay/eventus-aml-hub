@@ -478,6 +478,13 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Interactive CDD checklist with per-item evidence upload
 - [x] Companies House integration (company lookup card on corporate assessments, registered number extracted from form answers when not on client record)
 - [x] Monitoring statement on assessment detail page
+- [x] Amiqus link button (external link to `https://id.amiqus.co/`, opens new tab, teal branding)
+- [x] Verification date recording on identity evidence (`verified_at` date column, UI date inputs on upload/manual forms for identity actions, green badge display)
+- [x] CDD validity tracking (`clients.last_cdd_verified_at`, risk-based staleness thresholds in `cdd_staleness.json`, CDDStatusBanner component on assessment page, last CDD date on client detail page)
+- [x] Confirmation-only CDD actions (`confirm_matter_purpose`, `verify_consistency`, `confirm_transparency`, `confirm_bo` show single "Confirm" button instead of Upload/Add Record)
+- [x] Verification note formatting (numbered items rendered on separate lines with authority citation)
+- [x] MLRO approval workflow (request/approve/reject/withdraw with role-gated UI)
+- [x] SoW/SoF declaration forms (config-driven, upsert pattern, expandable evidence cards)
 
 ### Pending SQL Migrations (not yet applied to Supabase)
 
@@ -485,6 +492,13 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 - `20260223_entity_delete_policies.sql` — DELETE RLS policies for clients, matters, assessments, evidence, CDD progress
 - `20260223_platform_admin_role.sql` — Widens role CHECK constraints, adds platform_admin RLS policies, sets initial platform_admin user
 - `20260223_assessment_reference.sql` — Adds `reference` column to assessments (backfill + NOT NULL + UNIQUE)
+- `20260223_mlro_approval_requests.sql` — MLRO approval requests table + RLS policies
+- `20260224_evidence_verified_at.sql` — Adds `verified_at date` column to `assessment_evidence`
+- `20260224_client_cdd_tracking.sql` — Adds `last_cdd_verified_at date` to `clients` + UPDATE RLS policy
+
+### Infrastructure Pending
+
+- [ ] Create `evidence` storage bucket in Supabase (private, firm-scoped RLS policies on `storage.objects`)
 
 ### Incomplete / Not Yet Built
 
@@ -582,9 +596,25 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 7. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
 8. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
 
+### Roadmap: Next — External Integrations
+
+9. **Clio API integration (matter/client sync).**
+    - **OAuth 2.0 connection** — firm-level Clio connection via OAuth authorization code flow. Store `access_token`, `refresh_token`, `expires_at` per firm in `firm_integrations` table. Token refresh on expiry.
+    - **Webhook endpoint** — `POST /api/webhooks/clio` receives `matter.create` events. Validates HMAC signature. Auto-creates client (if new) and matter in the hub from Clio contact/matter data. Stores `clio_matter_id` and `clio_contact_id` for back-linking.
+    - **Webhook renewal** — Clio webhooks expire after 31 days max. Background job or middleware to re-register before expiry. Store `webhook_id` and `expires_at` per firm.
+    - **Manual sync** — "Sync from Clio" button on matters page for firms with active Clio connection. Pulls recent matters not yet in the hub.
+    - **Files:** `src/lib/clio/client.ts`, `src/lib/clio/types.ts`, `src/app/api/webhooks/clio/route.ts`, `src/app/actions/integrations.ts`, migration for `firm_integrations` table.
+
+10. **Amiqus API integration (identity verification).**
+    - **Option A (interim, manual reference)** — Record Amiqus record ID and status manually on identity verification CDD items. "View in Amiqus" link opens the record in the Amiqus dashboard. No API calls. Unblocks immediate use while API integration is built.
+    - **Option B (API-linked)** — Initiate verification from the hub: POST to Amiqus `/clients` + `/records`, store `amiqus_record_id` on evidence row. Poll or fetch status. "View in Amiqus" deep link.
+    - **Option C (full webhook-driven)** — Extends Option B with webhook endpoint (`POST /api/webhooks/amiqus`). Amiqus sends `record.complete` / `record.failed` events. Auto-creates evidence record with verification date. Auto-updates `clients.last_cdd_verified_at`. CDD checklist reflects real-time status.
+    - **Data principle:** Amiqus reports (containing sensitive PII) stay in Amiqus. The hub stores only: record ID, status, verification date, and a deep link. No document download or storage.
+    - **Files:** `src/lib/amiqus/client.ts`, `src/lib/amiqus/types.ts`, `src/app/api/webhooks/amiqus/route.ts`, `src/app/actions/amiqus.ts`, migration for `amiqus_verifications` table.
+
 ### Roadmap: Explore
 
-9. **Per-firm rules engine config and assessment form (multi-tenant calibration).** Move rules engine config (scoring model, CDD ruleset, AND form questions) from static JSON files to per-firm database-stored config, keyed by `firm_id`. The engine code stays the same (already config-driven); what changes per firm is the config it reads. Form questions and scoring rules are tightly coupled — each question captures a risk factor, each answer gets scored. **No AI in the config pipeline** — config is created by a human who understands the firm's policies, not extracted by an LLM. Determinism is non-negotiable for anything that drives scoring or CDD requirements.
+11. **Per-firm rules engine config and assessment form (multi-tenant calibration).** Move rules engine config (scoring model, CDD ruleset, AND form questions) from static JSON files to per-firm database-stored config, keyed by `firm_id`. The engine code stays the same (already config-driven); what changes per firm is the config it reads. Form questions and scoring rules are tightly coupled — each question captures a risk factor, each answer gets scored. **No AI in the config pipeline** — config is created by a human who understands the firm's policies, not extracted by an LLM. Determinism is non-negotiable for anything that drives scoring or CDD requirements.
     - **Regulatory baseline template** — standard config encoding all mandatory requirements from MLR 2017 and LSAG 2025. Includes: core form questions (mandatory, can't be removed — client type, jurisdiction, PEP status, SoF complexity, service type, delivery channel, transaction value), core scoring rules, minimum CDD actions, mandatory EDD triggers. This is a starting point for config creation, NOT a usable default — firms cannot run assessments until onboarded.
     - **Firm-specific form questions** — MLRO can add questions specific to their practice (e.g., payment method, referral source, practice-area-specific questions). Each added question must map to a scoring rule. Core questions cannot be removed.
     - **Firm-specific calibration** — derived from the firm's PWRA (risk appetite, practice area weighting, threshold positioning) and AML Policy/PCPs (additional CDD actions, escalation rules, evidence requirements beyond statutory minimum).
@@ -604,7 +634,7 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
       - *Practice area change* — MLRO adds new practice areas, configures relevant additional risk factors and CDD requirements via admin UI.
     - Inputs: firm's PWRA + AML Policy/PCPs → human-configured config. One engine, many configs.
 
-10. **AI assistant source strategy and ingestion.** Three use cases, three phases. AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
+12. **AI assistant source strategy and ingestion.** Three use cases, three phases. AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
     - **Phase 1 — External source library (platform-wide). ✅ LARGELY COMPLETE.** 47 verbatim excerpt files covering: MLR 2017 (15 key regs), POCA 2002 (7 sections), LSAG 2025 (15 excerpts split from 4 large chapters — CDD, EDD, red flags, corporate structures, plus 4 smaller sections), FATF black/grey lists, NRA 2025, Scottish Sectoral Risk 2022, LSS Rule B9. All content is verbatim text extracted from source PDFs (not paraphrased). Raw extracts stored in `sources/sources_external/extracted/` (35 files). Introduce `source_scope` concept: `platform` (shared, all firms) vs `firm` (firm-specific). Remaining: LSAG s5 risk assessment (no raw extract yet), potential additional MLR regs or LSAG sub-sections as gaps are identified in assistant testing.
     - **Phase 2 — Firm source ingestion.** Admin UI for MLRO to upload/paste PCP content. Human-curated chunking: MLRO identifies section boundaries, assigns topic tags, and reviews content before it becomes a source excerpt. Embeddings generated automatically for vector search (already built). Covers firm-specific procedural questions (use case 2) — e.g., "What documents do we need to verify an instructing director offline?"
     - **Phase 3 — Form question contextual help.** Wire existing `QuestionHelperButton` into assessment form fields (component exists, not yet integrated). Optionally pre-map form questions to source topics for better retrieval. Assistant opens with question context loaded, user can ask follow-ups. Quality improves as phases 1 and 2 add source material. Covers use case 3.
@@ -630,4 +660,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 23 Feb 2026. Recent changes: scoring breakdown in determination, client account funds automatic HIGH outcome (PWRA §2.4), date picker and country multi-select on assessment form, QuestionHelperButton type="button" fix, determination back-navigation, CH registered number fallback from form answers, removed bogus aml_regulated pre-fill. 3 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*
+*Last updated: 25 Feb 2026. Recent changes: Amiqus link button, verification date recording on identity evidence, CDD validity tracking with risk-based staleness thresholds and CDDStatusBanner, confirmation-only CDD actions, verification note formatting, case-insensitive entity type detection. Clio + Amiqus integration roadmap added to section 17. 6 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*

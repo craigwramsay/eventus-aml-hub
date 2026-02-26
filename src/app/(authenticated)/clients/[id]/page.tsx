@@ -70,6 +70,18 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               {new Date(client.updated_at).toLocaleString()}
             </div>
           </div>
+          <div className={styles.detailField}>
+            <div className={styles.detailLabel}>Last CDD Verification</div>
+            <div className={styles.detailValue}>
+              {client.last_cdd_verified_at
+                ? new Date(client.last_cdd_verified_at + 'T00:00:00').toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })
+                : 'Not recorded'}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -37,7 +37,46 @@ interface CHData {
     officer_role?: string;
     appointed_on?: string;
   }>;
+  pscs?: Array<{
+    name?: string;
+    natures_of_control?: string[];
+    kind?: string;
+    nationality?: string;
+    country_of_residence?: string;
+    date_of_birth?: { month: number; year: number };
+    identification?: {
+      legal_form?: string;
+      country_registered?: string;
+    };
+  }>;
   looked_up_at?: string;
+}
+
+/**
+ * Convert Companies House PSC control strings to human-readable text.
+ * e.g. "ownership-of-shares-25-to-50-percent" → "Ownership of shares: 25–50%"
+ */
+function humaniseControl(control: string): string {
+  const mappings: Record<string, string> = {
+    'ownership-of-shares-25-to-50-percent': 'Ownership of shares: 25\u201350%',
+    'ownership-of-shares-50-to-75-percent': 'Ownership of shares: 50\u201375%',
+    'ownership-of-shares-75-to-100-percent': 'Ownership of shares: 75\u2013100%',
+    'ownership-of-shares-25-to-50-percent-as-trust': 'Ownership of shares: 25\u201350% (as trust)',
+    'ownership-of-shares-50-to-75-percent-as-trust': 'Ownership of shares: 50\u201375% (as trust)',
+    'ownership-of-shares-75-to-100-percent-as-trust': 'Ownership of shares: 75\u2013100% (as trust)',
+    'voting-rights-25-to-50-percent': 'Voting rights: 25\u201350%',
+    'voting-rights-50-to-75-percent': 'Voting rights: 50\u201375%',
+    'voting-rights-75-to-100-percent': 'Voting rights: 75\u2013100%',
+    'right-to-appoint-and-remove-directors': 'Right to appoint and remove directors',
+    'significant-influence-or-control': 'Significant influence or control',
+    'right-to-share-surplus-assets-25-to-50-percent-as-trust': 'Right to surplus assets: 25\u201350% (as trust)',
+    'right-to-share-surplus-assets-50-to-75-percent-as-trust': 'Right to surplus assets: 50\u201375% (as trust)',
+    'right-to-share-surplus-assets-75-to-100-percent-as-trust': 'Right to surplus assets: 75\u2013100% (as trust)',
+    'right-to-share-surplus-assets-25-to-50-percent': 'Right to surplus assets: 25\u201350%',
+    'right-to-share-surplus-assets-50-to-75-percent': 'Right to surplus assets: 50\u201375%',
+    'right-to-share-surplus-assets-75-to-100-percent': 'Right to surplus assets: 75\u2013100%',
+  };
+  return mappings[control] || control.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function formatDate(dateStr: string): string {
@@ -70,7 +109,7 @@ export function CompaniesHouseCard({ evidence }: CompaniesHouseCardProps) {
     );
   }
 
-  const { profile, officers } = data;
+  const { profile, officers, pscs } = data;
   const statusClass =
     profile.company_status === 'active' ? styles.chStatusActive : styles.chStatusOther;
 
@@ -131,6 +170,29 @@ export function CompaniesHouseCard({ evidence }: CompaniesHouseCardProps) {
                   <li key={idx} className={styles.chOfficerItem}>
                     <span className={styles.chOfficerName}>{officer.name}</span>
                     <span className={styles.chOfficerRole}>{officer.officer_role}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {pscs && pscs.length > 0 && (
+            <div className={styles.chOfficers}>
+              <h4 className={styles.chOfficersTitle}>
+                Persons with Significant Control ({pscs.length})
+              </h4>
+              <ul className={styles.chOfficerList}>
+                {pscs.map((psc, idx) => (
+                  <li key={idx} className={styles.chOfficerItem}>
+                    <span className={styles.chOfficerName}>{psc.name}</span>
+                    {psc.nationality && (
+                      <span className={styles.chOfficerRole}>{psc.nationality}</span>
+                    )}
+                    {psc.natures_of_control && psc.natures_of_control.length > 0 && (
+                      <span className={styles.chOfficerRole}>
+                        {psc.natures_of_control.map(humaniseControl).join('; ')}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

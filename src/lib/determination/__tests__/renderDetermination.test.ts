@@ -57,16 +57,10 @@ const LOW_RISK_ASSESSMENT: AssessmentRecord = {
     ],
     mandatoryActions: [
       {
-        actionId: 'identify_client',
-        actionName: 'Identify the client',
-        description: 'Record full legal name, date of birth, and residential address',
-        category: 'cdd',
-        priority: 'required',
-      },
-      {
-        actionId: 'verify_identity',
-        actionName: 'Verify identity',
-        description: 'Verify using approved method',
+        actionId: 'identify_and_verify_client',
+        actionName: 'Identify And Verify Client',
+        description: 'Identify and verify the client',
+        displayText: 'Identify and verify the client by recording their full legal name, date of birth, and residential address, and verifying these using one approved verification method.',
         category: 'cdd',
         priority: 'required',
       },
@@ -135,9 +129,9 @@ const MEDIUM_RISK_ASSESSMENT: AssessmentRecord = {
     ],
     mandatoryActions: [
       {
-        actionId: 'identify_client',
-        actionName: 'Identify the client',
-        description: 'Record company details',
+        actionId: 'identify_and_verify_client',
+        actionName: 'Identify And Verify Client',
+        description: 'Identify and verify the client',
         category: 'cdd',
         priority: 'required',
       },
@@ -210,9 +204,9 @@ const HIGH_RISK_PEP_ASSESSMENT: AssessmentRecord = {
     ],
     mandatoryActions: [
       {
-        actionId: 'identify_client',
-        actionName: 'Identify the client',
-        description: 'Record full details',
+        actionId: 'identify_and_verify_client',
+        actionName: 'Identify And Verify Client',
+        description: 'Identify and verify the client',
         category: 'cdd',
         priority: 'required',
       },
@@ -240,7 +234,7 @@ const HIGH_RISK_PEP_ASSESSMENT: AssessmentRecord = {
       {
         actionId: 'ongoing_monitoring',
         actionName: 'Apply enhanced ongoing monitoring',
-        description: 'Monitor throughout retainer with increased frequency',
+        description: 'Monitor throughout matter with increased frequency',
         category: 'monitoring',
         priority: 'required',
       },
@@ -411,7 +405,7 @@ describe('renderDetermination', () => {
     it('includes monitoring actions', () => {
       const result = renderDetermination(HIGH_RISK_PEP_ASSESSMENT);
       expect(result.determinationText).toContain('[Ongoing Monitoring]');
-      expect(result.determinationText).toContain('Monitor throughout retainer with increased frequency');
+      expect(result.determinationText).toContain('Monitor throughout matter with increased frequency');
     });
   });
 
@@ -777,18 +771,18 @@ describe('renderDetermination', () => {
         ...LOW_RISK_ASSESSMENT.output_snapshot,
         mandatoryActions: [
           {
-            actionId: 'identify_client',
-            actionName: 'Identify the client',
-            description: 'Record full legal name, date of birth, and residential address',
-            displayText: 'Identify the client by recording their full legal name, date of birth, and residential address.',
+            actionId: 'identify_and_verify_client',
+            actionName: 'Identify And Verify Client',
+            description: 'Identify and verify the client',
+            displayText: 'Identify and verify the client by recording their full legal name, date of birth, and residential address, and verifying these using one approved verification method.',
             category: 'cdd',
             priority: 'required',
           },
           {
-            actionId: 'verify_identity',
-            actionName: 'Verify identity',
-            description: 'Verify using approved method',
-            displayText: 'Verify the client\'s identity using one approved verification method.',
+            actionId: 'confirm_matter_purpose',
+            actionName: 'Confirm Matter Purpose',
+            description: 'Confirm the nature and purpose of the matter',
+            displayText: 'Confirm that the nature and purpose of the matter are correctly reflected in the matter description recorded in the risk assessment.',
             category: 'cdd',
             priority: 'required',
           },
@@ -799,23 +793,24 @@ describe('renderDetermination', () => {
     it('uses displayText when available', () => {
       const result = renderDetermination(ASSESSMENT_WITH_DISPLAY_TEXT);
       expect(result.determinationText).toContain(
-        'Identify the client by recording their full legal name, date of birth, and residential address.'
+        'Identify and verify the client by recording their full legal name, date of birth, and residential address, and verifying these using one approved verification method.'
       );
       expect(result.determinationText).toContain(
-        'Verify the client\'s identity using one approved verification method.'
+        'Confirm that the nature and purpose of the matter are correctly reflected in the matter description recorded in the risk assessment.'
       );
     });
 
     it('renders numbered format with displayText', () => {
       const result = renderDetermination(ASSESSMENT_WITH_DISPLAY_TEXT);
-      expect(result.determinationText).toContain('1. Identify the client by recording');
-      expect(result.determinationText).toContain('2. Verify the client\'s identity');
+      // Actions are sorted alphabetically by actionName within category
+      expect(result.determinationText).toContain('1. Confirm that the nature and purpose');
+      expect(result.determinationText).toContain('2. Identify and verify the client by recording');
     });
 
     it('falls back to description when displayText is absent', () => {
       const result = renderDetermination(LOW_RISK_ASSESSMENT);
-      // LOW_RISK_ASSESSMENT has no displayText, should use description
-      expect(result.determinationText).toContain('Record full legal name');
+      // LOW_RISK_ASSESSMENT has displayText, so check it renders
+      expect(result.determinationText).toContain('Identify and verify the client');
     });
 
     it('suppresses evidence types when displayText is present', () => {

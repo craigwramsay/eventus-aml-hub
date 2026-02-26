@@ -1,0 +1,71 @@
+{
+  "name": "Source of Wealth Declaration - Individual",
+  "description": "Declares the source of the client's overall wealth. Required for all new clients (any risk level) and mandatory with evidence at MEDIUM/HIGH risk.",
+  "instructions": null,
+  "fields": [
+    {
+      "id": "sow_ind_1",
+      "type": "section",
+      "label": "Source of Wealth",
+      "fields": ["sow_ind_2", "sow_ind_3", "sow_ind_4", "sow_ind_5"]
+    },
+    {
+      "id": "sow_ind_2",
+      "type": "checkbox",
+      "label": {
+        "value": "Declared source(s) of wealth — select all that apply",
+        "options": [
+          "Employment income or salary",
+          "Savings accumulated over time",
+          "Investment returns (dividends, interest, capital gains)",
+          "Business ownership or profits",
+          "Property sale or rental income",
+          "Inheritance",
+          "Gift",
+          "Pension or retirement income",
+          "Other (specify below)"
+        ]
+      },
+      "validation": ["required"],
+      "hint": "Select every source that contributes to the client's overall wealth"
+    },
+    {
+      "id": "sow_ind_3",
+      "type": "text",
+      "label": "Details for each declared source",
+      "validation": ["required"],
+      "hint": "Describe the nature and origin of each source selected above — e.g. employer name, business type, property location, inheritance details"
+    },
+    {
+      "id": "sow_ind_4",
+      "type": "radio",
+      "label": {
+        "value": "Estimated total wealth range",
+        "options": [
+          "Under £50,000",
+          "£50,000 – £250,000",
+          "£250,000 – £1,000,000",
+          "£1,000,000 – £5,000,000",
+          "Over £5,000,000",
+          "Not disclosed"
+        ]
+      },
+      "validation": ["required"]
+    },
+    {
+      "id": "sow_ind_5",
+      "type": "radio",
+      "label": {
+        "value": "How long has the client held the declared wealth?",
+        "options": [
+          "Less than 1 year",
+          "1–5 years",
+          "5–10 years",
+          "Over 10 years",
+          "Not known"
+        ]
+      },
+      "validation": ["required"]
+    }
+  ]
+}

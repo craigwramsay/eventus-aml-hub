@@ -58,3 +58,81 @@
   margin: 0;
   color: var(--status-low-text);
 }
+
+/* Pending Approvals Section */
+.approvalsSection {
+  margin-bottom: var(--space-8);
+}
+
+.approvalsSectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 var(--space-4) 0;
+}
+
+.approvalsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.approvalItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+}
+
+.approvalItem:hover {
+  border-color: var(--accent);
+}
+
+.approvalClient {
+  font-weight: 600;
+  flex: 1;
+}
+
+.approvalRef {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.approvalRisk {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.riskHigh {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.riskMedium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.riskLow {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.approvalDate {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.approvalsEmpty {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: var(--space-2) 0;
+}

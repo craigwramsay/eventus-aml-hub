@@ -45,7 +45,7 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
   }
 
   // Derive client type from the client
-  const derivedClientType = (matter.client.entity_type === 'Individual' ? 'individual' : 'corporate') as 'individual' | 'corporate';
+  const derivedClientType = (matter.client.entity_type.toLowerCase() === 'individual' ? 'individual' : 'corporate') as 'individual' | 'corporate';
   const clientTypeLabel = derivedClientType === 'individual' ? 'Individual' : 'Non-individual';
 
   // Build matter display: prefer description, fall back to reference

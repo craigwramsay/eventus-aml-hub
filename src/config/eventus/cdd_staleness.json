@@ -1,0 +1,7 @@
+{
+  "thresholds": {
+    "HIGH": { "months": 12, "label": "12 months" },
+    "MEDIUM": { "months": 24, "label": "24 months" },
+    "LOW": { "months": 36, "label": "36 months" }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "name": "Source of Funds Declaration",
+  "description": "Declares the origin of funds for this specific transaction/matter. Required at MEDIUM and HIGH risk.",
+  "instructions": null,
+  "fields": [
+    {
+      "id": "sof_1",
+      "type": "section",
+      "label": "Source of Funds",
+      "fields": ["sof_2", "sof_3", "sof_4", "sof_5", "sof_6"]
+    },
+    {
+      "id": "sof_2",
+      "type": "radio",
+      "label": {
+        "value": "Who is providing the funds for this matter?",
+        "options": [
+          "Client (self-funded)",
+          "Third party (specify below)",
+          "Combination of client and third party"
+        ]
+      },
+      "validation": ["required"]
+    },
+    {
+      "id": "sof_3",
+      "type": "text",
+      "label": "Origin of funds",
+      "validation": ["required"],
+      "hint": "Describe where the funds are coming from — e.g. personal savings, mortgage advance, business account, sale proceeds"
+    },
+    {
+      "id": "sof_4",
+      "type": "text",
+      "label": "Bank or institution name",
+      "validation": ["required"],
+      "hint": "Name of the bank or financial institution from which funds will be sent"
+    },
+    {
+      "id": "sof_5",
+      "type": "text",
+      "label": "Account holder name",
+      "validation": ["required"],
+      "hint": "Name on the account from which funds will be sent"
+    },
+    {
+      "id": "sof_6",
+      "type": "text",
+      "label": "Expected amount and timing",
+      "validation": ["required"],
+      "hint": "e.g. £350,000 expected within 14 days of settlement"
+    }
+  ]
+}

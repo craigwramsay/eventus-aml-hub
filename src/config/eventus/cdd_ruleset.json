@@ -39,28 +39,22 @@
         "LOW": {
           "cdd_actions": [
             {
-              "action": "identify_client",
-              "description": "Identify the client by recording:",
+              "action": "identify_and_verify_client",
+              "description": "Identify and verify the client",
               "requirements": ["full legal name", "date of birth", "residential address"],
-              "display_text": "Identify the client by recording their full legal name, date of birth, and residential address."
+              "display_text": "Identify and verify the client by recording their full legal name, date of birth, and residential address, and verifying these using one approved verification method.",
+              "verification_note": "Approved verification methods: (1) Amiqus electronic ID&V, or (2) one government-issued photo ID (valid passport or UK photocard driving licence) and one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months). Authority: Eventus AML PCPs §1.1; MLR 2017 regs. 28(4), 28(18)."
             },
             {
-              "action": "verify_identity",
-              "description": "Verify the client's identity using one approved verification method (see General Rules)",
-              "display_text": "Verify the client's identity using one approved verification method."
-            },
-            {
-              "action": "record_matter_info",
-              "description": "Obtain and retain information on:",
-              "requirements": ["the nature and purpose of the matter"],
-              "display_text": "Record the nature and purpose of the matter."
-            },
-            {
-              "action": "ongoing_monitoring",
-              "description": "Ongoing monitoring to be applied throughout the retainer",
-              "display_text": "Apply ongoing monitoring throughout the retainer."
+              "action": "confirm_matter_purpose",
+              "description": "Confirm the nature and purpose of the matter",
+              "display_text": "Confirm that the nature and purpose of the matter are correctly reflected in the matter description recorded in the risk assessment."
             }
           ],
+          "ongoing_monitoring": {
+            "required": true,
+            "description": "Apply ongoing monitoring throughout the matter"
+          },
           "edd": { "required": false },
           "sow": { "required": false },
           "sof": { "required": false },
@@ -74,28 +68,22 @@
         "MEDIUM": {
           "cdd_actions": [
             {
-              "action": "identify_client",
-              "description": "Identify the client by recording:",
+              "action": "identify_and_verify_client",
+              "description": "Identify and verify the client",
               "requirements": ["full legal name", "date of birth", "residential address"],
-              "display_text": "Identify the client by recording their full legal name, date of birth, and residential address."
+              "display_text": "Identify and verify the client by recording their full legal name, date of birth, and residential address, and verifying these using one approved verification method.",
+              "verification_note": "Approved verification methods: (1) Amiqus electronic ID&V, or (2) one government-issued photo ID (valid passport or UK photocard driving licence) and one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months). Authority: Eventus AML PCPs §1.1; MLR 2017 regs. 28(4), 28(18)."
             },
             {
-              "action": "verify_identity",
-              "description": "Verify the client's identity using one approved verification method",
-              "display_text": "Verify the client's identity using one approved verification method."
-            },
-            {
-              "action": "record_matter_info",
-              "description": "Obtain and record information on:",
-              "requirements": ["the nature and purpose of the matter"],
-              "display_text": "Record the nature and purpose of the matter."
-            },
-            {
-              "action": "ongoing_monitoring",
-              "description": "Apply ongoing monitoring throughout the retainer",
-              "display_text": "Apply ongoing monitoring throughout the retainer."
+              "action": "confirm_matter_purpose",
+              "description": "Confirm the nature and purpose of the matter",
+              "display_text": "Confirm that the nature and purpose of the matter are correctly reflected in the matter description recorded in the risk assessment."
             }
           ],
+          "ongoing_monitoring": {
+            "required": true,
+            "description": "Apply ongoing monitoring throughout the matter"
+          },
           "sow": {
             "required": true,
             "actions": [
@@ -155,12 +143,12 @@
               {
                 "action": "enhanced_sow_sof_scrutiny",
                 "description": "enhanced scrutiny of Source of Wealth and Source of Funds",
-                "display_text": "Apply enhanced scrutiny of Source of Wealth and Source of Funds."
+                "display_text": "Scrutinise Source of Wealth and Source of Funds to a higher standard than standard CDD. Verify consistency between declared sources and supporting evidence. Seek independent corroboration where the declared source is unusual or high-value."
               },
               {
                 "action": "corroborative_documentation",
                 "description": "corroborative documentation where available",
-                "display_text": "Obtain corroborative documentation where available."
+                "display_text": "Obtain independent documentation that corroborates the client's declared Source of Wealth and Source of Funds — e.g. statutory accounts, tax returns, property valuations, share certificates, or business sale records."
               }
             ]
           },
@@ -195,35 +183,34 @@
               "display_text": "Confirm that Companies House information is consistent with client-provided information."
             }
           ],
+          "cdd_actions": [
+            {
+              "action": "confirm_matter_purpose",
+              "description": "Confirm the nature and purpose of the matter",
+              "display_text": "Confirm that the nature and purpose of the matter are correctly reflected in the matter description recorded in the risk assessment."
+            }
+          ],
           "directors": [
             {
-              "action": "identify_directors",
-              "description": "Identify all directors by recording:",
-              "requirements": ["full legal name", "date of birth", "service address", "role as director"],
-              "display_text": "Identify all directors by recording their full legal name, date of birth, service address, and role."
-            },
-            {
-              "action": "verify_directors",
-              "description": "Verify the identity of each director using one approved verification method",
-              "display_text": "Verify the identity of each director using one approved verification method."
+              "action": "identify_and_verify_directors",
+              "description": "Identify and verify all directors",
+              "requirements": ["full legal name", "month and year of birth", "service address", "role as director"],
+              "display_text": "Identify and verify all directors by recording their full legal name, month and year of birth, service address, and role, and verifying each director's identity using one approved verification method.",
+              "verification_note": "Approved verification methods: (1) Amiqus electronic ID&V, or (2) one government-issued photo ID (valid passport or UK photocard driving licence) and one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months). Authority: Eventus AML PCPs §1.1; MLR 2017 regs. 28(4), 28(18)."
             }
           ],
           "beneficial_ownership": [
             {
-              "action": "identify_beneficial_owners",
-              "description": "Identify all individuals who:",
+              "action": "identify_and_verify_beneficial_owners",
+              "description": "Identify and verify all beneficial owners",
               "criteria": ["hold more than 25% of shares or voting rights", "otherwise exercise control"],
-              "display_text": "Identify all individuals who hold more than 25% of shares or voting rights or who otherwise exercise control."
-            },
-            {
-              "action": "verify_beneficial_owners",
-              "description": "Verify the identity of each beneficial owner using one approved verification method",
-              "display_text": "Verify the identity of each beneficial owner using one approved verification method."
+              "display_text": "Identify and verify all beneficial owners (individuals holding more than 25% of shares or voting rights, or who otherwise exercise control) using one approved verification method.",
+              "verification_note": "Approved verification methods: (1) Amiqus electronic ID&V, or (2) one government-issued photo ID (valid passport or UK photocard driving licence) and one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months). Authority: Eventus AML PCPs §1.1; MLR 2017 regs. 28(4), 28(18)."
             }
           ],
           "ongoing_monitoring": {
             "required": true,
-            "description": "Apply ongoing monitoring throughout the retainer"
+            "description": "Apply ongoing monitoring throughout the matter"
           },
           "edd": { "required": false },
           "sow": { "required": false },
@@ -319,12 +306,12 @@
               {
                 "action": "enhanced_sow_sof_scrutiny",
                 "description": "enhanced scrutiny of Source of Wealth and Source of Funds",
-                "display_text": "Apply enhanced scrutiny of Source of Wealth and Source of Funds."
+                "display_text": "Scrutinise Source of Wealth and Source of Funds to a higher standard than standard CDD. Verify consistency between declared sources and supporting evidence. Seek independent corroboration where the declared source is unusual or high-value."
               },
               {
                 "action": "corroborative_documentation",
                 "description": "corroborative documentation where available",
-                "display_text": "Obtain corroborative documentation where available."
+                "display_text": "Obtain independent documentation that corroborates the client's declared Source of Wealth and Source of Funds — e.g. statutory accounts, tax returns, property valuations, share certificates, or business sale records."
               }
             ]
           },
@@ -359,17 +346,20 @@
               "display_text": "Confirm that public record information is consistent with client-provided information."
             }
           ],
+          "cdd_actions": [
+            {
+              "action": "confirm_matter_purpose",
+              "description": "Confirm the nature and purpose of the matter",
+              "display_text": "Confirm that the nature and purpose of the matter are correctly reflected in the matter description recorded in the risk assessment."
+            }
+          ],
           "members_partners": [
             {
-              "action": "identify",
-              "description": "Identify all members or partners by recording:",
-              "requirements": ["full legal name", "date of birth", "residential or service address", "role as member or partner"],
-              "display_text": "Identify all members or partners by recording their full legal name, date of birth, residential or service address, and role."
-            },
-            {
-              "action": "verify",
-              "description": "Verify the identity of each member or partner using one approved verification method",
-              "display_text": "Verify the identity of each member or partner using one approved verification method."
+              "action": "identify_and_verify_members",
+              "description": "Identify and verify all members or partners",
+              "requirements": ["full legal name", "month and year of birth", "residential or service address", "role as member or partner"],
+              "display_text": "Identify and verify all members or partners by recording their full legal name, month and year of birth, residential or service address, and role, and verifying each using one approved verification method.",
+              "verification_note": "Approved verification methods: (1) Amiqus electronic ID&V, or (2) one government-issued photo ID (valid passport or UK photocard driving licence) and one proof of address (utility bill, bank or building society statement, or council tax statement dated within the last 3 months). Authority: Eventus AML PCPs §1.1; MLR 2017 regs. 28(4), 28(18)."
             }
           ],
           "beneficial_ownership": [
@@ -386,7 +376,7 @@
           ],
           "ongoing_monitoring": {
             "required": true,
-            "description": "Apply ongoing monitoring throughout the retainer"
+            "description": "Apply ongoing monitoring throughout the matter"
           },
           "edd": { "required": false },
           "sow": { "required": false },
@@ -483,12 +473,12 @@
               {
                 "action": "enhanced_sow_sof_scrutiny",
                 "description": "enhanced scrutiny of Source of Wealth and Source of Funds",
-                "display_text": "Apply enhanced scrutiny of Source of Wealth and Source of Funds."
+                "display_text": "Scrutinise Source of Wealth and Source of Funds to a higher standard than standard CDD. Verify consistency between declared sources and supporting evidence. Seek independent corroboration where the declared source is unusual or high-value."
               },
               {
                 "action": "corroborative_documentation",
                 "description": "corroborative documentation where available",
-                "display_text": "Obtain corroborative documentation where available."
+                "display_text": "Obtain independent documentation that corroborates the client's declared Source of Wealth and Source of Funds — e.g. statutory accounts, tax returns, property valuations, share certificates, or business sale records."
               }
             ]
           },

@@ -14,13 +14,26 @@ import riskScoringConfig from '@/config/eventus/risk_scoring_v3_8.json';
 import cddRulesetConfig from '@/config/eventus/cdd_ruleset.json';
 import individualFormConfig from '@/config/eventus/forms/CMLRA_individual.json';
 import corporateFormConfig from '@/config/eventus/forms/CMLRA_corporate.json';
+import sowIndividualConfig from '@/config/eventus/forms/SoW_individual.json';
+import sowCorporateConfig from '@/config/eventus/forms/SoW_corporate.json';
+import sofConfig from '@/config/eventus/forms/SoF.json';
 import sectorMappingConfig from '@/config/eventus/rules/sector_mapping.json';
+import cddStalenessConfig from '@/config/eventus/cdd_staleness.json';
 
 export type SectorRiskCategory = 'Standard' | 'Higher-risk' | 'Prohibited';
 
 export interface SectorMappingConfig {
   version: string;
   categories: Record<SectorRiskCategory, string[]>;
+}
+
+export interface CDDStalenessThreshold {
+  months: number;
+  label: string;
+}
+
+export interface CDDStalenessConfig {
+  thresholds: Record<string, CDDStalenessThreshold>;
 }
 
 /**
@@ -33,6 +46,9 @@ let loadedConfig: {
   forms: {
     individual: FormConfig;
     corporate: FormConfig;
+    sow_individual: FormConfig;
+    sow_corporate: FormConfig;
+    sof: FormConfig;
   };
 } | null = null;
 
@@ -46,6 +62,9 @@ export function loadConfig(): {
   forms: {
     individual: FormConfig;
     corporate: FormConfig;
+    sow_individual: FormConfig;
+    sow_corporate: FormConfig;
+    sof: FormConfig;
   };
 } {
   if (loadedConfig) {
@@ -59,6 +78,9 @@ export function loadConfig(): {
     forms: {
       individual: individualFormConfig as unknown as FormConfig,
       corporate: corporateFormConfig as unknown as FormConfig,
+      sow_individual: sowIndividualConfig as unknown as FormConfig,
+      sow_corporate: sowCorporateConfig as unknown as FormConfig,
+      sof: sofConfig as unknown as FormConfig,
     },
   };
 
@@ -91,6 +113,29 @@ export function getSectorMappingConfig(): SectorMappingConfig {
  */
 export function getFormConfig(clientType: 'individual' | 'corporate'): FormConfig {
   return loadConfig().forms[clientType];
+}
+
+/**
+ * Get SoW/SoF form configuration
+ */
+export function getSowSofFormConfig(
+  formType: 'sow' | 'sof',
+  clientType: 'individual' | 'corporate'
+): FormConfig {
+  const config = loadConfig();
+  if (formType === 'sof') {
+    return config.forms.sof;
+  }
+  return clientType === 'individual'
+    ? config.forms.sow_individual
+    : config.forms.sow_corporate;
+}
+
+/**
+ * Get CDD staleness thresholds
+ */
+export function getCddStalenessConfig(): CDDStalenessConfig {
+  return cddStalenessConfig as CDDStalenessConfig;
 }
 
 /**

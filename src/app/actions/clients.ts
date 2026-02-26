@@ -93,7 +93,7 @@ export async function createClientAction(
 
     // Derive client_type
     const client_type: 'individual' | 'corporate' =
-      entity_type === 'Individual' ? 'individual' : 'corporate';
+      entity_type.toLowerCase() === 'individual' ? 'individual' : 'corporate';
 
     const { data, error: insertErr } = await supabase
       .from('clients')
