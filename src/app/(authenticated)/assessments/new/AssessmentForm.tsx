@@ -61,19 +61,15 @@ interface AssessmentFormProps {
 
 /**
  * Map entity type to the appropriate officer title.
+ * Uses case-insensitive matching — stored values may have inconsistent casing.
  */
 function getOfficerTitle(entityType: string): string {
-  switch (entityType) {
-    case 'LLP':
-      return 'members';
-    case 'Partnership':
-      return 'partners';
-    case 'Trustee(s) of a trust':
-      return 'trustees';
-    default:
-      // All company types (limited by shares, guarantee, PLC)
-      return 'directors';
-  }
+  const lower = entityType.toLowerCase();
+  if (lower === 'llp') return 'members';
+  if (lower === 'partnership') return 'partners';
+  if (lower === 'trustee(s) of a trust') return 'trustees';
+  // All company types (limited by shares, guarantee, PLC)
+  return 'directors';
 }
 
 /**
@@ -134,6 +130,22 @@ export function AssessmentForm({
   const readOnlySet = useMemo(() => new Set(readOnlyFields), [readOnlyFields]);
   const officerTitle = useMemo(() => getOfficerTitle(entityType), [entityType]);
 
+  // Build reverse map: gate field ID → list of dependent field IDs
+  // Used to clear stale answers when a gate field changes value
+  const dependentFieldMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const field of formConfig.fields) {
+      if (field.show_if) {
+        for (const gateFieldId of Object.keys(field.show_if)) {
+          const deps = map.get(gateFieldId) || [];
+          deps.push(field.id);
+          map.set(gateFieldId, deps);
+        }
+      }
+    }
+    return map;
+  }, [formConfig.fields]);
+
   const shouldShowField = useCallback(
     (field: FormField): boolean => {
       if (!field.show_if) return true;
@@ -149,8 +161,23 @@ export function AssessmentForm({
   );
 
   const setAnswer = useCallback((fieldId: string, value: string | string[]) => {
-    setAnswers((prev) => ({ ...prev, [fieldId]: value }));
-  }, []);
+    setAnswers((prev) => {
+      const next = { ...prev, [fieldId]: value };
+      // Clear answers for dependent fields when a gate field changes
+      const dependents = dependentFieldMap.get(fieldId);
+      if (dependents) {
+        for (const depId of dependents) {
+          delete next[depId];
+        }
+      }
+      return next;
+    });
+    // Also clear currency display if the gate field hides the currency field
+    const dependents = dependentFieldMap.get(fieldId);
+    if (dependents?.includes(currencyFieldId)) {
+      setCurrencyDisplay('');
+    }
+  }, [dependentFieldMap, currencyFieldId]);
 
   const toggleCheckbox = useCallback((fieldId: string, option: string) => {
     setAnswers((prev) => {

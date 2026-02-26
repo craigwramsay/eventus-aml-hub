@@ -192,13 +192,14 @@ function getCDDClientTypeKey(
   if (formAnswers) {
     const entityType = formAnswers['10']; // Entity type field
     if (typeof entityType === 'string') {
-      if (entityType.includes('LLP') || entityType.includes('Partnership')) {
+      const entityTypeLower = entityType.toLowerCase();
+      if (entityTypeLower.includes('llp') || entityTypeLower.includes('partnership')) {
         key = 'uk_llp';
       }
 
-      // Check for excluded entity types
+      // Check for excluded entity types (case-insensitive)
       for (const excluded of EXCLUDED_ENTITY_PATTERNS) {
-        if (entityType === excluded.pattern) {
+        if (entityTypeLower === excluded.pattern.toLowerCase()) {
           warnings.push({
             warningId: `excluded_entity_${excluded.label.toLowerCase().replace(/\s+/g, '_')}`,
             message: `Entity type "${excluded.label}" falls outside the standard CDD ruleset. This matter must be assessed by reference to the Eventus AML PCPs and escalated to the MLRO for bespoke assessment.`,

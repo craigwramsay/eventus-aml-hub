@@ -109,7 +109,9 @@ function scoreFactor(
 }
 
 /**
- * Check for automatic outcome triggers
+ * Check for automatic outcome triggers.
+ * Collects ALL matching triggers (not just the first) so the audit trail
+ * reports every reason for the outcome.
  */
 function checkAutomaticOutcomes(
   config: RiskScoringConfig,
@@ -122,7 +124,9 @@ function checkAutomaticOutcomes(
       ? config.scoringFactors.corporate
       : config.scoringFactors.individual;
 
-  // Check each factor for outcome triggers
+  // Collect all matching triggers grouped by outcome ID
+  const triggers: Array<{ outcomeId: string; description: string; triggeredBy: string }> = [];
+
   for (const section of Object.values(sections)) {
     for (const factor of section.factors) {
       if (!factor.options) continue;
@@ -134,18 +138,29 @@ function checkAutomaticOutcomes(
         if (option.outcome && matchAnswer(formAnswer, option)) {
           const outcome = config.automaticOutcomes[option.outcome];
           if (outcome) {
-            return {
+            triggers.push({
               outcomeId: option.outcome,
               description: outcome.description,
               triggeredBy: `${factor.label}: "${option.answer}"`,
-            };
+            });
           }
         }
       }
     }
   }
 
-  return null;
+  if (triggers.length === 0) return null;
+
+  // Prioritise OUT_OF_APPETITE over HIGH_RISK_EDD_REQUIRED
+  const outOfAppetite = triggers.filter((t) => t.outcomeId === 'OUT_OF_APPETITE');
+  const primary = outOfAppetite.length > 0 ? outOfAppetite : triggers;
+  const relevantTriggers = triggers.filter((t) => t.outcomeId === primary[0].outcomeId);
+
+  return {
+    outcomeId: primary[0].outcomeId,
+    description: primary[0].description,
+    triggeredBy: relevantTriggers.map((t) => t.triggeredBy).join('; '),
+  };
 }
 
 /**

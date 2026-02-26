@@ -12,6 +12,7 @@ import styles from './page.module.css';
 // Load form configs
 import individualFormConfig from '@/config/eventus/forms/CMLRA_individual.json';
 import corporateFormConfig from '@/config/eventus/forms/CMLRA_corporate.json';
+import sectorMapping from '@/config/eventus/rules/sector_mapping.json';
 
 interface NewAssessmentPageProps {
   searchParams: Promise<{ matter_id?: string }>;
@@ -110,6 +111,29 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
     if (matter.description) {
       initialValues['41'] = matter.description;
       readOnlyFields.push('41');
+    }
+    // Derive sector risk from config and pre-populate field 49 (read-only)
+    if (matter.client.sector) {
+      let derivedCategory: string | null = null;
+      for (const [category, sectors] of Object.entries(sectorMapping.categories)) {
+        if ((sectors as string[]).includes(matter.client.sector)) {
+          derivedCategory = category;
+          break;
+        }
+      }
+      if (derivedCategory) {
+        // Find the matching full option text from the form config
+        const field49 = corporateFormConfig.fields.find((f: { id: string }) => f.id === '49');
+        if (field49?.label && typeof field49.label !== 'string' && field49.label.options) {
+          const matchingOption = field49.label.options.find((opt: string) =>
+            opt.startsWith(derivedCategory as string)
+          );
+          if (matchingOption) {
+            initialValues['49'] = matchingOption;
+            readOnlyFields.push('49');
+          }
+        }
+      }
     }
   } else {
     // Individual form field mappings
