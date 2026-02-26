@@ -103,9 +103,13 @@ eventus-aml-hub/
 │   │   └── eventus/                  # Runtime config files (imported by rules engine)
 │   │       ├── risk_scoring_v3_8.json  # Risk scoring model (thresholds, factors, EDD triggers)
 │   │       ├── cdd_ruleset.json        # CDD/EDD/SoW/SoF action mappings by risk level
+│   │       ├── cdd_staleness.json        # CDD validity staleness thresholds by risk level
 │   │       ├── forms/
 │   │       │   ├── CMLRA_individual.json  # Individual client form config
-│   │       │   └── CMLRA_corporate.json   # Corporate client form config
+│   │       │   ├── CMLRA_corporate.json   # Corporate client form config
+│   │       │   ├── SoW_individual.json    # Source of Wealth form (individual)
+│   │       │   ├── SoW_corporate.json     # Source of Wealth form (corporate)
+│   │       │   └── SoF.json              # Source of Funds form
 │   │       └── rules/
 │   │           └── sector_mapping.json    # Sector → risk category mapping
 │   ├── app/
@@ -134,16 +138,24 @@ eventus-aml-hub/
 │   │   │   │       ├── page.tsx      # Assessment result view (EDD triggers, warnings, role-gated finalise)
 │   │   │   │       ├── FinaliseButton.tsx
 │   │   │   │       ├── DeleteAssessmentButton.tsx
+│   │   │   │       ├── CDDStatusBanner.tsx   # CDD staleness banner
+│   │   │   │       ├── SowSofForm.tsx        # SoW/SoF declaration form
 │   │   │   │       └── determination/  # Formal determination document view
+│   │   │   ├── settings/
+│   │   │   │   └── integrations/      # Integration settings (Clio/Amiqus connect/disconnect)
 │   │   │   └── users/                # User management (admin-only)
 │   │   │       ├── page.tsx          # User list + pending invitations
 │   │   │       ├── invite/           # Invite user form
 │   │   │       └── [id]/             # User detail / role edit / deactivate
-│   │   ├── actions/                  # Server Actions (assessments, clients, matters, users, firms, evidence, progress)
+│   │   ├── actions/                  # Server Actions (assessments, clients, matters, users, firms, evidence, progress, approvals, integrations, amiqus)
 │   │   └── api/
 │   │       ├── assistant/route.ts    # POST endpoint for AI assistant (rate-limited)
 │   │       ├── admin/backfill-embeddings/route.ts  # POST trigger for embedding backfill
-│   │       └── health/route.ts       # Health check endpoint
+│   │       ├── health/route.ts       # Health check endpoint
+│   │       ├── integrations/clio/connect/route.ts   # GET: initiate Clio OAuth flow
+│   │       ├── integrations/clio/callback/route.ts  # GET: handle Clio OAuth callback
+│   │       ├── webhooks/clio/route.ts    # POST: receive Clio webhooks (HMAC verified)
+│   │       └── webhooks/amiqus/route.ts  # POST: receive Amiqus webhooks (HMAC verified)
 │   ├── data/
 │   │   └── countries.ts              # Standard country list (195 countries) for multi-select
 │   ├── components/
@@ -160,6 +172,8 @@ eventus-aml-hub/
 │   │       └── sortableTable.module.css
 │   ├── lib/
 │   │   ├── auth/                     # RBAC: roles, permission checks (solicitor/mlro/admin/platform_admin)
+│   │   ├── clio/                     # Clio API client (OAuth, matters, contacts, webhooks)
+│   │   ├── amiqus/                   # Amiqus API client (identity verification, webhooks)
 │   │   ├── rules-engine/             # Deterministic AML scoring engine
 │   │   │   ├── types.ts             # All engine types (including EDDTriggerResult, AssessmentWarning)
 │   │   │   ├── config-loader.ts     # JSON config importer (singleton cache)
@@ -194,9 +208,14 @@ eventus-aml-hub/
 | `firms` | Law firm entities | `id`, `name`, `jurisdiction` (`scotland` \| `england_and_wales`) |
 | `user_profiles` | Users scoped to firm | `user_id` (PK, = auth.uid), `firm_id`, `email`, `full_name`, `role` (`solicitor` \| `mlro` \| `admin`), `created_at` |
 | `user_invitations` | Pending user invites | `id`, `firm_id`, `email`, `role`, `invited_by`, `accepted_at`, `created_at` |
-| `clients` | Clients of the firm | `id`, `firm_id`, `name`, `entity_type`, `client_type` |
-| `matters` | Legal matters | `id`, `firm_id`, `client_id`, `reference`, `description`, `status` |
+| `clients` | Clients of the firm | `id`, `firm_id`, `name`, `entity_type`, `client_type`, `clio_contact_id`, `last_cdd_verified_at` |
+| `matters` | Legal matters | `id`, `firm_id`, `client_id`, `reference`, `description`, `status`, `clio_matter_id` |
 | `assessments` | Risk assessments | `id`, `firm_id`, `matter_id`, `reference` (unique, `A-XXXXX-YYYY`), `input_snapshot` (JSON), `output_snapshot` (JSON), `risk_level`, `score`, `created_by`, `finalised_at`, `finalised_by` |
+| `assessment_evidence` | Verification evidence | `id`, `firm_id`, `assessment_id`, `action_id`, `evidence_type`, `label`, `source`, `data`, `file_path`, `verified_at`, `created_by` |
+| `cdd_item_progress` | CDD checklist completion tracking | `id`, `firm_id`, `assessment_id`, `action_id`, `completed_at`, `completed_by` |
+| `mlro_approval_requests` | MLRO approval workflow | `id`, `firm_id`, `assessment_id`, `requested_by`, `status` (pending/approved/rejected/withdrawn), `decision_by`, `decision_notes` |
+| `firm_integrations` | OAuth tokens + webhook config per provider | `id`, `firm_id`, `provider` (clio/amiqus), `access_token`, `refresh_token`, `webhook_id`, `webhook_secret`, `webhook_expires_at`, `config` |
+| `amiqus_verifications` | Amiqus ID verification tracking | `id`, `firm_id`, `assessment_id`, `action_id`, `amiqus_record_id`, `status`, `perform_url`, `verified_at` |
 | `audit_events` | Complete activity log | `id`, `firm_id`, `entity_type`, `entity_id`, `action`, `metadata` (JSON), `created_by` |
 | `assistant_sources` | Curated knowledge base | `id`, `firm_id`, `source_type` (external/internal), `source_name`, `section_ref`, `topics` (text[]), `content`, `effective_date`, `embedding` (vector(1536), nullable) |
 
@@ -205,15 +224,20 @@ eventus-aml-hub/
 | Function | Purpose | Notes |
 |----------|---------|-------|
 | `match_assistant_sources(query_embedding, match_threshold, match_count)` | Vector similarity search for assistant sources | `SECURITY INVOKER` — RLS enforces firm isolation. Returns sources + similarity score. |
+| `verify_clio_webhook(p_signature, p_body)` | Verify Clio webhook HMAC-SHA256 signature | `SECURITY DEFINER` — checks signature against stored secrets, returns `firm_id` + `access_token` on match. |
+| `process_clio_webhook(...)` | Create client + matter from Clio data | `SECURITY DEFINER` — finds/creates client by `clio_contact_id`, creates matter by `clio_matter_id`, audit logs. |
+| `verify_amiqus_webhook(p_signature, p_body)` | Verify Amiqus webhook base64 HMAC-SHA256 signature | `SECURITY DEFINER` — returns `firm_id` on match. |
+| `process_amiqus_webhook(p_firm_id, p_amiqus_record_id, p_status, p_verified_at)` | Update verification status, create evidence on completion | `SECURITY DEFINER` — updates `amiqus_verifications`, creates `assessment_evidence`, updates `clients.last_cdd_verified_at`. |
 
 ### Relationships
 
 ```
 Firm ──< UserProfile
 Firm ──< UserInvitation
-Firm ──< Client ──< Matter ──< Assessment
-Firm ──< AuditEvent
-Firm ──< AssistantSource
+Firm ──< Client ──< Matter ──< Assessment ──< AssessmentEvidence
+Firm ──< AuditEvent                            ──< CddItemProgress
+Firm ──< AssistantSource                       ──< MlroApprovalRequest
+Firm ──< FirmIntegration                       ──< AmiqusVerification
 ```
 
 ### Critical design notes
@@ -412,7 +436,8 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 | **Rate limiting** | In-memory sliding window (`src/lib/security/rate-limiter.ts`): login 5/15min, assistant 20/min, server actions 60/min |
 | **Password policy** | 12+ chars, mixed case, digit, special char, common password blocklist (`src/lib/security/password-policy.ts`) |
 | **Data isolation** | PostgreSQL RLS policies on all tables, scoped by `firm_id` |
-| **No service role key** | All server actions use the authenticated user's session |
+| **No service role key** | All server actions use the authenticated user's session. Webhook endpoints use `SECURITY DEFINER` RPC functions for DB writes (HMAC verified). |
+| **Webhook HMAC verification** | Clio: hex HMAC-SHA256 (`X-Hook-Signature`). Amiqus: base64 HMAC-SHA256 (`X-AQID-Signature`). Verified via DB RPC against stored per-firm secrets. |
 | **Assessment immutability** | `finalised_at` timestamp locks the record; `checkAssessmentModifiable()` guard |
 | **No PII to LLM** | `validation.ts` pattern-matches and rejects client data before it reaches the LLM |
 | **Audit trail** | All significant actions logged to `audit_events` (assistant questions logged by length only, not content). Failed logins also logged. |
@@ -483,8 +508,15 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] CDD validity tracking (`clients.last_cdd_verified_at`, risk-based staleness thresholds in `cdd_staleness.json`, CDDStatusBanner component on assessment page, last CDD date on client detail page)
 - [x] Confirmation-only CDD actions (`confirm_matter_purpose`, `verify_consistency`, `confirm_transparency`, `confirm_bo` show single "Confirm" button instead of Upload/Add Record)
 - [x] Verification note formatting (numbered items rendered on separate lines with authority citation)
-- [x] MLRO approval workflow (request/approve/reject/withdraw with role-gated UI)
+- [x] MLRO approval workflow (request/approve/reject/withdraw with role-gated UI, dashboard pending list for MLROs)
 - [x] SoW/SoF declaration forms (config-driven, upsert pattern, expandable evidence cards)
+- [x] Companies House PSC lookups (persons with significant control, expanded card display)
+- [x] CDD reference page (browsable CDD ruleset at `/assessments/cdd-reference`)
+- [x] Clio API integration (OAuth connect/callback, matter.create webhook, auto-sync clients+matters)
+- [x] Amiqus API integration (initiate verification from CDD checklist, webhook-driven status updates, auto-evidence on completion)
+- [x] Integration settings page (`/settings/integrations` — connect/disconnect Clio, view Amiqus status, webhook health)
+- [x] Webhook HMAC verification via SECURITY DEFINER RPCs (no service role key in Next.js runtime)
+- [x] Graceful degradation when integration env vars absent (settings shows "not configured", Amiqus falls back to static link)
 
 ### Pending SQL Migrations (not yet applied to Supabase)
 
@@ -495,6 +527,7 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 - `20260223_mlro_approval_requests.sql` — MLRO approval requests table + RLS policies
 - `20260224_evidence_verified_at.sql` — Adds `verified_at date` column to `assessment_evidence`
 - `20260224_client_cdd_tracking.sql` — Adds `last_cdd_verified_at date` to `clients` + UPDATE RLS policy
+- `20260226_integrations.sql` — `firm_integrations` + `amiqus_verifications` tables, `matters.clio_matter_id`, 4 SECURITY DEFINER webhook RPCs, pgcrypto extension
 
 ### Infrastructure Pending
 
@@ -596,21 +629,24 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 7. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
 8. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
 
-### Roadmap: Next — External Integrations
+### Completed: External Integrations (built 26 Feb 2026)
 
-9. **Clio API integration (matter/client sync).**
-    - **OAuth 2.0 connection** — firm-level Clio connection via OAuth authorization code flow. Store `access_token`, `refresh_token`, `expires_at` per firm in `firm_integrations` table. Token refresh on expiry.
-    - **Webhook endpoint** — `POST /api/webhooks/clio` receives `matter.create` events. Validates HMAC signature. Auto-creates client (if new) and matter in the hub from Clio contact/matter data. Stores `clio_matter_id` and `clio_contact_id` for back-linking.
-    - **Webhook renewal** — Clio webhooks expire after 31 days max. Background job or middleware to re-register before expiry. Store `webhook_id` and `expires_at` per firm.
-    - **Manual sync** — "Sync from Clio" button on matters page for firms with active Clio connection. Pulls recent matters not yet in the hub.
-    - **Files:** `src/lib/clio/client.ts`, `src/lib/clio/types.ts`, `src/app/api/webhooks/clio/route.ts`, `src/app/actions/integrations.ts`, migration for `firm_integrations` table.
+9. **Clio API integration (matter/client sync). ✅ BUILT.**
+    - **OAuth 2.0 connection** — firm-level Clio connection via OAuth authorization code flow (`/api/integrations/clio/connect` + `/callback`). Stores `access_token`, `refresh_token`, `token_expires_at` per firm in `firm_integrations` table. Token refresh on expiry.
+    - **Webhook endpoint** — `POST /api/webhooks/clio` receives `matter.create` events. Validates HMAC-SHA256 signature via `verify_clio_webhook` SECURITY DEFINER RPC. Auto-creates client (if new) and matter via `process_clio_webhook` RPC. Stores `clio_matter_id` and `clio_contact_id` for back-linking.
+    - **Webhook handshake** — echoes `X-Hook-Secret` header on registration validation.
+    - **Webhook renewal** — Clio webhooks expire after 31 days max. Settings page shows days remaining, warns when ≤3 days. Auto-renewal on settings page load.
+    - **Files:** `src/lib/clio/client.ts`, `src/lib/clio/types.ts`, `src/lib/clio/index.ts`, `src/app/api/integrations/clio/connect/route.ts`, `src/app/api/integrations/clio/callback/route.ts`, `src/app/api/webhooks/clio/route.ts`, `src/app/actions/integrations.ts`.
+    - **Not yet built:** Manual sync ("Sync from Clio" button), token refresh flow (needs testing with live credentials).
 
-10. **Amiqus API integration (identity verification).**
-    - **Option A (interim, manual reference)** — Record Amiqus record ID and status manually on identity verification CDD items. "View in Amiqus" link opens the record in the Amiqus dashboard. No API calls. Unblocks immediate use while API integration is built.
-    - **Option B (API-linked)** — Initiate verification from the hub: POST to Amiqus `/clients` + `/records`, store `amiqus_record_id` on evidence row. Poll or fetch status. "View in Amiqus" deep link.
-    - **Option C (full webhook-driven)** — Extends Option B with webhook endpoint (`POST /api/webhooks/amiqus`). Amiqus sends `record.complete` / `record.failed` events. Auto-creates evidence record with verification date. Auto-updates `clients.last_cdd_verified_at`. CDD checklist reflects real-time status.
-    - **Data principle:** Amiqus reports (containing sensitive PII) stay in Amiqus. The hub stores only: record ID, status, verification date, and a deep link. No document download or storage.
-    - **Files:** `src/lib/amiqus/client.ts`, `src/lib/amiqus/types.ts`, `src/app/api/webhooks/amiqus/route.ts`, `src/app/actions/amiqus.ts`, migration for `amiqus_verifications` table.
+10. **Amiqus API integration (identity verification). ✅ BUILT (Option C — full webhook-driven).**
+    - **Initiate from CDD checklist** — "Initiate Amiqus Verification" button on identity verification CDD actions. Creates Amiqus client + record via API, stores in `amiqus_verifications` table. Shows `perform_url` for client to complete verification.
+    - **Webhook endpoint** — `POST /api/webhooks/amiqus` receives `record.finished` and `record.updated` events. Validates base64 HMAC-SHA256 signature via `verify_amiqus_webhook` SECURITY DEFINER RPC. On completion: `process_amiqus_webhook` RPC updates status, creates evidence record, updates `clients.last_cdd_verified_at`.
+    - **CDD checklist states** — No verification → initiate button. Pending/in_progress → status badge + complete link. Complete → green verified badge with date. Failed/expired → retry button. Falls back to static Amiqus link when env vars absent.
+    - **Data principle:** Amiqus reports (PII) stay in Amiqus. Hub stores only: record ID, status, verification date, and a deep link.
+    - **Files:** `src/lib/amiqus/client.ts`, `src/lib/amiqus/types.ts`, `src/lib/amiqus/index.ts`, `src/app/api/webhooks/amiqus/route.ts`, `src/app/actions/amiqus.ts`.
+
+**Integration settings page** — `/settings/integrations` (mlro/admin/platform_admin). Shows connection status, webhook health, connect/disconnect buttons for both providers. Graceful degradation when env vars absent.
 
 ### Roadmap: Explore
 
@@ -654,10 +690,16 @@ ASSISTANT_LLM_PROVIDER=openai|anthropic
 ASSISTANT_LLM_MODEL=gpt-4o|claude-sonnet-4-20250514
 OPENAI_API_KEY=           # if provider is openai; also used for embeddings (vector search)
 ANTHROPIC_API_KEY=        # if provider is anthropic
+
+# External integrations (optional — features degrade gracefully when absent)
+CLIO_CLIENT_ID=           # Clio OAuth client ID
+CLIO_CLIENT_SECRET=       # Clio OAuth client secret
+CLIO_REGION=eu            # 'eu' (eu.app.clio.com) or 'us' (app.clio.com), defaults to 'eu'
+AMIQUS_API_KEY=           # Amiqus Personal Access Token (PAT)
 ```
 
 Note: Supabase JWT expiry and MFA settings should be configured in the Supabase dashboard. The application enforces a 30-minute idle session timeout via middleware independently of JWT expiry.
 
 ---
 
-*Last updated: 25 Feb 2026. Recent changes: Amiqus link button, verification date recording on identity evidence, CDD validity tracking with risk-based staleness thresholds and CDDStatusBanner, confirmation-only CDD actions, verification note formatting, case-insensitive entity type detection. Clio + Amiqus integration roadmap added to section 17. 6 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*
+*Last updated: 26 Feb 2026. Recent changes: Clio API integration (OAuth connect/callback, matter.create webhook, auto-sync clients+matters), Amiqus API integration (initiate verification from CDD checklist, webhook-driven status updates, auto-evidence on completion), integration settings page, SECURITY DEFINER RPC functions for webhook processing, firm_integrations + amiqus_verifications tables. 7 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*
