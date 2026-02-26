@@ -11,7 +11,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/auth/callback', '/auth/confirm', '/set-password', '/invite/accept'];
+const PUBLIC_ROUTES = ['/login', '/auth/callback', '/auth/confirm', '/set-password', '/invite/accept', '/api/webhooks/clio', '/api/webhooks/amiqus'];
 
 // Routes that need auth but not MFA (MFA flow itself)
 const MFA_EXEMPT_ROUTES = ['/mfa/setup', '/mfa/verify'];

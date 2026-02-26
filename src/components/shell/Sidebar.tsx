@@ -34,6 +34,7 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   adminOnly?: boolean;
+  integrationsOnly?: boolean;
 }
 
 /* Simple inline SVG icons */
@@ -87,6 +88,18 @@ function UsersIcon() {
   );
 }
 
+function IntegrationsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 10h4M12 10h4" />
+      <circle cx="10" cy="10" r="2" />
+      <path d="M10 3v5M10 12v5" />
+      <circle cx="4" cy="10" r="1.5" />
+      <circle cx="16" cy="10" r="1.5" />
+    </svg>
+  );
+}
+
 function CollapseIcon({ collapsed }: { collapsed: boolean }) {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -113,6 +126,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/matters', label: 'Matters', icon: <MattersIcon /> },
   { href: '/assessments', label: 'Assessments', icon: <AssessmentsIcon /> },
   { href: '/users', label: 'User Management', icon: <UsersIcon />, adminOnly: true },
+  { href: '/settings/integrations', label: 'Integrations', icon: <IntegrationsIcon />, integrationsOnly: true },
 ];
 
 export function Sidebar({ user, firm, firms, activeFirmId }: SidebarProps) {
@@ -125,6 +139,7 @@ export function Sidebar({ user, firm, firms, activeFirmId }: SidebarProps) {
   };
 
   const canManageUsers = user.role === 'admin' || user.role === 'platform_admin';
+  const canViewIntegrations = user.role === 'mlro' || user.role === 'admin' || user.role === 'platform_admin';
 
   const sidebarClasses = [
     styles.sidebar,
@@ -167,6 +182,7 @@ export function Sidebar({ user, firm, firms, activeFirmId }: SidebarProps) {
         <nav className={styles.nav}>
           {NAV_ITEMS.map((item) => {
             if (item.adminOnly && !canManageUsers) return null;
+            if (item.integrationsOnly && !canViewIntegrations) return null;
             const active = isActive(item.href);
             return (
               <Link

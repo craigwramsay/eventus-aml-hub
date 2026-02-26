@@ -49,6 +49,7 @@ export interface Client {
   registered_address?: string | null;
   trading_address?: string | null;
   aml_regulated?: boolean;
+  last_cdd_verified_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +62,7 @@ export interface Matter {
   reference: string;
   description: string | null;
   status: string;
+  clio_matter_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -101,7 +103,7 @@ export interface UserInvitation {
   created_at: string;
 }
 
-export type EvidenceType = 'companies_house' | 'file_upload' | 'amiqus' | 'manual_record';
+export type EvidenceType = 'companies_house' | 'file_upload' | 'amiqus' | 'manual_record' | 'sow_declaration' | 'sof_declaration';
 
 export interface AssessmentEvidence {
   id: string;
@@ -116,7 +118,23 @@ export interface AssessmentEvidence {
   file_name: string | null;
   file_size: number | null;
   notes: string | null;
+  verified_at: string | null;
   created_by: string;
+  created_at: string;
+}
+
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn';
+
+export interface MlroApprovalRequest {
+  id: string;
+  firm_id: string;
+  assessment_id: string;
+  requested_by: string;
+  requested_at: string;
+  status: ApprovalStatus;
+  decision_by: string | null;
+  decision_at: string | null;
+  decision_notes: string | null;
   created_at: string;
 }
 
@@ -128,6 +146,42 @@ export interface CddItemProgress {
   completed_at: string | null;
   completed_by: string | null;
   created_at: string;
+}
+
+export type IntegrationProvider = 'clio' | 'amiqus';
+
+export interface FirmIntegration {
+  id: string;
+  firm_id: string;
+  provider: IntegrationProvider;
+  access_token: string | null;
+  refresh_token: string | null;
+  token_expires_at: string | null;
+  webhook_id: string | null;
+  webhook_secret: string | null;
+  webhook_expires_at: string | null;
+  config: Json;
+  connected_at: string | null;
+  connected_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AmiqusVerificationStatus = 'pending' | 'in_progress' | 'complete' | 'failed' | 'expired';
+
+export interface AmiqusVerification {
+  id: string;
+  firm_id: string;
+  assessment_id: string;
+  action_id: string;
+  amiqus_record_id: number | null;
+  amiqus_client_id: number | null;
+  status: AmiqusVerificationStatus;
+  perform_url: string | null;
+  verified_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export type SourceType = 'external' | 'internal';
@@ -201,6 +255,21 @@ export interface Database {
         Insert: Partial<CddItemProgress> & Pick<CddItemProgress, 'firm_id' | 'assessment_id' | 'action_id'>;
         Update: Partial<Pick<CddItemProgress, 'completed_at' | 'completed_by'>>;
       };
+      mlro_approval_requests: {
+        Row: MlroApprovalRequest;
+        Insert: Partial<MlroApprovalRequest> & Pick<MlroApprovalRequest, 'firm_id' | 'assessment_id' | 'requested_by'>;
+        Update: Partial<Pick<MlroApprovalRequest, 'status' | 'decision_by' | 'decision_at' | 'decision_notes'>>;
+      };
+      firm_integrations: {
+        Row: FirmIntegration;
+        Insert: Partial<FirmIntegration> & Pick<FirmIntegration, 'firm_id' | 'provider'>;
+        Update: Partial<FirmIntegration>;
+      };
+      amiqus_verifications: {
+        Row: AmiqusVerification;
+        Insert: Partial<AmiqusVerification> & Pick<AmiqusVerification, 'firm_id' | 'assessment_id' | 'action_id'>;
+        Update: Partial<Pick<AmiqusVerification, 'status' | 'verified_at'>>;
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -223,6 +292,36 @@ export interface Database {
           updated_at: string;
           similarity: number;
         }>;
+      };
+      verify_clio_webhook: {
+        Args: { p_signature: string; p_body: string };
+        Returns: Array<{ firm_id: string; access_token: string }>;
+      };
+      process_clio_webhook: {
+        Args: {
+          p_firm_id: string;
+          p_clio_matter_id: string;
+          p_matter_display_number: string;
+          p_matter_description: string;
+          p_clio_contact_id: string;
+          p_contact_name: string;
+          p_contact_type: string;
+          p_user_id: string;
+        };
+        Returns: Json;
+      };
+      verify_amiqus_webhook: {
+        Args: { p_signature: string; p_body: string };
+        Returns: Array<{ firm_id: string }>;
+      };
+      process_amiqus_webhook: {
+        Args: {
+          p_firm_id: string;
+          p_amiqus_record_id: number;
+          p_status: string;
+          p_verified_at?: string;
+        };
+        Returns: Json;
       };
     };
     Enums: {

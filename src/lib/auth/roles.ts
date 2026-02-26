@@ -42,3 +42,11 @@ export function canViewReports(role: UserRole): boolean {
 export function canDeleteEntities(role: UserRole): boolean {
   return role === 'mlro' || role === 'platform_admin';
 }
+
+export function canDecideApproval(role: UserRole): boolean {
+  return role === 'mlro' || role === 'platform_admin';
+}
+
+export function canManageIntegrations(role: UserRole): boolean {
+  return role === 'mlro' || role === 'admin' || role === 'platform_admin';
+}

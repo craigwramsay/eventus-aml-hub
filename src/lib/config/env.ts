@@ -16,6 +16,10 @@ const OPTIONAL_VARS = [
   'OPENAI_API_KEY',
   'ANTHROPIC_API_KEY',
   'COMPANIES_HOUSE_API_KEY',
+  'CLIO_CLIENT_ID',
+  'CLIO_CLIENT_SECRET',
+  'CLIO_REGION',
+  'AMIQUS_API_KEY',
 ] as const;
 
 export function validateEnv(): void {

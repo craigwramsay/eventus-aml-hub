@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { getAssessmentWithDetails } from '@/app/actions/assessments';
 import { getEvidenceForAssessment } from '@/app/actions/evidence';
 import { getProgressForAssessment } from '@/app/actions/progress';
+import { getApprovalForAssessment } from '@/app/actions/approvals';
+import { getAmiqusVerifications } from '@/app/actions/amiqus';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { FinaliseButton } from './FinaliseButton';
@@ -9,8 +11,10 @@ import { DeleteAssessmentButton } from './DeleteAssessmentButton';
 import { EvidenceSection } from './EvidenceSection';
 import { AssessmentDetail } from './AssessmentDetail';
 import { CDDChecklist } from './CDDChecklist';
+import { CDDStatusBanner } from './CDDStatusBanner';
 import { MonitoringStatement } from './MonitoringStatement';
 import type { MandatoryAction, AssessmentWarning } from '@/lib/rules-engine/types';
+import type { RiskLevel } from '@/lib/supabase/types';
 import styles from './page.module.css';
 
 interface PageProps {
@@ -48,10 +52,12 @@ function getRiskHeroClass(riskLevel: string): string {
 
 export default async function AssessmentViewPage({ params }: PageProps) {
   const { id } = await params;
-  const [result, evidenceResult, progressResult] = await Promise.all([
+  const [result, evidenceResult, progressResult, approvalResult, amiqusResult] = await Promise.all([
     getAssessmentWithDetails(id),
     getEvidenceForAssessment(id),
     getProgressForAssessment(id),
+    getApprovalForAssessment(id),
+    getAmiqusVerifications(id),
   ]);
 
   if (!result.success) {
@@ -69,11 +75,18 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const { assessment, client, matter, outputSnapshot, registeredNumber } = result.data;
   const evidence = evidenceResult.success ? evidenceResult.evidence : [];
   const progress = progressResult.success ? progressResult.progress : [];
+  const approval = approvalResult.success ? approvalResult.approval : null;
+  const amiqusVerifications = amiqusResult.success ? amiqusResult.verifications : [];
+  const amiqusConfigured = !!process.env.AMIQUS_API_KEY;
   const isFinalised = assessment.finalised_at !== null;
   const isCorporate = client.client_type !== 'individual';
   const profile = await getUserProfile();
   const canFinalise = profile ? canFinaliseAssessment(profile.role) : false;
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
+
+  // Extract matter description from input snapshot for confirm_matter_purpose
+  const inputSnapshot = assessment.input_snapshot as { clientType: string; formAnswers: Record<string, string | string[]> };
+  const matterDescription = (inputSnapshot.formAnswers?.['23'] || inputSnapshot.formAnswers?.['41'] || '') as string;
 
   // Separate actions: non-EDD (excluding monitoring), EDD, and monitoring
   const nonEddNonMonitoringActions = outputSnapshot.mandatoryActions.filter(
@@ -99,6 +112,12 @@ export default async function AssessmentViewPage({ params }: PageProps) {
           </p>
         </div>
       </header>
+
+      {/* CDD Status Banner */}
+      <CDDStatusBanner
+        lastCddVerifiedAt={client.last_cdd_verified_at ?? null}
+        riskLevel={assessment.risk_level as RiskLevel}
+      />
 
       {/* 2. Risk Level Hero */}
       <section className={`${styles.riskHero} ${getRiskHeroClass(assessment.risk_level)}`}>
@@ -136,6 +155,20 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         isCorporate={isCorporate}
         registeredNumber={registeredNumber}
         isFinalised={isFinalised}
+        approvalStatus={approval ? {
+          id: approval.id,
+          status: approval.status,
+          requested_at: approval.requested_at,
+          decision_by_name: approval.decision_by_name,
+          decision_at: approval.decision_at,
+          decision_notes: approval.decision_notes,
+        } : null}
+        userRole={profile?.role}
+        matterDescription={matterDescription}
+        amiqusVerifications={amiqusVerifications}
+        amiqusConfigured={amiqusConfigured}
+        clientName={client.name}
+        clientEmail=""
       />
 
       {/* 4. Monitoring Statement */}
