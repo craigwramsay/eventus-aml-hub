@@ -517,6 +517,10 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Integration settings page (`/settings/integrations` — connect/disconnect Clio, view Amiqus status, webhook health)
 - [x] Webhook HMAC verification via SECURITY DEFINER RPCs (no service role key in Next.js runtime)
 - [x] Graceful degradation when integration env vars absent (settings shows "not configured", Amiqus falls back to static link)
+- [x] Fix stale conditional field answers (gate question toggle now clears dependent field answers to prevent incorrect scoring)
+- [x] Case-insensitive entity type matching throughout (requirements.ts, getOfficerTitle — prevents wrong CDD ruleset or label for inconsistently-cased DB values)
+- [x] Corporate sector risk field (49) pre-populated as read-only from `sector_mapping.json` (previously editable but silently overridden by server)
+- [x] All automatic outcome triggers reported in audit trail (previously only first match was shown)
 
 ### Pending SQL Migrations (not yet applied to Supabase)
 
@@ -702,4 +706,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 26 Feb 2026. Recent changes: Clio API integration (OAuth connect/callback, matter.create webhook, auto-sync clients+matters), Amiqus API integration (initiate verification from CDD checklist, webhook-driven status updates, auto-evidence on completion), integration settings page, SECURITY DEFINER RPC functions for webhook processing, firm_integrations + amiqus_verifications tables. 7 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*
+*Last updated: 26 Feb 2026. Recent changes: Fix stale conditional field answers, case-insensitive entity type matching, sector risk field pre-population, all automatic outcome triggers reported. Clio + Amiqus API integration. 7 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*
