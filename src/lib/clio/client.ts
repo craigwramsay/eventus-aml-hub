@@ -114,22 +114,24 @@ export async function exchangeClioCode(code: string): Promise<ClioTokenResponse>
     throw new ClioError('CLIO_CLIENT_ID and CLIO_CLIENT_SECRET must be set');
   }
 
+  const params = new URLSearchParams({
+    grant_type: 'authorization_code',
+    code,
+    client_id: clientId,
+    client_secret: clientSecret,
+    redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/clio/callback`,
+  });
+
   const response = await fetch(`${baseUrl}/oauth/token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      grant_type: 'authorization_code',
-      code,
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/clio/callback`,
-    }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
   });
 
   if (!response.ok) {
     const errorBody = await response.text();
     throw new ClioError(
-      `Clio token exchange failed: ${response.status} ${response.statusText} | redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/clio/callback | body=${errorBody}`,
+      `Clio token exchange failed: ${response.status} ${response.statusText} | body=${errorBody}`,
       response.status
     );
   }
@@ -149,15 +151,17 @@ export async function refreshClioToken(refreshToken: string): Promise<ClioTokenR
     throw new ClioError('CLIO_CLIENT_ID and CLIO_CLIENT_SECRET must be set');
   }
 
+  const params = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
   const response = await fetch(`${baseUrl}/oauth/token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
   });
 
   if (!response.ok) {
