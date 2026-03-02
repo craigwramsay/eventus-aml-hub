@@ -127,8 +127,9 @@ export async function exchangeClioCode(code: string): Promise<ClioTokenResponse>
   });
 
   if (!response.ok) {
+    const errorBody = await response.text();
     throw new ClioError(
-      `Clio token exchange failed: ${response.status} ${response.statusText}`,
+      `Clio token exchange failed: ${response.status} ${response.statusText} | redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/clio/callback | body=${errorBody}`,
       response.status
     );
   }
