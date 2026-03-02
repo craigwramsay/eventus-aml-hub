@@ -550,6 +550,11 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Assessment staleness warnings (risk-based thresholds: HIGH 12mo, MEDIUM/LOW 24mo; dashboard widgets for solicitor + MLRO; matter detail page banner with re-run link; config in `assessment_staleness.json`)
 - [x] CDD universal longstop (hard 2-year deadline; CDDStatusBanner shows red longstop warning; FinaliseButton disabled when breached; server-side finalisation guard in `assessments.ts`; dashboard CDD warnings show RE-VERIFY badge; matter detail page CddLongstopBanner; null-CDD clients flagged)
 - [x] Old monitoring module removed (calendar-based review forms, /monitoring pages, monitoring_reviews table — replaced by event-driven staleness warnings + CDD longstop above)
+- [x] CDD "Confirm still valid" carry-forward (identity verification actions show carry-forward button when client has recent in-date verification within risk-based thresholds; creates manual evidence record, auto-marks checklist item complete, audit logs; server-side threshold re-check; disappears when threshold exceeded or evidence already exists)
+- [x] Last identity verification date on new client form (optional date field for onboarding clients with prior Amiqus verifications, enables carry-forward on first assessment)
+- [x] Amiqus webhook configured (webhook URL registered in Amiqus dashboard, webhook secret stored in `firm_integrations` table, signature verification via SECURITY DEFINER RPC)
+- [x] Companies House lookup on new client form (company number field with CH API lookup for corporate clients, auto-populate registered address, adopt CH name)
+- [x] Corporate form funds direction question (field 56 in `CMLRA_corporate.json` — mirrors individual form; gates SoF questions by paying/receiving/both direction; receiving-only hides "Who provides funds?" and "Source of funds?", shows "Who will send?" and "Nature of incoming?"; no scoring impact — purely visibility control via `show_if` + `smart_logic_fields`)
 
 ### Pending SQL Migrations (not yet applied to Supabase)
 
@@ -593,7 +598,7 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 1. Form validation on the assessment form is minimal -- required field checks exist but no comprehensive validation before submission.
 2. Invite acceptance flow sends users to `/invite/accept` but the email template in Supabase Auth needs to be configured to point to this URL.
 3. The CSP header includes `'unsafe-inline'` and `'unsafe-eval'` for `script-src` (required by Next.js). Should be tightened with nonce-based CSP in a future iteration.
-4. Client creation form does not capture `registered_number` for corporate clients. CH integration currently relies on the assessment form answer (field 4) as fallback. Consider adding registered number to the client creation form.
+4. ~~Client creation form does not capture `registered_number` for corporate clients.~~ ✅ FIXED — New client form now has Company Number field with Companies House lookup for corporate clients.
 5. `aml_regulated` field on clients table has no UI for setting it. The field defaults to null on new clients. Field 51 on the corporate assessment form ("Is the client subject to AML supervision?") is not pre-filled — solicitor answers it during assessment.
 
 ---
@@ -747,6 +752,20 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
     - **Environment variables:** 11 vars configured (Supabase, OpenAI, Clio, Companies House, app URL). `NEXT_PUBLIC_*` vars inlined at build time.
     - **Clio OAuth live** — connected and tested against Clio EU instance.
     - **Note:** `output: 'standalone'` removed from `next.config.ts` (conflicts with Vercel's serverless adapter). Windows CRLF in env vars caused initial 500 error — fixed by stripping `\r` before uploading to Vercel.
+
+### Completed: CDD Carry-Forward & Amiqus Webhook (built 2 Mar 2026)
+
+21. **CDD "Confirm still valid" carry-forward. ✅ BUILT.**
+    - **Risk-based thresholds** — HIGH: 12 months, MEDIUM/LOW: 24 months (from `cdd_staleness.json`). Universal longstop (24mo) blocks carry-forward entirely.
+    - **CDD checklist UI** — Identity verification actions show "Confirm still valid" button with info line ("Identity last verified on {date}, {N} months ago") when client has prior in-date verification. Button disappears when: threshold exceeded, longstop breached, evidence already exists for this action, or action already completed.
+    - **Server action** — `confirmIdentityStillValid()` in `evidence.ts`: validates auth/access/not-finalised, server-side threshold re-check, creates `manual_record` evidence with original verification date, calls `toggleItemCompletion()`, updates `last_cdd_verified_at`, audit logs as `identity_confirmed_still_valid`.
+    - **New client form field** — Optional "Date of Last Identity Verification" date field on new client form. Enables carry-forward for clients onboarded from prior Amiqus verifications.
+    - **Files:** `src/app/actions/evidence.ts`, `src/app/(authenticated)/assessments/[id]/CDDChecklist.tsx`, `src/app/(authenticated)/assessments/[id]/page.tsx`, `src/app/(authenticated)/assessments/[id]/page.module.css`, `src/app/(authenticated)/clients/new/NewClientForm.tsx`, `src/app/actions/clients.ts`, `src/app/(authenticated)/clients/clients.module.css`.
+
+22. **Amiqus webhook live. ✅ CONFIGURED.**
+    - Webhook registered in Amiqus dashboard (Workflows → Webhooks, all events).
+    - Webhook secret stored in `firm_integrations` table for signature verification.
+    - `NEXT_PUBLIC_APP_URL` set in `.env.local` and Vercel environment.
 
 ### Roadmap: Explore
 
