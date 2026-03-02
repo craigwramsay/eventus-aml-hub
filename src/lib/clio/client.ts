@@ -184,8 +184,8 @@ export async function registerClioWebhook(
   url: string,
   events: string[]
 ): Promise<ClioWebhookResponse> {
-  // Max 31 days from now
-  const expiresAt = new Date(Date.now() + 31 * 24 * 60 * 60 * 1000).toISOString();
+  // Clio allows up to 7 days
+  const expiredAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
   return clioFetch<ClioWebhookResponse>('/api/v4/webhooks.json', accessToken, {
     method: 'POST',
@@ -195,7 +195,7 @@ export async function registerClioWebhook(
         fields: ['id', 'etag', 'display_number', 'description', 'status'],
         events,
         model: 'matter',
-        expires_at: expiresAt,
+        expired_at: expiredAt,
       },
     }),
   });
