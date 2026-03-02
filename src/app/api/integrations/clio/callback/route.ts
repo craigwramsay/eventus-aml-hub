@@ -130,8 +130,9 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (err) {
     console.error('Error in Clio OAuth callback:', err);
+    const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.redirect(
-      new URL('/settings/integrations?error=clio_failed', request.url)
+      new URL(`/settings/integrations?error=clio_failed&detail=${encodeURIComponent(message)}`, request.url)
     );
   }
 }
