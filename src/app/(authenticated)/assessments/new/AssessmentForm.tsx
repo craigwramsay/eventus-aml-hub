@@ -37,7 +37,7 @@ interface FormField {
   label?: string | FormFieldLabel;
   validation?: string[];
   hint?: string | null;
-  show_if?: Record<string, string>;
+  show_if?: Record<string, string | string[]>;
   smart_logic_fields?: string[];
   fields?: string[];
   json_content?: RichTextContent;
@@ -151,8 +151,10 @@ export function AssessmentForm({
       if (!field.show_if) return true;
       for (const [fieldId, requiredValue] of Object.entries(field.show_if)) {
         const currentValue = answers[fieldId];
-        if (currentValue !== requiredValue) {
-          return false;
+        if (Array.isArray(requiredValue)) {
+          if (!requiredValue.includes(currentValue as string)) return false;
+        } else {
+          if (currentValue !== requiredValue) return false;
         }
       }
       return true;

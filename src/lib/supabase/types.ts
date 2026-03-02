@@ -33,6 +33,8 @@ export interface Firm {
   id: string;
   name: string;
   jurisdiction: Jurisdiction;
+  config_status: 'unconfigured' | 'draft' | 'active';
+  active_config_version_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -76,6 +78,7 @@ export interface Assessment {
   output_snapshot: Json;
   risk_level: RiskLevel;
   score: number;
+  config_version_id: string | null;
   created_at: string;
   created_by: string;
   finalised_at: string | null;
@@ -184,6 +187,64 @@ export interface AmiqusVerification {
   updated_at: string;
 }
 
+export type ConfigStatus = 'unconfigured' | 'draft' | 'active';
+export type ConfigVersionStatus = 'draft' | 'active' | 'superseded';
+export type BaselineStatus = 'active' | 'superseded';
+export type FirmDocumentType = 'pwra' | 'pcp' | 'aml_policy' | 'other';
+
+export interface RegulatoryBaselineRow {
+  id: string;
+  version_number: number;
+  baseline_rules: Json;
+  status: BaselineStatus;
+  created_by: string | null;
+  created_at: string;
+  change_summary: string | null;
+}
+
+export interface FirmConfigVersion {
+  id: string;
+  firm_id: string;
+  version_number: number;
+  risk_scoring: Json;
+  cdd_ruleset: Json;
+  sector_mapping: Json;
+  cdd_staleness: Json;
+  status: ConfigVersionStatus;
+  created_by: string | null;
+  created_at: string;
+  activated_at: string | null;
+  activated_by: string | null;
+  superseded_at: string | null;
+  change_summary: string | null;
+}
+
+export interface FirmConfigGapAcknowledgement {
+  id: string;
+  firm_id: string;
+  config_version_id: string;
+  gap_code: string;
+  gap_description: string;
+  baseline_requirement: string;
+  firm_value: string | null;
+  acknowledged_by: string;
+  acknowledged_at: string;
+  rationale: string;
+}
+
+export interface FirmDocument {
+  id: string;
+  firm_id: string;
+  document_type: FirmDocumentType;
+  file_name: string;
+  file_path: string;
+  file_size: number | null;
+  description: string | null;
+  uploaded_by: string;
+  uploaded_at: string;
+  config_version_id: string | null;
+}
+
 export type SourceType = 'external' | 'internal';
 
 export interface AssistantSource {
@@ -269,6 +330,26 @@ export interface Database {
         Row: AmiqusVerification;
         Insert: Partial<AmiqusVerification> & Pick<AmiqusVerification, 'firm_id' | 'assessment_id' | 'action_id'>;
         Update: Partial<Pick<AmiqusVerification, 'status' | 'verified_at'>>;
+      };
+      regulatory_baseline: {
+        Row: RegulatoryBaselineRow;
+        Insert: Partial<RegulatoryBaselineRow> & Pick<RegulatoryBaselineRow, 'version_number' | 'baseline_rules'>;
+        Update: Partial<Pick<RegulatoryBaselineRow, 'status' | 'change_summary'>>;
+      };
+      firm_config_versions: {
+        Row: FirmConfigVersion;
+        Insert: Partial<FirmConfigVersion> & Pick<FirmConfigVersion, 'firm_id' | 'version_number' | 'risk_scoring' | 'cdd_ruleset' | 'sector_mapping' | 'cdd_staleness'>;
+        Update: Partial<Pick<FirmConfigVersion, 'risk_scoring' | 'cdd_ruleset' | 'sector_mapping' | 'cdd_staleness' | 'status' | 'activated_at' | 'activated_by' | 'superseded_at' | 'change_summary'>>;
+      };
+      firm_config_gap_acknowledgements: {
+        Row: FirmConfigGapAcknowledgement;
+        Insert: Partial<FirmConfigGapAcknowledgement> & Pick<FirmConfigGapAcknowledgement, 'firm_id' | 'config_version_id' | 'gap_code' | 'gap_description' | 'baseline_requirement' | 'acknowledged_by' | 'rationale'>;
+        Update: never;
+      };
+      firm_documents: {
+        Row: FirmDocument;
+        Insert: Partial<FirmDocument> & Pick<FirmDocument, 'firm_id' | 'document_type' | 'file_name' | 'file_path' | 'uploaded_by'>;
+        Update: never;
       };
     };
     Views: Record<string, never>;

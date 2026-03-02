@@ -50,3 +50,7 @@ export function canDecideApproval(role: UserRole): boolean {
 export function canManageIntegrations(role: UserRole): boolean {
   return role === 'mlro' || role === 'admin' || role === 'platform_admin';
 }
+
+export function canConfigureFirm(role: UserRole): boolean {
+  return role === 'mlro' || role === 'platform_admin';
+}

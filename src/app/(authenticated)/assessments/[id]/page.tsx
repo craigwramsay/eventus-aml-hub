@@ -6,6 +6,7 @@ import { getApprovalForAssessment } from '@/app/actions/approvals';
 import { getAmiqusVerifications } from '@/app/actions/amiqus';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
+import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
 import { FinaliseButton } from './FinaliseButton';
 import { DeleteAssessmentButton } from './DeleteAssessmentButton';
 import { EvidenceSection } from './EvidenceSection';
@@ -83,6 +84,19 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const profile = await getUserProfile();
   const canFinalise = profile ? canFinaliseAssessment(profile.role) : false;
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
+
+  // Compute CDD longstop status
+  const cddConfig = getCddStalenessConfig();
+  const longstopMonths = cddConfig.universalLongstopMonths ?? 24;
+  let cddLongstopBreached = false;
+  if (!client.last_cdd_verified_at) {
+    cddLongstopBreached = true;
+  } else {
+    const verifiedAt = new Date(client.last_cdd_verified_at);
+    const longstopDate = new Date(verifiedAt);
+    longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
+    cddLongstopBreached = new Date() >= longstopDate;
+  }
 
   // Extract matter description from input snapshot for confirm_matter_purpose
   const inputSnapshot = assessment.input_snapshot as { clientType: string; formAnswers: Record<string, string | string[]> };
@@ -217,7 +231,9 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         >
           View Determination
         </Link>
-        {!isFinalised && canFinalise && <FinaliseButton assessmentId={assessment.id} />}
+        {!isFinalised && canFinalise && (
+          <FinaliseButton assessmentId={assessment.id} cddLongstopBreached={cddLongstopBreached} />
+        )}
         <Link
           href={`/assessments/new?matter_id=${matter.id}`}
           className={styles.rerunButton}

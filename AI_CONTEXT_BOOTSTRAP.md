@@ -100,7 +100,9 @@ eventus-aml-hub/
 ├── supabase/migrations/              # SQL migrations for schema changes
 ├── src/
 │   ├── config/
-│   │   └── eventus/                  # Runtime config files (imported by rules engine)
+│   │   ├── platform/                 # Platform-wide regulatory baseline
+│   │   │   └── regulatory_baseline_v1.json  # Mandatory scoring factors, CDD actions, EDD triggers, staleness limits
+│   │   └── eventus/                  # Runtime config files (imported by rules engine, used as defaults)
 │   │       ├── risk_scoring_v3_8.json  # Risk scoring model (thresholds, factors, EDD triggers)
 │   │       ├── cdd_ruleset.json        # CDD/EDD/SoW/SoF action mappings by risk level
 │   │       ├── cdd_staleness.json        # CDD validity staleness thresholds by risk level
@@ -129,6 +131,11 @@ eventus-aml-hub/
 │   │   ├── (authenticated)/          # Route group for authenticated pages (app shell)
 │   │   │   ├── layout.tsx            # Authenticated layout (Sidebar + Topbar shell, auth redirect)
 │   │   │   ├── dashboard/            # Post-login dashboard (role-aware)
+│   │   │   │   ├── page.tsx          # Role-differentiated server-side rendering
+│   │   │   │   └── components/       # SolicitorDashboard, MlroDashboard, AdminDashboard, StatCard, RiskDistribution, ActivityFeed, PendingApprovals, CddExpiryWarnings
+│   │   │   ├── admin/                # Platform admin pages
+│   │   │   │   ├── configs/          # Firm config status list + per-firm detail view
+│   │   │   │   └── baseline/         # Regulatory baseline viewer
 │   │   │   ├── clients/              # Client CRUD (/clients, /clients/new, /clients/[id])
 │   │   │   ├── matters/              # Matter CRUD (/matters, /matters/new, /matters/[id])
 │   │   │   ├── assessments/
@@ -142,12 +149,16 @@ eventus-aml-hub/
 │   │   │   │       ├── SowSofForm.tsx        # SoW/SoF declaration form
 │   │   │   │       └── determination/  # Formal determination document view
 │   │   │   ├── settings/
-│   │   │   │   └── integrations/      # Integration settings (Clio/Amiqus connect/disconnect)
+│   │   │   │   ├── integrations/      # Integration settings (Clio/Amiqus connect/disconnect)
+│   │   │   │   └── calibration/       # Per-firm config calibration
+│   │   │   │       ├── page.tsx       # Config overview dashboard (status + version history)
+│   │   │   │       ├── wizard/        # 7-step calibration wizard (risk appetite, scoring weights, automatic outcomes, CDD actions, sector mapping, CDD staleness, review)
+│   │   │   │       └── documents/     # PWRA/PCP/AML policy document upload
 │   │   │   └── users/                # User management (admin-only)
 │   │   │       ├── page.tsx          # User list + pending invitations
 │   │   │       ├── invite/           # Invite user form
 │   │   │       └── [id]/             # User detail / role edit / deactivate
-│   │   ├── actions/                  # Server Actions (assessments, clients, matters, users, firms, evidence, progress, approvals, integrations, amiqus)
+│   │   ├── actions/                  # Server Actions (assessments, clients, matters, users, firms, evidence, progress, approvals, integrations, amiqus, config, dashboard)
 │   │   └── api/
 │   │       ├── assistant/route.ts    # POST endpoint for AI assistant (rate-limited)
 │   │       ├── admin/backfill-embeddings/route.ts  # POST trigger for embedding backfill
@@ -176,7 +187,10 @@ eventus-aml-hub/
 │   │   ├── amiqus/                   # Amiqus API client (identity verification, webhooks)
 │   │   ├── rules-engine/             # Deterministic AML scoring engine
 │   │   │   ├── types.ts             # All engine types (including EDDTriggerResult, AssessmentWarning)
-│   │   │   ├── config-loader.ts     # JSON config importer (singleton cache)
+│   │   │   ├── baseline-types.ts    # RegulatoryBaseline interface hierarchy (validation ruleset)
+│   │   │   ├── config-loader.ts     # JSON config importer (singleton cache, static defaults)
+│   │   │   ├── config-loader-server.ts  # DB-backed config loader (firm config → falls back to static)
+│   │   │   ├── config-validator.ts  # Validate firm config against regulatory baseline
 │   │   │   ├── scorer.ts            # calculateScore() + checkEDDTriggers()
 │   │   │   ├── requirements.ts      # getMandatoryActions() (with entity exclusions, new-client SoW, evidence types)
 │   │   │   └── index.ts             # runAssessment() entry point
@@ -205,18 +219,22 @@ eventus-aml-hub/
 
 | Table | Purpose | Key columns |
 |-------|---------|-------------|
-| `firms` | Law firm entities | `id`, `name`, `jurisdiction` (`scotland` \| `england_and_wales`) |
+| `firms` | Law firm entities | `id`, `name`, `jurisdiction` (`scotland` \| `england_and_wales`), `config_status` (`unconfigured` \| `draft` \| `active`), `active_config_version_id` |
 | `user_profiles` | Users scoped to firm | `user_id` (PK, = auth.uid), `firm_id`, `email`, `full_name`, `role` (`solicitor` \| `mlro` \| `admin`), `created_at` |
 | `user_invitations` | Pending user invites | `id`, `firm_id`, `email`, `role`, `invited_by`, `accepted_at`, `created_at` |
 | `clients` | Clients of the firm | `id`, `firm_id`, `name`, `entity_type`, `client_type`, `clio_contact_id`, `last_cdd_verified_at` |
 | `matters` | Legal matters | `id`, `firm_id`, `client_id`, `reference`, `description`, `status`, `clio_matter_id` |
-| `assessments` | Risk assessments | `id`, `firm_id`, `matter_id`, `reference` (unique, `A-XXXXX-YYYY`), `input_snapshot` (JSON), `output_snapshot` (JSON), `risk_level`, `score`, `created_by`, `finalised_at`, `finalised_by` |
+| `assessments` | Risk assessments | `id`, `firm_id`, `matter_id`, `reference` (unique, `A-XXXXX-YYYY`), `input_snapshot` (JSON), `output_snapshot` (JSON), `risk_level`, `score`, `config_version_id`, `created_by`, `finalised_at`, `finalised_by` |
 | `assessment_evidence` | Verification evidence | `id`, `firm_id`, `assessment_id`, `action_id`, `evidence_type`, `label`, `source`, `data`, `file_path`, `verified_at`, `created_by` |
 | `cdd_item_progress` | CDD checklist completion tracking | `id`, `firm_id`, `assessment_id`, `action_id`, `completed_at`, `completed_by` |
 | `mlro_approval_requests` | MLRO approval workflow | `id`, `firm_id`, `assessment_id`, `requested_by`, `status` (pending/approved/rejected/withdrawn), `decision_by`, `decision_notes` |
 | `firm_integrations` | OAuth tokens + webhook config per provider | `id`, `firm_id`, `provider` (clio/amiqus), `access_token`, `refresh_token`, `webhook_id`, `webhook_secret`, `webhook_expires_at`, `config` |
 | `amiqus_verifications` | Amiqus ID verification tracking | `id`, `firm_id`, `assessment_id`, `action_id`, `amiqus_record_id`, `status`, `perform_url`, `verified_at` |
 | `audit_events` | Complete activity log | `id`, `firm_id`, `entity_type`, `entity_id`, `action`, `metadata` (JSON), `created_by` |
+| `regulatory_baseline` | Platform-wide regulatory floor | `id`, `version_number` (unique), `status` (active/superseded), `scoring`, `cdd`, `sector_mapping`, `staleness` (all jsonb), `created_by` |
+| `firm_config_versions` | Per-firm engine config (immutable when active) | `id`, `firm_id`, `version_number`, `status` (draft/active/superseded), `risk_scoring`, `cdd_ruleset`, `sector_mapping`, `cdd_staleness` (all jsonb), `created_by`, `activated_by`, `activated_at` |
+| `firm_config_gap_acknowledgements` | MLRO rationale for baseline deviations | `id`, `config_version_id`, `gap_code`, `baseline_requirement`, `firm_value`, `rationale` (min 20 chars), `acknowledged_by` |
+| `firm_documents` | Firm policy uploads (PWRA/PCP/AML policy) | `id`, `firm_id`, `document_type` (pwra/pcp/aml_policy/other), `file_name`, `file_path`, `description`, `config_version_id` |
 | `assistant_sources` | Curated knowledge base | `id`, `firm_id`, `source_type` (external/internal), `source_name`, `section_ref`, `topics` (text[]), `content`, `effective_date`, `embedding` (vector(1536), nullable) |
 
 ### Functions (RPC)
@@ -238,6 +256,9 @@ Firm ──< Client ──< Matter ──< Assessment ──< AssessmentEvidence
 Firm ──< AuditEvent                            ──< CddItemProgress
 Firm ──< AssistantSource                       ──< MlroApprovalRequest
 Firm ──< FirmIntegration                       ──< AmiqusVerification
+Firm ──< FirmConfigVersion ──< FirmConfigGapAcknowledgement
+Firm ──< FirmDocument
+RegulatoryBaseline (platform-wide, single active row)
 ```
 
 ### Critical design notes
@@ -459,7 +480,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] User management (admin invite flow, role editing, deactivation)
 - [x] App shell with sidebar navigation (collapsible Sidebar, Topbar with hamburger toggle)
 - [x] Route groups: `(authenticated)` with app shell layout, `(public)` for login/MFA/invite flows
-- [x] Dashboard (navigation hub, role-aware, conditional admin cards)
+- [x] Dashboard (role-based analytics — solicitor/MLRO/admin views with summary metrics, risk distribution, activity feed, pending approvals, CDD expiry warnings)
 - [x] Client CRUD (list, create, view with matters, delete — MLRO/platform_admin)
 - [x] Matter CRUD (list, create, view with assessments, delete with cascade — MLRO/platform_admin)
 - [x] Assessment form (config-driven, dynamic fields, conditional visibility, individual + corporate, date picker for DOB, country multi-select with typeahead)
@@ -505,7 +526,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Monitoring statement on assessment detail page
 - [x] Amiqus link button (external link to `https://id.amiqus.co/`, opens new tab, teal branding)
 - [x] Verification date recording on identity evidence (`verified_at` date column, UI date inputs on upload/manual forms for identity actions, green badge display)
-- [x] CDD validity tracking (`clients.last_cdd_verified_at`, risk-based staleness thresholds in `cdd_staleness.json`, CDDStatusBanner component on assessment page, last CDD date on client detail page)
+- [x] CDD validity tracking (`clients.last_cdd_verified_at`, risk-based staleness thresholds in `cdd_staleness.json`, CDDStatusBanner component on assessment page, last CDD date on client detail page, universal 2-year longstop with finalisation guard)
 - [x] Confirmation-only CDD actions (`confirm_matter_purpose`, `verify_consistency`, `confirm_transparency`, `confirm_bo` show single "Confirm" button instead of Upload/Add Record)
 - [x] Verification note formatting (numbered items rendered on separate lines with authority citation)
 - [x] MLRO approval workflow (request/approve/reject/withdraw with role-gated UI, dashboard pending list for MLROs)
@@ -521,6 +542,14 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Case-insensitive entity type matching throughout (requirements.ts, getOfficerTitle — prevents wrong CDD ruleset or label for inconsistently-cased DB values)
 - [x] Corporate sector risk field (49) pre-populated as read-only from `sector_mapping.json` (previously editable but silently overridden by server)
 - [x] All automatic outcome triggers reported in audit trail (previously only first match was shown)
+- [x] Dashboard analytics (role-based dashboards for solicitor/MLRO/admin, risk distribution chart, activity feed, pending approvals queue, CDD expiry warnings, assessment staleness warnings, 7 summary metrics)
+- [x] Per-firm rules engine config / multi-tenant calibration (7-step wizard: risk appetite, scoring weights, automatic outcomes, CDD actions, sector mapping, CDD staleness, review; regulatory baseline validation; gap acknowledgement workflow; config versioning; admin overview pages; config loader integrated into assessment engine; falls back to static defaults)
+- [x] Platform admin config management (firm config status list, per-firm detail view, regulatory baseline viewer)
+- [x] Firm document uploads (PWRA/PCP/AML policy upload with file metadata, linked to config versions)
+- [x] Form question contextual help / Phase 3 assistant (QuestionHelperButton wired into AssessmentForm, passes question context to AssistantPanel)
+- [x] Assessment staleness warnings (risk-based thresholds: HIGH 12mo, MEDIUM/LOW 24mo; dashboard widgets for solicitor + MLRO; matter detail page banner with re-run link; config in `assessment_staleness.json`)
+- [x] CDD universal longstop (hard 2-year deadline; CDDStatusBanner shows red longstop warning; FinaliseButton disabled when breached; server-side finalisation guard in `assessments.ts`; dashboard CDD warnings show RE-VERIFY badge; matter detail page CddLongstopBanner; null-CDD clients flagged)
+- [x] Old monitoring module removed (calendar-based review forms, /monitoring pages, monitoring_reviews table — replaced by event-driven staleness warnings + CDD longstop above)
 
 ### Pending SQL Migrations (not yet applied to Supabase)
 
@@ -532,17 +561,18 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 - `20260224_evidence_verified_at.sql` — Adds `verified_at date` column to `assessment_evidence`
 - `20260224_client_cdd_tracking.sql` — Adds `last_cdd_verified_at date` to `clients` + UPDATE RLS policy
 - `20260226_integrations.sql` — `firm_integrations` + `amiqus_verifications` tables, `matters.clio_matter_id`, 4 SECURITY DEFINER webhook RPCs, pgcrypto extension
+- `20260226_firm_config.sql` — `regulatory_baseline`, `firm_config_versions`, `firm_config_gap_acknowledgements`, `firm_documents` tables; `firms.config_status` + `active_config_version_id` columns; `assessments.config_version_id` column; `firm-documents` storage bucket + RLS; all table RLS policies
+- `20260226_firm_config_seed.sql` — Seeds initial regulatory baseline v1 from static config
 
 ### Infrastructure Pending
 
-- [ ] Create `evidence` storage bucket in Supabase (private, firm-scoped RLS policies on `storage.objects`)
+- ~~Evidence storage bucket~~ — Not needed. Identity verification documents are stored in Amiqus, corporate verification is via Companies House API (JSON in `assessment_evidence.data`), and SoW/SoF declarations are form-based. No file uploads required. The `firm-documents` bucket (for PWRA/PCP policy uploads) is created by the `firm_config` migration.
 
 ### Incomplete / Not Yet Built
 
-- [ ] Dashboard analytics / reporting
-- [ ] Ongoing monitoring tracking
-- [ ] SAR (Suspicious Activity Report) workflow
-- [ ] Source excerpt versioning / update tracking (Phase 1 external library complete; versioning for updates not yet built)
+- [ ] SAR (Suspicious Activity Report) workflow (no routes, pages, or components; POCA source excerpts exist for assistant)
+- [ ] Phase 2 — Firm source ingestion (admin UI for MLRO to upload/paste PCP content, human-curated chunking, auto-embeddings)
+- [ ] Source excerpt versioning / update tracking (Phase 1 external library complete; `effective_date` field exists but no update tracking UI)
 - [ ] Automated testing coverage for UI components
 - [ ] Generated Supabase types (currently manual)
 
@@ -554,7 +584,7 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 2. **In-memory rate limiter.** The rate limiter uses in-memory storage, which resets on server restart and doesn't work across multiple instances. Acceptable for single-instance deployment but should migrate to Redis or similar for horizontal scaling.
 3. **User deactivation is partial.** `deactivateUser()` logs an audit event but does not actually disable the Supabase Auth account (requires service role key or Edge Function). Admin must follow up in the Supabase dashboard.
 4. **Source documents and runtime configs in separate locations.** Original policy documents live in `sources/` while the JSON configs imported by the rules engine live in `src/config/eventus/`. Changes to the source documents require manual translation into the JSON configs.
-5. **Pending SQL migrations.** Three migrations created but not yet applied to the live Supabase instance (entity delete policies, platform admin role, assessment reference). These need to be run in the Supabase SQL Editor in order.
+5. **Pending SQL migrations.** Nine migrations created but not yet applied to the live Supabase instance. These need to be run in the Supabase SQL Editor in order. See section 10 for the full list.
 
 ---
 
@@ -624,18 +654,29 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 
 ## 17. Next Logical Development Steps
 
-1. **Dashboard analytics.** Summary stats: assessments by risk level, outstanding mandatory actions, matters pending assessment.
-2. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule.
-3. **SAR workflow.** Suspicious Activity Report submission and tracking.
-4. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
-5. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 176 tests across 6 suites (rules engine: 44, determination: 67, auth: 27, assistant validation: 17, Companies House client: 10, embeddings client: 11).
-6. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
-7. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
-8. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
+### Priority: Core Features
+
+1. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule. MonitoringStatement display exists on assessment detail page; needs scheduling, completion tracking, and alerting system.
+2. **SAR workflow.** Suspicious Activity Report submission and tracking. No implementation yet; POCA source excerpts exist for assistant context.
+3. **Phase 2 — Firm source ingestion.** Admin UI for MLRO to upload/paste PCP content. Human-curated chunking: MLRO identifies section boundaries, assigns topic tags, and reviews content before it becomes a source excerpt. Embeddings generated automatically for vector search (already built). Covers firm-specific procedural questions — e.g., "What documents do we need to verify an instructing director offline?"
+
+### Priority: Infrastructure
+
+4. **Apply pending SQL migrations.** 9 migrations need to be run in the Supabase SQL Editor in order (see section 10).
+5. **Create evidence storage bucket.** Code references `'evidence'` bucket but no migration creates it. Needs private bucket with firm-scoped RLS.
+6. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
+
+### Priority: Hardening
+
+7. **Comprehensive test coverage.** Unit tests for all rules engine paths, integration tests for server actions, component tests for forms. Currently 176+ tests across 6+ suites (rules engine: 44, determination: 67, auth: 27, assistant validation: 17, Companies House client: 10, embeddings client: 11, config validator: 11).
+8. **Nonce-based CSP.** Replace `'unsafe-inline'`/`'unsafe-eval'` in Content-Security-Policy with nonce-based approach.
+9. **Redis-backed rate limiting.** Replace in-memory rate limiter for multi-instance deployments.
+10. **Supabase Edge Function for user deactivation.** Complete the deactivation flow by actually disabling the auth account.
+11. **Comprehensive form validation.** Currently only required field checks; needs regex, format, range validation before submission.
 
 ### Completed: External Integrations (built 26 Feb 2026)
 
-9. **Clio API integration (matter/client sync). ✅ BUILT.**
+12. **Clio API integration (matter/client sync). ✅ BUILT.**
     - **OAuth 2.0 connection** — firm-level Clio connection via OAuth authorization code flow (`/api/integrations/clio/connect` + `/callback`). Stores `access_token`, `refresh_token`, `token_expires_at` per firm in `firm_integrations` table. Token refresh on expiry.
     - **Webhook endpoint** — `POST /api/webhooks/clio` receives `matter.create` events. Validates HMAC-SHA256 signature via `verify_clio_webhook` SECURITY DEFINER RPC. Auto-creates client (if new) and matter via `process_clio_webhook` RPC. Stores `clio_matter_id` and `clio_contact_id` for back-linking.
     - **Webhook handshake** — echoes `X-Hook-Secret` header on registration validation.
@@ -643,7 +684,7 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
     - **Files:** `src/lib/clio/client.ts`, `src/lib/clio/types.ts`, `src/lib/clio/index.ts`, `src/app/api/integrations/clio/connect/route.ts`, `src/app/api/integrations/clio/callback/route.ts`, `src/app/api/webhooks/clio/route.ts`, `src/app/actions/integrations.ts`.
     - **Not yet built:** Manual sync ("Sync from Clio" button), token refresh flow (needs testing with live credentials).
 
-10. **Amiqus API integration (identity verification). ✅ BUILT (Option C — full webhook-driven).**
+13. **Amiqus API integration (identity verification). ✅ BUILT (Option C — full webhook-driven).**
     - **Initiate from CDD checklist** — "Initiate Amiqus Verification" button on identity verification CDD actions. Creates Amiqus client + record via API, stores in `amiqus_verifications` table. Shows `perform_url` for client to complete verification.
     - **Webhook endpoint** — `POST /api/webhooks/amiqus` receives `record.finished` and `record.updated` events. Validates base64 HMAC-SHA256 signature via `verify_amiqus_webhook` SECURITY DEFINER RPC. On completion: `process_amiqus_webhook` RPC updates status, creates evidence record, updates `clients.last_cdd_verified_at`.
     - **CDD checklist states** — No verification → initiate button. Pending/in_progress → status badge + complete link. Complete → green verified badge with date. Failed/expired → retry button. Falls back to static Amiqus link when env vars absent.
@@ -652,32 +693,39 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 
 **Integration settings page** — `/settings/integrations` (mlro/admin/platform_admin). Shows connection status, webhook health, connect/disconnect buttons for both providers. Graceful degradation when env vars absent.
 
+### Completed: Dashboard Analytics (built 1 Mar 2026)
+
+14. **Dashboard analytics. ✅ BUILT.**
+    - **Role-based dashboards** — SolicitorDashboard (personal assessments, clients, matters, quick actions), MlroDashboard (firm-wide stats, pending approvals queue, CDD expiry warnings), AdminDashboard (platform-wide counts, user management link).
+    - **7 summary metrics** — assessmentsByRisk (LOW/MEDIUM/HIGH counts), totalAssessments, pendingApprovals, draftAssessments, totalClients, totalMatters, cddCompletionRate (%).
+    - **Visual components** — RiskDistribution (stacked horizontal bar chart), ActivityFeed (last 10 audit events with contextual links and relative timestamps), PendingApprovals (MLRO approval queue with risk levels), CddExpiryWarnings (risk-based staleness alerts, colour-coded).
+    - **Files:** `src/app/(authenticated)/dashboard/page.tsx`, `src/app/(authenticated)/dashboard/components/` (8 components), `src/app/actions/dashboard.ts`, `src/app/(authenticated)/dashboard/page.module.css`.
+
+### Completed: Multi-Tenant Calibration (built 1 Mar 2026)
+
+15. **Per-firm rules engine config and assessment form (multi-tenant calibration). ✅ BUILT.**
+    - **7-step calibration wizard** — risk appetite thresholds, scoring factor weights, automatic outcomes, CDD actions per risk level, sector mapping, CDD staleness thresholds, final review with gap acknowledgement. Each step saves independently via `saveDraftConfig()`.
+    - **Regulatory baseline validation** — `config-validator.ts` validates firm config against `regulatory_baseline_v1.json`. Checks: mandatory scoring factors, automatic outcomes, EDD triggers, CDD actions, prohibited sectors, staleness limits. Returns detailed gaps with severity, authority, and baseline requirement.
+    - **Gap acknowledgement workflow** — MLROs must explicitly acknowledge deviations from baseline with min 20-char rationale before activation. Stored in `firm_config_gap_acknowledgements`.
+    - **Config versioning** — immutable versions (draft → active → superseded). Every activation audit-logged with `created_by`, `activated_by`, timestamps. Previous versions preserved. Assessments link to `config_version_id`.
+    - **Config loader integration** — `config-loader-server.ts` fetches active firm config from DB; falls back to static defaults if unavailable. Integrated into `submitAssessment()`.
+    - **Platform admin views** — firm config status list (`/admin/configs`), per-firm detail with version history + gap acknowledgements (`/admin/configs/[firmId]`), regulatory baseline viewer (`/admin/baseline`).
+    - **Document management** — PWRA/PCP/AML policy upload at `/settings/calibration/documents` with file metadata, linked to config versions.
+    - **Firm onboarding lifecycle** — firm created → MLRO provides PWRA + AML Policy/PCPs → human configures engine via wizard → system validates against regulatory floor → MLRO approves and locks → firm active for assessments.
+    - **Files:** `src/app/(authenticated)/settings/calibration/` (14 files), `src/app/(authenticated)/admin/` (3 pages), `src/app/actions/config.ts`, `src/config/platform/regulatory_baseline_v1.json`, `src/lib/rules-engine/baseline-types.ts`, `src/lib/rules-engine/config-loader-server.ts`, `src/lib/rules-engine/config-validator.ts`, `supabase/migrations/20260226_firm_config.sql`, `supabase/migrations/20260226_firm_config_seed.sql`.
+    - **Design principles preserved:** No AI in config pipeline. Config created by human who understands firm's policies. Determinism non-negotiable. Stricter than regulations = allowed; weaker = blocked. One engine, many configs.
+
+### Completed: Assistant Phase 3 (built 1 Mar 2026)
+
+16. **Form question contextual help. ✅ BUILT.**
+    - `QuestionHelperButton` wired into `AssessmentForm` via `renderFieldLabel()`. Passes `questionId` and `questionText` as `uiContext` to `AssistantPanel`. User can ask follow-up questions about specific form fields.
+
 ### Roadmap: Explore
 
-11. **Per-firm rules engine config and assessment form (multi-tenant calibration).** Move rules engine config (scoring model, CDD ruleset, AND form questions) from static JSON files to per-firm database-stored config, keyed by `firm_id`. The engine code stays the same (already config-driven); what changes per firm is the config it reads. Form questions and scoring rules are tightly coupled — each question captures a risk factor, each answer gets scored. **No AI in the config pipeline** — config is created by a human who understands the firm's policies, not extracted by an LLM. Determinism is non-negotiable for anything that drives scoring or CDD requirements.
-    - **Regulatory baseline template** — standard config encoding all mandatory requirements from MLR 2017 and LSAG 2025. Includes: core form questions (mandatory, can't be removed — client type, jurisdiction, PEP status, SoF complexity, service type, delivery channel, transaction value), core scoring rules, minimum CDD actions, mandatory EDD triggers. This is a starting point for config creation, NOT a usable default — firms cannot run assessments until onboarded.
-    - **Firm-specific form questions** — MLRO can add questions specific to their practice (e.g., payment method, referral source, practice-area-specific questions). Each added question must map to a scoring rule. Core questions cannot be removed.
-    - **Firm-specific calibration** — derived from the firm's PWRA (risk appetite, practice area weighting, threshold positioning) and AML Policy/PCPs (additional CDD actions, escalation rules, evidence requirements beyond statutory minimum).
-    - **MLRO admin UI** — single configuration experience: view/manage form questions (core locked, firm additions editable), scoring rules and weights, risk level thresholds, CDD actions per risk level (minimum locked, additions editable), EDD triggers, practice area mappings, preview with sample assessments.
-    - **Validation** — system ensures no firm's config falls below the regulatory floor. Stricter than regulations = allowed; weaker = blocked.
-    - **Config versioning** — every change versioned, timestamped, audit logged (who changed what). Previous versions preserved. Assessments unaffected by config changes (snapshot pattern). Version history supports regulatory inspection ("show me your risk model as at 15 March 2026").
-    - **Firm onboarding lifecycle (mandatory before assessments can begin):**
-      1. *Firm created* — admin sets firm name, jurisdiction. Firm exists but is not yet active for assessments.
-      2. *MLRO provides PWRA + AML Policy/PCPs* — mandatory, no shortcut. The hub cannot determine risk or prescribe CDD without the firm's own policies.
-      3. *Human translates documents into config* — the MLRO (or us during onboarding) uses the admin UI to set risk factors, weights, thresholds, CDD actions, building on the regulatory baseline template. No AI extraction — a human reads the policies and configures the engine. This is deterministic: the same policies, configured by the same person, produce the same config.
-      4. *System validates* config against regulatory floor — deterministic comparison, no AI.
-      5. *MLRO approves and locks* — config goes live, firm is active for assessments.
-    - **Ongoing lifecycle:**
-      - *PWRA annual review* (reg 18(2)) — MLRO reviews current config against updated PWRA, makes adjustments via admin UI → new config version created, audit logged. Previous version preserved.
-      - *AML Policy/PCP update* — MLRO reviews config implications if new CDD requirements added. For assistant: new source excerpts created from updated PCPs (old archived).
-      - *Regulatory change* — platform baseline updated → all firms notified "review required" → system flags where firm config may need adjustment to meet new baseline → MLRO reviews and confirms.
-      - *Practice area change* — MLRO adds new practice areas, configures relevant additional risk factors and CDD requirements via admin UI.
-    - Inputs: firm's PWRA + AML Policy/PCPs → human-configured config. One engine, many configs.
-
-12. **AI assistant source strategy and ingestion.** Three use cases, three phases. AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
-    - **Phase 1 — External source library (platform-wide). ✅ LARGELY COMPLETE.** 47 verbatim excerpt files covering: MLR 2017 (15 key regs), POCA 2002 (7 sections), LSAG 2025 (15 excerpts split from 4 large chapters — CDD, EDD, red flags, corporate structures, plus 4 smaller sections), FATF black/grey lists, NRA 2025, Scottish Sectoral Risk 2022, LSS Rule B9. All content is verbatim text extracted from source PDFs (not paraphrased). Raw extracts stored in `sources/sources_external/extracted/` (35 files). Introduce `source_scope` concept: `platform` (shared, all firms) vs `firm` (firm-specific). Remaining: LSAG s5 risk assessment (no raw extract yet), potential additional MLR regs or LSAG sub-sections as gaps are identified in assistant testing.
-    - **Phase 2 — Firm source ingestion.** Admin UI for MLRO to upload/paste PCP content. Human-curated chunking: MLRO identifies section boundaries, assigns topic tags, and reviews content before it becomes a source excerpt. Embeddings generated automatically for vector search (already built). Covers firm-specific procedural questions (use case 2) — e.g., "What documents do we need to verify an instructing director offline?"
-    - **Phase 3 — Form question contextual help.** Wire existing `QuestionHelperButton` into assessment form fields (component exists, not yet integrated). Optionally pre-map form questions to source topics for better retrieval. Assistant opens with question context loaded, user can ask follow-ups. Quality improves as phases 1 and 2 add source material. Covers use case 3.
+17. **AI assistant source strategy — remaining phases.** AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
+    - **Phase 1 — External source library (platform-wide). ✅ LARGELY COMPLETE.** 47 verbatim excerpt files covering: MLR 2017 (15 key regs), POCA 2002 (7 sections), LSAG 2025 (15 excerpts split from 4 large chapters — CDD, EDD, red flags, corporate structures, plus 4 smaller sections), FATF black/grey lists, NRA 2025, Scottish Sectoral Risk 2022, LSS Rule B9. Remaining: LSAG s5 risk assessment (no raw extract yet), potential additional MLR regs or LSAG sub-sections as gaps are identified in assistant testing.
+    - **Phase 2 — Firm source ingestion. NOT YET BUILT.** Admin UI for MLRO to upload/paste PCP content. Human-curated chunking: MLRO identifies section boundaries, assigns topic tags, and reviews content before it becomes a source excerpt. Embeddings generated automatically for vector search (already built). Covers firm-specific procedural questions (use case 2).
+    - **Phase 3 — Form question contextual help. ✅ BUILT.** QuestionHelperButton wired into AssessmentForm. Quality will improve as phases 1 and 2 add source material.
     - Internal sources for assistant: firm's PCPs (primary — procedural, answers "how do I..."), AML Policy (strategic — answers "what's our policy on..."), firm-specific guidance notes. NOT risk scoring model or CDD ruleset (those belong in the rules engine, not the assistant — avoids drift between engine behaviour and assistant explanations).
 
 ---
@@ -706,4 +754,4 @@ Note: Supabase JWT expiry and MFA settings should be configured in the Supabase 
 
 ---
 
-*Last updated: 26 Feb 2026. Recent changes: Fix stale conditional field answers, case-insensitive entity type matching, sector risk field pre-population, all automatic outcome triggers reported. Clio + Amiqus API integration. 7 pending SQL migrations. 176 tests passing across 6 suites. Update when architectural decisions change.*
+*Last updated: 1 Mar 2026. Recent changes: Dashboard analytics (role-based dashboards with 8 components). Per-firm multi-tenant calibration (7-step wizard, regulatory baseline validation, gap acknowledgement, config versioning, admin pages). Form question contextual help (Phase 3 assistant). 9 pending SQL migrations. 187+ tests across 7+ suites. Update when architectural decisions change.*

@@ -9,11 +9,13 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
-import { runAssessment } from '@/lib/rules-engine';
+import { runAssessmentWithConfig } from '@/lib/rules-engine';
 import type { FormAnswers, ClientType, AssessmentOutput } from '@/lib/rules-engine/types';
 import type { Assessment, Client, Matter } from '@/lib/supabase/types';
 import { canCreateAssessment, canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
+import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
 import type { UserRole } from '@/lib/auth/roles';
+import { getConfigForAssessment } from '@/lib/rules-engine/config-loader-server';
 
 /** Matter with joined client data */
 export interface MatterWithClient extends Matter {
@@ -164,9 +166,9 @@ export async function submitAssessment(
     const derivedClientType: ClientType =
       entityType.toLowerCase() === 'individual' ? 'individual' : 'corporate';
 
-    // ---- DERIVE SECTOR RISK FROM CONFIG ----
-    const { getSectorMappingConfig } = await import('@/lib/rules-engine/config-loader');
-    const sectorMapping = getSectorMappingConfig();
+    // ---- LOAD FIRM-SPECIFIC CONFIG ----
+    const { riskScoring, cddRuleset, sectorMapping, configVersionId } =
+      await getConfigForAssessment(profile.firm_id);
 
     const clientSector = client.sector;
 
@@ -195,10 +197,11 @@ export async function submitAssessment(
       '49': derivedSectorRisk,
     };
 
-    const assessmentOutput = runAssessment({
-      clientType: derivedClientType,
-      formAnswers: enrichedFormAnswers,
-    });
+    const assessmentOutput = runAssessmentWithConfig(
+      { clientType: derivedClientType, formAnswers: enrichedFormAnswers },
+      riskScoring,
+      cddRuleset
+    );
 
     // Fetch firm jurisdiction for input snapshot
     const { data: firmData } = await supabase
@@ -223,6 +226,7 @@ export async function submitAssessment(
         output_snapshot: assessmentOutput,
         risk_level: assessmentOutput.riskLevel,
         score: assessmentOutput.score,
+        config_version_id: configVersionId,
         created_by: user.id,
       })
       .select()
@@ -553,6 +557,37 @@ export async function finaliseAssessment(
     // Check if already finalised
     if (isAssessmentFinalised(existing)) {
       return { success: false, error: 'Assessment is already finalised and cannot be modified' };
+    }
+
+    // CDD longstop check — fetch client via matter → client join
+    const { data: matterData } = await supabase
+      .from('matters')
+      .select('client_id, clients(last_cdd_verified_at)')
+      .eq('id', existing.matter_id)
+      .single();
+
+    if (matterData) {
+      const clientData = matterData.clients as unknown as { last_cdd_verified_at: string | null } | null;
+      const lastCddVerifiedAt = clientData?.last_cdd_verified_at;
+      const cddConfig = getCddStalenessConfig();
+      const longstopMonths = cddConfig.universalLongstopMonths ?? 24;
+
+      if (!lastCddVerifiedAt) {
+        return {
+          success: false,
+          error: 'CDD re-verification required: no CDD verification is recorded for this client. CDD must be verified before finalisation.',
+        };
+      }
+
+      const verifiedAt = new Date(lastCddVerifiedAt);
+      const longstopDate = new Date(verifiedAt);
+      longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
+      if (new Date() >= longstopDate) {
+        return {
+          success: false,
+          error: `CDD re-verification required: CDD was last verified on ${verifiedAt.toLocaleDateString('en-GB')} and the ${longstopMonths / 12}-year longstop has been exceeded. CDD must be re-verified before finalisation.`,
+        };
+      }
     }
 
     const finalisedAt = new Date().toISOString();

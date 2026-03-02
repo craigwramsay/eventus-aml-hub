@@ -263,7 +263,7 @@ export interface FormField {
   label?: string | FormFieldOption;
   validation?: string[];
   hint?: string;
-  show_if?: Record<string, string>;
+  show_if?: Record<string, string | string[]>;
   smart_logic_fields?: string[];
   fields?: string[];
 }

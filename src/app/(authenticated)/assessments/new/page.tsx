@@ -6,12 +6,15 @@
 import Link from 'next/link';
 import { getMatterForAssessment, getAssessmentsForMatter } from '@/app/actions/assessments';
 import { AssessmentForm } from './AssessmentForm';
-import type { FormAnswers } from '@/lib/rules-engine/types';
+import type { FormAnswers, FormConfig } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
 
 // Load form configs
-import individualFormConfig from '@/config/eventus/forms/CMLRA_individual.json';
-import corporateFormConfig from '@/config/eventus/forms/CMLRA_corporate.json';
+import individualFormConfigRaw from '@/config/eventus/forms/CMLRA_individual.json';
+import corporateFormConfigRaw from '@/config/eventus/forms/CMLRA_corporate.json';
+
+const individualFormConfig = individualFormConfigRaw as unknown as FormConfig;
+const corporateFormConfig = corporateFormConfigRaw as unknown as FormConfig;
 import sectorMapping from '@/config/eventus/rules/sector_mapping.json';
 
 interface NewAssessmentPageProps {

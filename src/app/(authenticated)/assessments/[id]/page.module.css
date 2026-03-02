@@ -812,6 +812,12 @@ button.evidenceCardHeader:hover {
   font-size: 0.875rem;
 }
 
+.finaliseBlockedText {
+  font-size: 0.8125rem;
+  color: #991b1b;
+  margin: 0;
+}
+
 /* ── Error Page ── */
 
 .errorContainer {
@@ -1173,6 +1179,12 @@ button.evidenceCardHeader:hover {
   background-color: #fef3c7;
   color: #92400e;
   border: 1px solid #fde68a;
+}
+
+.cddStatusLongstop {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 
 .cddStatusAuthority {

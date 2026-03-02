@@ -14,9 +14,10 @@ import styles from './page.module.css';
 
 interface FinaliseButtonProps {
   assessmentId: string;
+  cddLongstopBreached?: boolean;
 }
 
-export function FinaliseButton({ assessmentId }: FinaliseButtonProps) {
+export function FinaliseButton({ assessmentId, cddLongstopBreached }: FinaliseButtonProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -42,6 +43,24 @@ export function FinaliseButton({ assessmentId }: FinaliseButtonProps) {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (cddLongstopBreached) {
+    return (
+      <div className={styles.finaliseContainer}>
+        <button
+          type="button"
+          className={styles.finaliseButton}
+          disabled
+        >
+          Confirm all CDD completed
+        </button>
+        <p className={styles.finaliseBlockedText}>
+          Finalisation is blocked: the 2-year CDD longstop has been exceeded.
+          CDD must be re-verified before this assessment can be finalised.
+        </p>
+      </div>
+    );
   }
 
   return (

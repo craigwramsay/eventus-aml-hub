@@ -19,6 +19,7 @@ import sowCorporateConfig from '@/config/eventus/forms/SoW_corporate.json';
 import sofConfig from '@/config/eventus/forms/SoF.json';
 import sectorMappingConfig from '@/config/eventus/rules/sector_mapping.json';
 import cddStalenessConfig from '@/config/eventus/cdd_staleness.json';
+import assessmentStalenessConfig from '@/config/eventus/assessment_staleness.json';
 
 export type SectorRiskCategory = 'Standard' | 'Higher-risk' | 'Prohibited';
 
@@ -33,6 +34,11 @@ export interface CDDStalenessThreshold {
 }
 
 export interface CDDStalenessConfig {
+  thresholds: Record<string, CDDStalenessThreshold>;
+  universalLongstopMonths?: number;
+}
+
+export interface AssessmentStalenessConfig {
   thresholds: Record<string, CDDStalenessThreshold>;
 }
 
@@ -136,6 +142,13 @@ export function getSowSofFormConfig(
  */
 export function getCddStalenessConfig(): CDDStalenessConfig {
   return cddStalenessConfig as CDDStalenessConfig;
+}
+
+/**
+ * Get assessment staleness thresholds
+ */
+export function getAssessmentStalenessConfig(): AssessmentStalenessConfig {
+  return assessmentStalenessConfig as AssessmentStalenessConfig;
 }
 
 /**

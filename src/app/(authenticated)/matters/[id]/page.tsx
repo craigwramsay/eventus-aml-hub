@@ -4,10 +4,12 @@
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getMatter, getAssessmentsForMatter } from '@/app/actions/matters';
+import { getMatter, getAssessmentsForMatter, getLatestFinalisedAssessmentForClient } from '@/app/actions/matters';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canDeleteEntities } from '@/lib/auth/roles';
 import { DeleteMatterButton } from './DeleteMatterButton';
+import { AssessmentStaleBanner } from './AssessmentStaleBanner';
+import { CddLongstopBanner } from './CddLongstopBanner';
 import styles from '../matters.module.css';
 
 interface MatterDetailPageProps {
@@ -25,11 +27,28 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
     notFound();
   }
 
-  const assessments = await getAssessmentsForMatter(id);
+  const [assessments, latestFinalised] = await Promise.all([
+    getAssessmentsForMatter(id),
+    getLatestFinalisedAssessmentForClient(matter.client_id),
+  ]);
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
 
   return (
     <>
+      {/* Staleness / Longstop Banners */}
+      {matter.status === 'open' && (
+        <>
+          <AssessmentStaleBanner
+            latestFinalisedAt={latestFinalised?.finalised_at ?? null}
+            riskLevel={latestFinalised?.risk_level ?? null}
+            matterId={matter.id}
+          />
+          <CddLongstopBanner
+            lastCddVerifiedAt={matter.client.last_cdd_verified_at ?? null}
+          />
+        </>
+      )}
+
       <div className={styles.header}>
         <h1 className={styles.title}>{matter.description || matter.reference}</h1>
         <span

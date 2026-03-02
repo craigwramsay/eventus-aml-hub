@@ -14,6 +14,8 @@ import type {
   ClientType,
   FormAnswers,
   RiskLevel,
+  RiskScoringConfig,
+  CDDRulesetConfig,
 } from './types';
 
 import { getRiskScoringConfig, getCDDRulesetConfig } from './config-loader';
@@ -97,6 +99,58 @@ export function runAssessment(input: AssessmentInput): AssessmentOutput {
   );
 
   // Get mandatory actions (pass EDD triggers for action injection)
+  const { actions: mandatoryActions, warnings } = getMandatoryActions(
+    clientType,
+    riskLevel,
+    cddRulesetConfig,
+    formAnswers,
+    eddTriggers
+  );
+
+  return {
+    score,
+    riskLevel,
+    automaticOutcome,
+    riskFactors,
+    rationale,
+    mandatoryActions,
+    eddTriggers,
+    warnings,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+/**
+ * Run assessment with explicitly provided config (for firm-specific configs).
+ * Same logic as runAssessment() but accepts config parameters instead of loading from singleton.
+ */
+export function runAssessmentWithConfig(
+  input: AssessmentInput,
+  riskScoringConfig: RiskScoringConfig,
+  cddRulesetConfig: CDDRulesetConfig
+): AssessmentOutput {
+  const { clientType, formAnswers } = input;
+
+  const { score, riskLevel, riskFactors, automaticOutcome } = calculateScore(
+    clientType,
+    formAnswers,
+    riskScoringConfig
+  );
+
+  const eddTriggers = checkEDDTriggers(
+    riskScoringConfig,
+    clientType,
+    formAnswers
+  );
+
+  const rationale = generateRationale(
+    score,
+    riskLevel,
+    riskFactors,
+    automaticOutcome,
+    riskScoringConfig
+  );
+
   const { actions: mandatoryActions, warnings } = getMandatoryActions(
     clientType,
     riskLevel,

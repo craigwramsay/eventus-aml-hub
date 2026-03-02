@@ -390,3 +390,47 @@
     flex-direction: column;
   }
 }
+
+/* ── Staleness / Longstop Banners ────────────────────────── */
+
+.staleBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+  line-height: 1.5;
+}
+
+.staleBannerAmber {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.staleBannerRed {
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.staleBannerText {
+  flex: 1;
+  font-size: 0.875rem;
+}
+
+.staleBannerLink {
+  white-space: nowrap;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--accent);
+  color: white;
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.staleBannerLink:hover {
+  background-color: var(--accent-hover);
+}

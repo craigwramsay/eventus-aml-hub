@@ -27,6 +27,7 @@ function formatCddDate(dateStr: string): string {
 export function CDDStatusBanner({ lastCddVerifiedAt, riskLevel }: CDDStatusBannerProps) {
   const config = getCddStalenessConfig();
   const threshold = config.thresholds[riskLevel];
+  const longstopMonths = config.universalLongstopMonths ?? 24;
 
   if (!lastCddVerifiedAt) {
     return (
@@ -37,8 +38,21 @@ export function CDDStatusBanner({ lastCddVerifiedAt, riskLevel }: CDDStatusBanne
   }
 
   const months = monthsAgo(lastCddVerifiedAt);
-  const isStale = threshold && months >= threshold.months;
 
+  // Check universal longstop first — supersedes risk-based warning
+  const longstopBreached = months >= longstopMonths;
+  if (longstopBreached) {
+    return (
+      <div className={`${styles.cddStatusBanner} ${styles.cddStatusLongstop}`}>
+        <strong>CDD Re-verification Required</strong> — CDD was last verified on{' '}
+        {formatCddDate(lastCddVerifiedAt)} ({months} months ago). The {longstopMonths / 12}-year
+        CDD longstop has been exceeded. This assessment cannot be finalised until CDD is re-verified.
+      </div>
+    );
+  }
+
+  // Risk-based staleness check
+  const isStale = threshold && months >= threshold.months;
   if (isStale) {
     return (
       <div className={`${styles.cddStatusBanner} ${styles.cddStatusStale}`}>

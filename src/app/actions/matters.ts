@@ -244,6 +244,46 @@ export async function getAssessmentsForMatter(matterId: string): Promise<Assessm
   }
 }
 
+/**
+ * Get the latest finalised assessment across all matters for a given client
+ */
+export async function getLatestFinalisedAssessmentForClient(
+  clientId: string
+): Promise<{ finalised_at: string; risk_level: string } | null> {
+  try {
+    if (!clientId) return null;
+
+    const { supabase, error } = await getUserAndProfile();
+    if (error) return null;
+
+    // Get all matters for this client
+    const { data: matters } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('client_id', clientId);
+
+    if (!matters || matters.length === 0) return null;
+
+    const matterIds = matters.map((m) => m.id);
+
+    // Find the latest finalised assessment
+    const { data, error: fetchErr } = await supabase
+      .from('assessments')
+      .select('finalised_at, risk_level')
+      .in('matter_id', matterIds)
+      .not('finalised_at', 'is', null)
+      .order('finalised_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (fetchErr || !data) return null;
+
+    return { finalised_at: data.finalised_at!, risk_level: data.risk_level };
+  } catch {
+    return null;
+  }
+}
+
 /** Result of deleting a matter */
 export type DeleteMatterResult =
   | { success: true }
