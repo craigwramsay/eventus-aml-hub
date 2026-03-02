@@ -63,8 +63,9 @@ async function clioFetch<T>(path: string, accessToken: string, options?: Request
   }
 
   if (!response.ok) {
+    const errorBody = await response.text();
     throw new ClioError(
-      `Clio API error: ${response.status} ${response.statusText}`,
+      `Clio API error: ${response.status} ${response.statusText} | ${path} | body=${errorBody}`,
       response.status
     );
   }
