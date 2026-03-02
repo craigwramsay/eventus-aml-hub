@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
     const webhook = await registerClioWebhook(
       tokens.access_token,
       webhookUrl,
-      ['matter.create']
+      ['created']
     );
 
     // Upsert firm_integrations row
