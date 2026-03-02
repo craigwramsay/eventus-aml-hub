@@ -194,7 +194,7 @@ export async function registerClioWebhook(
         url,
         fields: ['id', 'etag', 'display_number', 'description', 'status'],
         events,
-        model: 'Matter',
+        model: 'matter',
         expires_at: expiresAt,
       },
     }),
