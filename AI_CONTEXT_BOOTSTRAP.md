@@ -656,14 +656,14 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 
 ### Priority: Core Features
 
-1. **Ongoing monitoring module.** Track that mandatory monitoring actions are being completed on schedule. MonitoringStatement display exists on assessment detail page; needs scheduling, completion tracking, and alerting system.
+1. **~~Ongoing monitoring module.~~** Replaced by event-driven approach: assessment staleness warnings + CDD longstop enforcement (see Completed sections below). MonitoringStatement static display retained on assessment detail page.
 2. **SAR workflow.** Suspicious Activity Report submission and tracking. No implementation yet; POCA source excerpts exist for assistant context.
 3. **Phase 2 — Firm source ingestion.** Admin UI for MLRO to upload/paste PCP content. Human-curated chunking: MLRO identifies section boundaries, assigns topic tags, and reviews content before it becomes a source excerpt. Embeddings generated automatically for vector search (already built). Covers firm-specific procedural questions — e.g., "What documents do we need to verify an instructing director offline?"
 
 ### Priority: Infrastructure
 
-4. **Apply pending SQL migrations.** 9 migrations need to be run in the Supabase SQL Editor in order (see section 10).
-5. **Create evidence storage bucket.** Code references `'evidence'` bucket but no migration creates it. Needs private bucket with firm-scoped RLS.
+4. **~~Apply pending SQL migrations.~~** ✅ All migrations applied (9 of 9 + integrations migration).
+5. **~~Create evidence storage bucket.~~** Not needed — Amiqus stores identity docs, Companies House API handles corporate verification. Evidence metadata stored in `assessment_evidence` table.
 6. **Generated Supabase types.** Run `npx supabase gen types typescript` and replace manual type definitions.
 
 ### Priority: Hardening
@@ -680,9 +680,11 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
     - **OAuth 2.0 connection** — firm-level Clio connection via OAuth authorization code flow (`/api/integrations/clio/connect` + `/callback`). Stores `access_token`, `refresh_token`, `token_expires_at` per firm in `firm_integrations` table. Token refresh on expiry.
     - **Webhook endpoint** — `POST /api/webhooks/clio` receives `matter.create` events. Validates HMAC-SHA256 signature via `verify_clio_webhook` SECURITY DEFINER RPC. Auto-creates client (if new) and matter via `process_clio_webhook` RPC. Stores `clio_matter_id` and `clio_contact_id` for back-linking.
     - **Webhook handshake** — echoes `X-Hook-Secret` header on registration validation.
-    - **Webhook renewal** — Clio webhooks expire after 31 days max. Settings page shows days remaining, warns when ≤3 days. Auto-renewal on settings page load.
+    - **Webhook auto-renewal** — Clio webhooks expire after 7 days. Auto-renewed in two ways: (1) settings page auto-renews on load when ≤2 days remaining, (2) webhook handler auto-renews on each incoming event when ≤2 days remaining. `renewClioWebhook()` server action handles token refresh, old webhook deletion, and new registration.
+    - **OAuth token exchange** — Clio requires `application/x-www-form-urlencoded` (not JSON) for `/oauth/token`. Webhook model name is lowercase (`matter`), events are just the action (`created`), and expiry field is `expired_at`.
     - **Files:** `src/lib/clio/client.ts`, `src/lib/clio/types.ts`, `src/lib/clio/index.ts`, `src/app/api/integrations/clio/connect/route.ts`, `src/app/api/integrations/clio/callback/route.ts`, `src/app/api/webhooks/clio/route.ts`, `src/app/actions/integrations.ts`.
-    - **Not yet built:** Manual sync ("Sync from Clio" button), token refresh flow (needs testing with live credentials).
+    - **Live and tested** — OAuth flow, token exchange, webhook registration, and auto-renewal all verified against live Clio EU instance (2 Mar 2026).
+    - **Not yet built:** Manual sync ("Sync from Clio" button).
 
 13. **Amiqus API integration (identity verification). ✅ BUILT (Option C — full webhook-driven).**
     - **Initiate from CDD checklist** — "Initiate Amiqus Verification" button on identity verification CDD actions. Creates Amiqus client + record via API, stores in `amiqus_verifications` table. Shows `perform_url` for client to complete verification.
@@ -720,6 +722,32 @@ The following migrations exist in `supabase/migrations/` but have not yet been a
 16. **Form question contextual help. ✅ BUILT.**
     - `QuestionHelperButton` wired into `AssessmentForm` via `renderFieldLabel()`. Passes `questionId` and `questionText` as `uiContext` to `AssistantPanel`. User can ask follow-up questions about specific form fields.
 
+### Completed: Assessment Staleness & CDD Longstop (built 2 Mar 2026)
+
+18. **Assessment staleness warnings. ✅ BUILT.**
+    - **Risk-based thresholds** — HIGH: 12 months, MEDIUM/LOW: 24 months. Config at `src/config/eventus/assessment_staleness.json`.
+    - **Dashboard warnings** — `AssessmentStaleWarnings` component on solicitor + MLRO dashboards. Shows clients with open matters whose latest finalised assessment exceeds the threshold. Links to re-run assessment.
+    - **Matter detail banners** — `AssessmentStaleBanner` (amber/red) on matter pages when latest assessment is stale or approaching staleness.
+    - **Only for clients with open matters** — no warnings for inactive clients.
+
+19. **CDD 2-year universal longstop. ✅ BUILT.**
+    - **Hard deadline** — `universalLongstopMonths: 24` in `cdd_staleness.json`. CDD must be re-verified at least every 2 years regardless of risk level.
+    - **Dashboard warnings** — `CddExpiryWarnings` enhanced with `longstopBreached` flag and "RE-VERIFY" badge. Clients with null `last_cdd_verified_at` also flagged.
+    - **Matter detail banners** — `CddLongstopBanner` (red when breached, amber when approaching, warning when null CDD).
+    - **Assessment detail** — `CDDStatusBanner` shows longstop warning superseding risk-based warning.
+    - **Finalisation guard** — FinaliseButton disabled + explanation text when longstop breached. Server-side guard in `finaliseAssessment()` rejects if longstop breached (defence in depth).
+    - **Old monitoring module removed** — calendar-based review forms, `/monitoring` pages, `monitoring_reviews` table, and related code all deleted. Replaced by event-driven staleness approach.
+
+### Completed: Deployment (2 Mar 2026)
+
+20. **Vercel deployment. ✅ LIVE.**
+    - **URL:** `https://eventus-aml-hub.vercel.app`
+    - **Region:** London (`lhr1`) for UK data residency.
+    - **Auto-deploy:** GitHub repo connected — every push to `main` triggers production deployment.
+    - **Environment variables:** 11 vars configured (Supabase, OpenAI, Clio, Companies House, app URL). `NEXT_PUBLIC_*` vars inlined at build time.
+    - **Clio OAuth live** — connected and tested against Clio EU instance.
+    - **Note:** `output: 'standalone'` removed from `next.config.ts` (conflicts with Vercel's serverless adapter). Windows CRLF in env vars caused initial 500 error — fixed by stripping `\r` before uploading to Vercel.
+
 ### Roadmap: Explore
 
 17. **AI assistant source strategy — remaining phases.** AI is used ONLY in the assistant (explanatory, source-grounded) — never for config creation, scoring, or CDD determination.
@@ -748,10 +776,11 @@ CLIO_CLIENT_ID=           # Clio OAuth client ID
 CLIO_CLIENT_SECRET=       # Clio OAuth client secret
 CLIO_REGION=eu            # 'eu' (eu.app.clio.com) or 'us' (app.clio.com), defaults to 'eu'
 AMIQUS_API_KEY=           # Amiqus Personal Access Token (PAT)
+NEXT_PUBLIC_APP_URL=      # Production URL (e.g., https://eventus-aml-hub.vercel.app) — used for OAuth redirects and webhook URLs
 ```
 
 Note: Supabase JWT expiry and MFA settings should be configured in the Supabase dashboard. The application enforces a 30-minute idle session timeout via middleware independently of JWT expiry.
 
 ---
 
-*Last updated: 1 Mar 2026. Recent changes: Dashboard analytics (role-based dashboards with 8 components). Per-firm multi-tenant calibration (7-step wizard, regulatory baseline validation, gap acknowledgement, config versioning, admin pages). Form question contextual help (Phase 3 assistant). 9 pending SQL migrations. 187+ tests across 7+ suites. Update when architectural decisions change.*
+*Last updated: 2 Mar 2026. Recent changes: Assessment staleness warnings (dashboard + matter pages). CDD 2-year longstop enforcement (UI + server guard, blocks finalisation). Old monitoring module removed. Clio OAuth live (form-encoded token exchange, 7-day webhook auto-renewal). Deployed to Vercel EU (London lhr1). All SQL migrations applied. 187+ tests across 7+ suites. Update when architectural decisions change.*
