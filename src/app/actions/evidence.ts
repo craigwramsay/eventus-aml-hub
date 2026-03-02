@@ -13,6 +13,8 @@ import type { AssessmentEvidence, EvidenceType } from '@/lib/supabase/types';
 import { lookupCompany, CompaniesHouseError } from '@/lib/companies-house';
 import type { UserRole } from '@/lib/auth/roles';
 import { canCreateAssessment } from '@/lib/auth/roles';
+import { toggleItemCompletion } from '@/app/actions/progress';
+import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
 
 /** Result types */
 export type EvidenceResult =
@@ -462,6 +464,131 @@ function isIdentityActionId(actionId: string): boolean {
     actionId.includes('verify_identity') ||
     actionId.includes('identify_and_verify')
   );
+}
+
+/**
+ * Confirm that a prior identity verification is still valid for this assessment.
+ * Creates a manual evidence record, marks the checklist item complete, and audit logs.
+ *
+ * Only allowed when the prior verification is within the risk-based threshold
+ * and the universal longstop has not been breached.
+ */
+export async function confirmIdentityStillValid(
+  assessmentId: string,
+  actionId: string,
+  lastCddVerifiedAt: string,
+  riskLevel: string
+): Promise<SingleEvidenceResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit adding evidence' };
+    }
+
+    const access = await validateAssessmentAccess(assessmentId, profile.firm_id);
+    if (!access.valid) {
+      return { success: false, error: access.error };
+    }
+
+    // Check assessment is not finalised
+    const checkSupabase = await createClient();
+    const { data: assessment } = await checkSupabase
+      .from('assessments')
+      .select('finalised_at')
+      .eq('id', assessmentId)
+      .single();
+
+    if (assessment?.finalised_at) {
+      return { success: false, error: 'Assessment is finalised and cannot be modified' };
+    }
+
+    if (!isIdentityActionId(actionId)) {
+      return { success: false, error: 'Action is not an identity verification action' };
+    }
+
+    // Server-side threshold re-check
+    const cddConfig = getCddStalenessConfig();
+    const longstopMonths = cddConfig.universalLongstopMonths ?? 24;
+    const verifiedDate = new Date(lastCddVerifiedAt);
+    const now = new Date();
+
+    // Check longstop first
+    const longstopDate = new Date(verifiedDate);
+    longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
+    if (now >= longstopDate) {
+      return { success: false, error: 'Universal longstop breached — re-verification required' };
+    }
+
+    // Check risk-based threshold
+    const normalisedRisk = riskLevel.toUpperCase();
+    const threshold = cddConfig.thresholds[normalisedRisk];
+    if (threshold) {
+      const thresholdDate = new Date(verifiedDate);
+      thresholdDate.setMonth(thresholdDate.getMonth() + threshold.months);
+      if (now >= thresholdDate) {
+        return { success: false, error: `Prior verification exceeds ${threshold.label} threshold for ${normalisedRisk} risk` };
+      }
+    }
+
+    // Calculate months since verification for the notes
+    const monthsSince = Math.floor(
+      (now.getTime() - verifiedDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
+    );
+    const thresholdLabel = threshold?.label ?? `${longstopMonths} months`;
+
+    // Create evidence record
+    const { data, error: insertErr } = await supabase
+      .from('assessment_evidence')
+      .insert({
+        firm_id: profile.firm_id,
+        assessment_id: assessmentId,
+        action_id: actionId,
+        evidence_type: 'manual_record',
+        label: 'Prior identity verification confirmed still valid',
+        source: 'Manual',
+        notes: `Identity last verified on ${verifiedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}. Confirmed still within ${thresholdLabel} review period for ${normalisedRisk} risk.`,
+        verified_at: lastCddVerifiedAt,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (insertErr || !data) {
+      console.error('Failed to create confirmation record:', insertErr);
+      return { success: false, error: 'Failed to create evidence record' };
+    }
+
+    // Mark the checklist item as complete
+    await toggleItemCompletion(assessmentId, actionId, true);
+
+    // Update client CDD date (preserves the original verification date)
+    await updateClientCddDate(supabase, assessmentId, lastCddVerifiedAt);
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'assessment_evidence',
+      entity_id: data.id,
+      action: 'identity_confirmed_still_valid',
+      metadata: {
+        assessment_id: assessmentId,
+        action_id: actionId,
+        last_cdd_verified_at: lastCddVerifiedAt,
+        months_since_verification: monthsSince,
+        risk_level: normalisedRisk,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true, evidence: data as AssessmentEvidence };
+  } catch (err) {
+    console.error('Error in confirmIdentityStillValid:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
 }
 
 /**

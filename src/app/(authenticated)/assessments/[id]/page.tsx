@@ -183,6 +183,8 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         amiqusConfigured={amiqusConfigured}
         clientName={client.name}
         clientEmail=""
+        lastCddVerifiedAt={client.last_cdd_verified_at ?? null}
+        riskLevel={assessment.risk_level}
       />
 
       {/* 4. Monitoring Statement */}

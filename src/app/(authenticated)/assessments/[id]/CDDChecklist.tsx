@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import type { MandatoryAction, EDDTriggerResult } from '@/lib/rules-engine/types';
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification } from '@/lib/supabase/types';
 import { toggleItemCompletion } from '@/app/actions/progress';
-import { uploadEvidence, addManualRecord, lookupCompaniesHouse } from '@/app/actions/evidence';
+import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid } from '@/app/actions/evidence';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
 import { initiateAmiqusVerification } from '@/app/actions/amiqus';
 import { getSowSofFormConfig } from '@/lib/rules-engine/config-loader';
@@ -73,6 +73,10 @@ interface CDDChecklistProps {
   clientName?: string;
   /** Client email (for Amiqus initiation) */
   clientEmail?: string;
+  /** Client's last CDD verified date (for carry-forward) */
+  lastCddVerifiedAt?: string | null;
+  /** Assessment risk level (for carry-forward threshold) */
+  riskLevel?: string;
 }
 
 function formatDate(dateStr: string): string {
@@ -121,6 +125,41 @@ function isConfirmAction(action: MandatoryAction): boolean {
 /** Check if an action is an MLRO approval action */
 function isApprovalAction(action: MandatoryAction): boolean {
   return action.actionId === 'senior_management_approval' || action.actionId === 'mlro_approval';
+}
+
+/** CDD staleness thresholds (months) for carry-forward eligibility */
+const CDD_THRESHOLDS: Record<string, number> = { HIGH: 12, MEDIUM: 24, LOW: 24 };
+const CDD_LONGSTOP_MONTHS = 24;
+
+/** Check if a prior CDD verification can be carried forward (within threshold and not longstop breached) */
+function canConfirmStillValid(
+  lastCddVerifiedAt: string | null | undefined,
+  riskLevel: string | undefined
+): boolean {
+  if (!lastCddVerifiedAt) return false;
+  const verified = new Date(lastCddVerifiedAt);
+  const now = new Date();
+
+  // Longstop check first — no carry-forward if breached
+  const longstopDate = new Date(verified);
+  longstopDate.setMonth(longstopDate.getMonth() + CDD_LONGSTOP_MONTHS);
+  if (now >= longstopDate) return false;
+
+  // Risk-based threshold check
+  const normalisedRisk = (riskLevel || 'MEDIUM').toUpperCase();
+  const thresholdMonths = CDD_THRESHOLDS[normalisedRisk] ?? 24;
+  const thresholdDate = new Date(verified);
+  thresholdDate.setMonth(thresholdDate.getMonth() + thresholdMonths);
+  if (now >= thresholdDate) return false;
+
+  return true;
+}
+
+/** Calculate months since a date */
+function monthsSince(dateStr: string): number {
+  const d = new Date(dateStr);
+  const now = new Date();
+  return Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
 }
 
 /** Renders a saved SoW/SoF declaration as an expandable card */
@@ -239,6 +278,8 @@ export function CDDChecklist({
   amiqusConfigured = false,
   clientName = '',
   clientEmail = '',
+  lastCddVerifiedAt,
+  riskLevel,
 }: CDDChecklistProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -251,6 +292,7 @@ export function CDDChecklist({
   const [manualNotes, setManualNotes] = useState('');
   const [verifiedAt, setVerifiedAt] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
+  const [confirmingAction, setConfirmingAction] = useState<string | null>(null);
 
   // Build a set of completed action IDs for optimistic UI
   const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(() => {
@@ -420,6 +462,30 @@ export function CDDChecklist({
       }
     });
   }, [assessmentId, clientName, clientEmail, router, startTransition]);
+
+  const handleConfirmStillValid = useCallback((actionId: string) => {
+    if (!lastCddVerifiedAt || !riskLevel) return;
+    setError(null);
+    setConfirmingAction(actionId);
+
+    startTransition(async () => {
+      const result = await confirmIdentityStillValid(
+        assessmentId, actionId, lastCddVerifiedAt, riskLevel
+      );
+      setConfirmingAction(null);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        // Optimistic: mark as completed
+        setOptimisticCompleted(prev => {
+          const next = new Set(prev);
+          next.add(actionId);
+          return next;
+        });
+        router.refresh();
+      }
+    });
+  }, [assessmentId, lastCddVerifiedAt, riskLevel, router, startTransition]);
 
   // Group non-EDD actions by category (excluding monitoring)
   const groupedActions: Record<string, MandatoryAction[]> = {};
@@ -683,6 +749,23 @@ export function CDDChecklist({
               >
                 {isPending ? 'Looking up...' : 'Verify at Companies House'}
               </button>
+            )}
+            {showAmiqus && canConfirmStillValid(lastCddVerifiedAt, riskLevel) && itemEvidence.length === 0 && !effectiveCompleted && (
+              <div className={styles.confirmStillValidBlock}>
+                <p className={styles.confirmStillValidInfo}>
+                  Identity last verified on{' '}
+                  {new Date(lastCddVerifiedAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {' '}({monthsSince(lastCddVerifiedAt!)} months ago)
+                </p>
+                <button
+                  type="button"
+                  className={styles.confirmStillValidButton}
+                  onClick={() => handleConfirmStillValid(action.actionId)}
+                  disabled={isPending || confirmingAction === action.actionId}
+                >
+                  {confirmingAction === action.actionId ? 'Confirming...' : 'Confirm Still Valid'}
+                </button>
+              </div>
             )}
             {showAmiqus && (() => {
               const verification = amiqusVerificationByAction.get(action.actionId);

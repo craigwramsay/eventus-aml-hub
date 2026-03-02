@@ -9,6 +9,11 @@ import { createClient } from '@/lib/supabase/server';
 import type { Client, Matter } from '@/lib/supabase/types';
 import { canDeleteEntities } from '@/lib/auth/roles';
 import type { UserRole } from '@/lib/auth/roles';
+import {
+  lookupCompany,
+  isValidCompanyNumber,
+  CompaniesHouseError,
+} from '@/lib/companies-house/client';
 
 /** Input for creating a client */
 export interface CreateClientInput {
@@ -20,6 +25,7 @@ export interface CreateClientInput {
   trading_address?: string | null;
   sector?: string | null;
   aml_regulated?: boolean;
+  last_cdd_verified_at?: string | null;
 }
 
 /** Result of creating a client */
@@ -81,6 +87,7 @@ export async function createClientAction(
       trading_address,
       sector,
       aml_regulated,
+      last_cdd_verified_at,
     } = input;
 
     if (!name || !name.trim()) {
@@ -108,6 +115,7 @@ export async function createClientAction(
         trading_address: trading_address ?? null,
         sector: sector ?? null,
         aml_regulated: aml_regulated ?? null,
+        last_cdd_verified_at: last_cdd_verified_at ?? null,
         updated_at: new Date().toISOString(),
       })
       .select()
@@ -188,6 +196,72 @@ export async function getMattersForClient(clientId: string): Promise<Matter[]> {
     return (data || []) as Matter[];
   } catch {
     return [];
+  }
+}
+
+/** Result of a Companies House lookup for the new-client form */
+export type CompanyLookupForClientResult =
+  | {
+      success: true;
+      companyName: string;
+      companyNumber: string;
+      companyStatus: string;
+      registeredAddress: string;
+      incorporationDate: string;
+    }
+  | { success: false; error: string };
+
+/**
+ * Look up a company at Companies House for the new-client form.
+ * Keeps the API key server-side and returns a clean result for the UI.
+ */
+export async function lookupCompanyForClient(
+  companyNumber: string
+): Promise<CompanyLookupForClientResult> {
+  try {
+    const trimmed = companyNumber.trim().toUpperCase();
+
+    if (!isValidCompanyNumber(trimmed)) {
+      return {
+        success: false,
+        error:
+          'Invalid company number format. Expected 8 digits (e.g. 12345678) or 2 letters + 6 digits (e.g. SC123456).',
+      };
+    }
+
+    const result = await lookupCompany(trimmed);
+    const addr = result.profile.registered_office_address;
+
+    const addressParts = [
+      addr.address_line_1,
+      addr.address_line_2,
+      addr.locality,
+      addr.region,
+      addr.postal_code,
+    ].filter(Boolean);
+
+    return {
+      success: true,
+      companyName: result.profile.company_name,
+      companyNumber: result.profile.company_number,
+      companyStatus: result.profile.company_status,
+      registeredAddress: addressParts.join(', '),
+      incorporationDate: result.profile.date_of_creation,
+    };
+  } catch (err) {
+    if (err instanceof CompaniesHouseError) {
+      if (err.statusCode === 404) {
+        return { success: false, error: 'Company not found at Companies House' };
+      }
+      if (!process.env.COMPANIES_HOUSE_API_KEY) {
+        return {
+          success: false,
+          error: 'Companies House lookup is not configured',
+        };
+      }
+      return { success: false, error: err.message };
+    }
+    return { success: false, error: 'An unexpected error occurred during lookup' };
   }
 }
 

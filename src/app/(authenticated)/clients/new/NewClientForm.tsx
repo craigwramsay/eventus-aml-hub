@@ -6,7 +6,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientAction } from '@/app/actions/clients';
+import { createClientAction, lookupCompanyForClient } from '@/app/actions/clients';
+import type { CompanyLookupForClientResult } from '@/app/actions/clients';
 import sectorMapping from '@/config/eventus/rules/sector_mapping.json';
 import styles from '../clients.module.css';
 
@@ -29,8 +30,75 @@ export function NewClientForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [lastCddVerifiedAt, setLastCddVerifiedAt] = useState('');
+
+  // Companies House lookup state
+  const [registeredNumber, setRegisteredNumber] = useState('');
+  const [registeredAddress, setRegisteredAddress] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [lookupResult, setLookupResult] = useState<
+    Extract<CompanyLookupForClientResult, { success: true }> | null
+  >(null);
+
+  const isCorporate = entityType.toLowerCase() !== 'individual';
+
   // Flatten sector options from config
   const sectorOptions = Object.values(sectorMapping.categories).flat();
+
+  function handleEntityTypeChange(value: string) {
+    setEntityType(value as EntityType);
+    // Clear CH state when switching to individual
+    if (value.toLowerCase() === 'individual') {
+      setRegisteredNumber('');
+      setRegisteredAddress('');
+      setLookupError(null);
+      setLookupResult(null);
+    }
+  }
+
+  async function handleLookup() {
+    if (!registeredNumber.trim()) return;
+
+    setLookupLoading(true);
+    setLookupError(null);
+    setLookupResult(null);
+    setRegisteredAddress('');
+
+    try {
+      const result = await lookupCompanyForClient(registeredNumber);
+
+      if (result.success) {
+        setLookupResult(result);
+        setRegisteredAddress(result.registeredAddress);
+      } else {
+        setLookupError(result.error);
+      }
+    } catch {
+      setLookupError('An unexpected error occurred');
+    } finally {
+      setLookupLoading(false);
+    }
+  }
+
+  function handleAdoptName() {
+    if (lookupResult) {
+      setName(lookupResult.companyName);
+    }
+  }
+
+  function formatDate(dateStr: string): string {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,6 +110,9 @@ export function NewClientForm() {
         name,
         entity_type: entityType,
         sector,
+        registered_number: isCorporate && registeredNumber ? registeredNumber.trim().toUpperCase() : null,
+        registered_address: isCorporate && registeredAddress ? registeredAddress : null,
+        last_cdd_verified_at: lastCddVerifiedAt || null,
       });
 
       if (result.success) {
@@ -55,6 +126,11 @@ export function NewClientForm() {
       setIsSubmitting(false);
     }
   }
+
+  const showNameDifference =
+    lookupResult &&
+    name.trim() !== '' &&
+    lookupResult.companyName.toUpperCase() !== name.trim().toUpperCase();
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
@@ -82,7 +158,7 @@ export function NewClientForm() {
   <select
     id="entityType"
     value={entityType}
-    onChange={(e) => setEntityType(e.target.value as EntityType)}
+    onChange={(e) => handleEntityTypeChange(e.target.value)}
     className={styles.select}
     disabled={isSubmitting}
   >
@@ -97,6 +173,57 @@ export function NewClientForm() {
   </select>
 </div>
 
+      {isCorporate && (
+        <div className={styles.field}>
+          <label htmlFor="registeredNumber" className={styles.label}>
+            Company Number
+          </label>
+          <div className={styles.lookupRow}>
+            <input
+              type="text"
+              id="registeredNumber"
+              value={registeredNumber}
+              onChange={(e) => setRegisteredNumber(e.target.value)}
+              className={styles.input}
+              placeholder="e.g. 12345678 or SC123456"
+              disabled={isSubmitting || lookupLoading}
+            />
+            <button
+              type="button"
+              className={styles.lookupButton}
+              onClick={handleLookup}
+              disabled={isSubmitting || lookupLoading || !registeredNumber.trim()}
+            >
+              {lookupLoading ? 'Looking up...' : 'Look up'}
+            </button>
+          </div>
+
+          {lookupError && (
+            <div className={styles.lookupError}>{lookupError}</div>
+          )}
+
+          {lookupResult && (
+            <div className={styles.lookupResult}>
+              <div className={styles.lookupInfo}>
+                {lookupResult.companyName} ({lookupResult.companyStatus}, incorporated{' '}
+                {formatDate(lookupResult.incorporationDate)})
+              </div>
+              <div className={styles.lookupAddress}>
+                Registered address: {lookupResult.registeredAddress}
+              </div>
+              {showNameDifference && (
+                <button
+                  type="button"
+                  className={styles.adoptNameButton}
+                  onClick={handleAdoptName}
+                >
+                  Use Companies House name: {lookupResult.companyName}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className={styles.field}>
         <label htmlFor="sector" className={styles.label}>
@@ -117,6 +244,23 @@ export function NewClientForm() {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="lastCddVerifiedAt" className={styles.label}>
+          Date of Last Identity Verification (optional)
+        </label>
+        <input
+          type="date"
+          id="lastCddVerifiedAt"
+          value={lastCddVerifiedAt}
+          onChange={(e) => setLastCddVerifiedAt(e.target.value)}
+          className={styles.input}
+          disabled={isSubmitting}
+        />
+        <span className={styles.hint}>
+          If this client has been verified previously (e.g. via Amiqus), enter the date here to enable carry-forward.
+        </span>
       </div>
 
       <div className={styles.formActions}>

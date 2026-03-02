@@ -1194,6 +1194,40 @@ button.evidenceCardHeader:hover {
   font-style: italic;
 }
 
+/* ── Confirm Still Valid ── */
+
+.confirmStillValidBlock {
+  padding: var(--space-3) 0;
+}
+
+.confirmStillValidInfo {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.confirmStillValidButton {
+  display: inline-flex;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.confirmStillValidButton:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+
+.confirmStillValidButton:disabled {
+  background-color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 640px) {
