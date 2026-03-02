@@ -63,9 +63,8 @@ async function clioFetch<T>(path: string, accessToken: string, options?: Request
   }
 
   if (!response.ok) {
-    const errorBody = await response.text();
     throw new ClioError(
-      `Clio API error: ${response.status} ${response.statusText} | ${path} | body=${errorBody}`,
+      `Clio API error: ${response.status} ${response.statusText}`,
       response.status
     );
   }
@@ -130,9 +129,8 @@ export async function exchangeClioCode(code: string): Promise<ClioTokenResponse>
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
     throw new ClioError(
-      `Clio token exchange failed: ${response.status} ${response.statusText} | body=${errorBody}`,
+      `Clio token exchange failed: ${response.status} ${response.statusText}`,
       response.status
     );
   }
