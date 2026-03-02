@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { FirmIntegration, IntegrationProvider } from '@/lib/supabase/types';
 import type { UserRole } from '@/lib/auth/roles';
 import { canManageIntegrations } from '@/lib/auth/roles';
-import { deleteClioWebhook, ClioError } from '@/lib/clio';
+import { deleteClioWebhook, registerClioWebhook, refreshClioToken, ClioError } from '@/lib/clio';
 
 export type IntegrationStatusResult =
   | { success: true; integrations: FirmIntegration[] }
@@ -146,5 +146,104 @@ export async function disconnectIntegration(
   } catch (err) {
     console.error('Error in disconnectIntegration:', err);
     return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Renew the Clio webhook if it's expiring soon or already expired.
+ * Uses stored access token (refreshes if needed), deletes old webhook,
+ * registers a new one, and updates the DB row.
+ */
+export async function renewClioWebhook(): Promise<DisconnectResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const { data: integration } = await supabase
+      .from('firm_integrations')
+      .select('*')
+      .eq('firm_id', profile.firm_id)
+      .eq('provider', 'clio')
+      .single();
+
+    if (!integration) {
+      return { success: false, error: 'Clio integration not found' };
+    }
+
+    const typed = integration as FirmIntegration;
+    let accessToken = typed.access_token;
+
+    // Refresh access token if expired
+    if (typed.token_expires_at && new Date(typed.token_expires_at) <= new Date()) {
+      if (!typed.refresh_token) {
+        return { success: false, error: 'No refresh token available. Please reconnect Clio.' };
+      }
+      const tokens = await refreshClioToken(typed.refresh_token);
+      accessToken = tokens.access_token;
+      const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+
+      await supabase
+        .from('firm_integrations')
+        .update({
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          token_expires_at: tokenExpiresAt,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', typed.id);
+    }
+
+    // Delete old webhook (ignore errors — may have expired)
+    if (typed.webhook_id && accessToken) {
+      try {
+        await deleteClioWebhook(accessToken, typed.webhook_id);
+      } catch {
+        // Non-fatal
+      }
+    }
+
+    // Register new webhook
+    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/clio`;
+    const webhook = await registerClioWebhook(accessToken!, webhookUrl, ['created']);
+
+    // Update DB
+    const { error: updateErr } = await supabase
+      .from('firm_integrations')
+      .update({
+        webhook_id: String(webhook.data.id),
+        webhook_secret: webhook.data.shared_secret,
+        webhook_expires_at: webhook.data.expires_at,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', typed.id);
+
+    if (updateErr) {
+      console.error('Failed to update webhook in DB:', updateErr);
+      return { success: false, error: 'Webhook renewed but failed to save' };
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'integration',
+      entity_id: 'clio',
+      action: 'clio_webhook_renewed',
+      metadata: {
+        webhook_id: String(webhook.data.id),
+        webhook_expires_at: webhook.data.expires_at,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error renewing Clio webhook:', err);
+    return { success: false, error: 'Failed to renew webhook' };
   }
 }

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canManageIntegrations } from '@/lib/auth/roles';
-import { getIntegrationStatus } from '@/app/actions/integrations';
+import { getIntegrationStatus, renewClioWebhook } from '@/app/actions/integrations';
 import type { FirmIntegration } from '@/lib/supabase/types';
 import { IntegrationCards } from './IntegrationCards';
 import styles from './page.module.css';
@@ -40,10 +40,23 @@ export default async function IntegrationsSettingsPage({ searchParams }: PagePro
   const clioConfigured = !!(process.env.CLIO_CLIENT_ID && process.env.CLIO_CLIENT_SECRET);
   const amiqusConfigured = !!process.env.AMIQUS_API_KEY;
 
-  // Check Clio webhook expiry
+  // Auto-renew Clio webhook if expiring within 2 days or already expired
   let clioWebhookDaysLeft: number | null = null;
   if (clioIntegration?.webhook_expires_at) {
     clioWebhookDaysLeft = daysUntil(clioIntegration.webhook_expires_at);
+    if (clioWebhookDaysLeft <= 2) {
+      const renewResult = await renewClioWebhook();
+      if (renewResult.success) {
+        // Refetch to get updated expiry
+        const refreshed = await getIntegrationStatus();
+        if (refreshed.success) {
+          const updated = refreshed.integrations.find((i) => i.provider === 'clio');
+          if (updated?.webhook_expires_at) {
+            clioWebhookDaysLeft = daysUntil(updated.webhook_expires_at);
+          }
+        }
+      }
+    }
   }
 
   return (

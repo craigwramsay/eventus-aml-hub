@@ -11,7 +11,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { fetchClioMatter, fetchClioContact } from '@/lib/clio';
+import { fetchClioMatter, fetchClioContact, registerClioWebhook, deleteClioWebhook } from '@/lib/clio';
 import type { ClioWebhookPayload } from '@/lib/clio';
 
 export async function POST(request: NextRequest) {
@@ -95,11 +95,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
       }
 
+      // Auto-renew webhook if expiring within 2 days
+      renewWebhookIfNeeded(supabase, firm_id, access_token).catch(() => {});
+
       return NextResponse.json({
         status: 'processed',
         result: processResult,
       });
     }
+
+    // Auto-renew webhook if expiring within 2 days
+    // (runs in background after processing, non-blocking)
+    renewWebhookIfNeeded(supabase, firm_id, access_token).catch(() => {});
 
     // Unhandled event type — acknowledge but don't process
     return NextResponse.json({ status: 'ignored', type: payload.type });
@@ -107,4 +114,46 @@ export async function POST(request: NextRequest) {
     console.error('Clio webhook error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
+}
+
+/**
+ * Auto-renew the Clio webhook if it expires within 2 days.
+ * Non-blocking — errors are swallowed by the caller.
+ */
+async function renewWebhookIfNeeded(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  firmId: string,
+  accessToken: string
+) {
+  const { data: integration } = await supabase
+    .from('firm_integrations')
+    .select('id, webhook_id, webhook_expires_at')
+    .eq('firm_id', firmId)
+    .eq('provider', 'clio')
+    .single();
+
+  if (!integration?.webhook_expires_at) return;
+
+  const expiresAt = new Date(integration.webhook_expires_at).getTime();
+  const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+  if (expiresAt - Date.now() > twoDaysMs) return; // Not expiring soon
+
+  // Delete old webhook
+  if (integration.webhook_id) {
+    try { await deleteClioWebhook(accessToken, integration.webhook_id); } catch { /* */ }
+  }
+
+  // Register new
+  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/clio`;
+  const webhook = await registerClioWebhook(accessToken, webhookUrl, ['created']);
+
+  await supabase
+    .from('firm_integrations')
+    .update({
+      webhook_id: String(webhook.data.id),
+      webhook_secret: webhook.data.shared_secret,
+      webhook_expires_at: webhook.data.expires_at,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', integration.id);
 }
