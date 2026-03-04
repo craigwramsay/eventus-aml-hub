@@ -41,8 +41,7 @@ export function AssessmentDetail({
         <span className={styles.expandIcon}>{expanded ? '\u25B2' : '\u25BC'}</span>
       </button>
 
-      {expanded && (
-        <div className={styles.collapsibleContent}>
+      <div className={`${styles.collapsibleContent} ${expanded ? '' : styles.collapsibleContentHidden}`}>
           {/* Triggered Risk Factors */}
           <h3 className={styles.detailSubheading}>
             Triggered Risk Factors ({triggeredFactors.length})
@@ -98,8 +97,7 @@ export function AssessmentDetail({
             <p>Assessment ID: {assessmentId}</p>
             <p>Assessed at: {timestamp}</p>
           </div>
-        </div>
-      )}
+      </div>
     </section>
   );
 }

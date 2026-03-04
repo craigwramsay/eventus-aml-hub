@@ -131,8 +131,7 @@ export function CompaniesHouseCard({ evidence }: CompaniesHouseCardProps) {
         <span className={styles.expandIcon}>{expanded ? '\u25B2' : '\u25BC'}</span>
       </button>
 
-      {expanded && (
-        <div className={styles.evidenceCardBody}>
+      <div className={`${styles.evidenceCardBody} ${expanded ? '' : styles.collapsibleContentHidden}`}>
           <div className={styles.chGrid}>
             <div className={styles.chField}>
               <span className={styles.chFieldLabel}>Company Type</span>
@@ -202,8 +201,7 @@ export function CompaniesHouseCard({ evidence }: CompaniesHouseCardProps) {
           <div className={styles.chLookupDate}>
             Looked up: {data.looked_up_at ? formatDate(data.looked_up_at) : formatDate(evidence.created_at)}
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

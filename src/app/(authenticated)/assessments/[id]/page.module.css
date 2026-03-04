@@ -646,6 +646,10 @@ button.evidenceCardHeader:hover {
   margin-top: var(--space-2);
 }
 
+.collapsibleContentHidden {
+  display: none;
+}
+
 .detailSubheading {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1226,6 +1230,89 @@ button.evidenceCardHeader:hover {
 .confirmStillValidButton:disabled {
   background-color: var(--text-muted);
   cursor: not-allowed;
+}
+
+/* ── Export PDF Button ── */
+
+.exportPdfButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.exportPdfButton:hover {
+  background-color: var(--border);
+}
+
+/* ── Print Styles ── */
+
+@media print {
+  @page { margin: 1.5cm; }
+
+  /* Force color printing for completed items */
+  .cddItemCompleted,
+  .riskHero,
+  .riskHeroLow,
+  .riskHeroMedium,
+  .riskHeroHigh,
+  .eddSection,
+  .warningSection,
+  .warningItem,
+  .verifiedBadge,
+  .evidenceBadgeCH,
+  .evidenceBadgeFile,
+  .evidenceBadgeManual,
+  .cddCheckboxInput,
+  .cddStatusBanner,
+  .cddStatusRecent,
+  .cddStatusStale,
+  .cddStatusLongstop {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide interactive elements */
+  .actionButtons,
+  .dangerSection,
+  .cddItemActions,
+  .evidenceForm,
+  .evidenceActionButton,
+  .formSubmit,
+  .chLookupButton,
+  .amiqusLinkButton,
+  .confirmStillValidBlock,
+  .exportPdfButton,
+  .finaliseButton,
+  .rerunButton,
+  .determinationButton { display: none !important; }
+
+  /* Keep completed item styling */
+  .cddItemCompleted {
+    border-color: var(--status-low) !important;
+    background-color: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  /* Force expand collapsible content */
+  .collapsibleContent { display: block !important; }
+  .collapsibleContentHidden { display: block !important; }
+  .evidenceCardBody { display: block !important; }
+
+  /* Page break control — allow sections to span pages, keep individual cards intact */
+  .cddItemCard { break-inside: avoid; }
+  .riskHero { break-inside: avoid; }
+
+  /* Hide expand/collapse icons */
+  .expandIcon { display: none !important; }
+  .collapsibleHeader { cursor: default !important; }
 }
 
 /* ── Responsive ── */

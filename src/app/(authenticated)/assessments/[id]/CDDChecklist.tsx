@@ -185,8 +185,8 @@ function DeclarationCard({ evidence }: { evidence: AssessmentEvidence }) {
         <span className={styles.evidenceMeta}>{formatDate(evidence.created_at)}</span>
         <span className={styles.expandIcon}>{expanded ? '\u25B2' : '\u25BC'}</span>
       </button>
-      {expanded && data && (
-        <div className={styles.evidenceCardBody}>
+      {data && (
+        <div className={`${styles.evidenceCardBody} ${expanded ? '' : styles.collapsibleContentHidden}`}>
           <div className={styles.chGrid}>
             {Object.entries(data).map(([key, value]) => (
               <div key={key} className={styles.chField}>

@@ -1,15 +1,14 @@
 /**
- * Determination Page
+ * Risk Assessment Scoring Page
  *
- * Displays the formal risk determination document for an assessment.
+ * Displays only the scoring breakdown from the determination renderer.
  * Route: /assessments/[id]/determination
  */
 
 import Link from 'next/link';
 import { getAssessment } from '@/app/actions/assessments';
-import { getEvidenceForAssessment } from '@/app/actions/evidence';
 import { renderDetermination } from '@/lib/determination';
-import type { AssessmentRecord, InputSnapshot, OutputSnapshot, EvidenceForDetermination } from '@/lib/determination';
+import type { AssessmentRecord, InputSnapshot, OutputSnapshot } from '@/lib/determination';
 import { CopyButton } from './CopyButton';
 import { PrintButton } from './PrintButton';
 import { AutoPrint } from './AutoPrint';
@@ -21,10 +20,7 @@ interface PageProps {
 
 export default async function DeterminationPage({ params }: PageProps) {
   const { id } = await params;
-  const [assessment, evidenceResult] = await Promise.all([
-    getAssessment(id),
-    getEvidenceForAssessment(id),
-  ]);
+  const assessment = await getAssessment(id);
 
   if (!assessment) {
     return (
@@ -55,22 +51,33 @@ export default async function DeterminationPage({ params }: PageProps) {
   // Read jurisdiction from snapshot (stored at assessment creation time)
   const jurisdiction = assessmentRecord.input_snapshot.jurisdiction;
 
-  // Build evidence for determination
-  const evidence: EvidenceForDetermination[] = evidenceResult.success
-    ? evidenceResult.evidence.map((e) => ({
-        evidence_type: e.evidence_type,
-        label: e.label,
-        source: e.source,
-        data: e.data,
-        created_at: e.created_at,
-      }))
-    : [];
-
-  // Render the determination (jurisdiction from snapshot, or options override)
+  // Render the full determination to extract scoring sections
   const determination = renderDetermination(assessmentRecord, {
     ...(jurisdiction ? { jurisdiction } : {}),
-    ...(evidence.length > 0 ? { evidence } : {}),
   });
+
+  // Extract only: ASSESSMENT DETAILS, RISK DETERMINATION, SCORING BREAKDOWN
+  const scoringSections = determination.sections.filter(
+    (s) => s.title === 'ASSESSMENT DETAILS' || s.title === 'RISK DETERMINATION' || s.title === 'SCORING BREAKDOWN'
+  );
+
+  // Build scoring-only text
+  const scoringTextParts: string[] = [];
+  scoringTextParts.push('\u2550'.repeat(70));
+  scoringTextParts.push('RISK ASSESSMENT SCORING');
+  scoringTextParts.push('\u2550'.repeat(70));
+
+  for (const section of scoringSections) {
+    scoringTextParts.push('');
+    scoringTextParts.push('\u2500'.repeat(70));
+    scoringTextParts.push(section.title);
+    scoringTextParts.push('\u2500'.repeat(70));
+    scoringTextParts.push(section.body);
+  }
+
+  scoringTextParts.push('');
+  scoringTextParts.push('\u2550'.repeat(70));
+  const scoringText = scoringTextParts.join('\n');
 
   const isFinalised = assessment.finalised_at !== null;
 
@@ -83,7 +90,7 @@ export default async function DeterminationPage({ params }: PageProps) {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>
-            Risk Determination
+            Risk Assessment Scoring
             <span
               className={`${styles.statusBadge} ${isFinalised ? styles.statusFinalised : styles.statusDraft}`}
             >
@@ -95,13 +102,13 @@ export default async function DeterminationPage({ params }: PageProps) {
           </p>
         </div>
         <div className={styles.headerButtons}>
-          <CopyButton text={determination.determinationText} />
+          <CopyButton text={scoringText} />
           <PrintButton />
         </div>
       </div>
 
       <pre className={styles.determinationBlock}>
-        {determination.determinationText}
+        {scoringText}
       </pre>
 
       <AutoPrint />

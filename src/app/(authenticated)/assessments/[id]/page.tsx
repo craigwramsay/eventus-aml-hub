@@ -7,6 +7,7 @@ import { getAmiqusVerifications } from '@/app/actions/amiqus';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
+import { ExportPdfButton } from './ExportPdfButton';
 import { FinaliseButton } from './FinaliseButton';
 import { DeleteAssessmentButton } from './DeleteAssessmentButton';
 import { AssessmentDetail } from './AssessmentDetail';
@@ -215,11 +216,12 @@ export default async function AssessmentViewPage({ params }: PageProps) {
 
       {/* 8. Action buttons */}
       <div className={styles.actionButtons}>
+        <ExportPdfButton />
         <Link
           href={`/assessments/${assessment.id}/determination`}
           className={styles.determinationButton}
         >
-          View Determination
+          View Risk Assessment Scoring
         </Link>
         {!isFinalised && canFinalise && (
           <FinaliseButton assessmentId={assessment.id} cddLongstopBreached={cddLongstopBreached} />
