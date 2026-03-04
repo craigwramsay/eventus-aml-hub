@@ -350,6 +350,9 @@ export async function saveSowSofForm(
       return { success: false, error: 'Failed to save declaration' };
     }
 
+    // Mark the CDD item as complete
+    await toggleItemCompletion(assessmentId, actionId, true);
+
     // Audit log
     await supabase.from('audit_events').insert({
       firm_id: profile.firm_id,
@@ -430,6 +433,11 @@ export async function lookupCompaniesHouse(
     if (insertErr || !data) {
       console.error('Failed to store CH evidence:', insertErr);
       return { success: false, error: 'Failed to store Companies House result' };
+    }
+
+    // Mark the CDD item as complete (the next item asks user to confirm consistency)
+    if (actionId) {
+      await toggleItemCompletion(assessmentId, actionId, true);
     }
 
     // Audit log
@@ -587,6 +595,86 @@ export async function confirmIdentityStillValid(
     return { success: true, evidence: data as AssessmentEvidence };
   } catch (err) {
     console.error('Error in confirmIdentityStillValid:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Confirm that corporate documents (e.g. certificate of incorporation, articles)
+ * have been saved to the matter compliance folder.
+ * Creates a manual evidence record, marks the checklist item complete, and audit logs.
+ */
+export async function confirmDocumentSaved(
+  assessmentId: string,
+  actionId: string
+): Promise<SingleEvidenceResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit adding evidence' };
+    }
+
+    const access = await validateAssessmentAccess(assessmentId, profile.firm_id);
+    if (!access.valid) {
+      return { success: false, error: access.error };
+    }
+
+    // Check assessment is not finalised
+    const checkSupabase = await createClient();
+    const { data: assessment } = await checkSupabase
+      .from('assessments')
+      .select('finalised_at')
+      .eq('id', assessmentId)
+      .single();
+
+    if (assessment?.finalised_at) {
+      return { success: false, error: 'Assessment is finalised and cannot be modified' };
+    }
+
+    // Create evidence record
+    const { data, error: insertErr } = await supabase
+      .from('assessment_evidence')
+      .insert({
+        firm_id: profile.firm_id,
+        assessment_id: assessmentId,
+        action_id: actionId,
+        evidence_type: 'manual_record',
+        label: 'Documents saved to matter compliance folder',
+        source: 'Manual',
+        notes: 'Certificate of incorporation and articles of association saved to matter compliance folder.',
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (insertErr || !data) {
+      console.error('Failed to create document confirmation record:', insertErr);
+      return { success: false, error: 'Failed to create evidence record' };
+    }
+
+    // Mark the checklist item as complete
+    await toggleItemCompletion(assessmentId, actionId, true);
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'assessment_evidence',
+      entity_id: data.id,
+      action: 'document_saved_confirmed',
+      metadata: {
+        assessment_id: assessmentId,
+        action_id: actionId,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true, evidence: data as AssessmentEvidence };
+  } catch (err) {
+    console.error('Error in confirmDocumentSaved:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

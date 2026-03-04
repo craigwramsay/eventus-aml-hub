@@ -4,7 +4,7 @@
  * New Client Form Component
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientAction, lookupCompanyForClient } from '@/app/actions/clients';
 import type { CompanyLookupForClientResult } from '@/app/actions/clients';
@@ -42,6 +42,45 @@ export function NewClientForm() {
   >(null);
 
   const isCorporate = entityType.toLowerCase() !== 'individual';
+
+  // Auto-trigger CH lookup when a valid company number is entered
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!isCorporate) return;
+    const trimmed = registeredNumber.trim().toUpperCase();
+    // Valid: 8 digits or 2 letters + 6 digits
+    const isValid = /^(?:\d{8}|[A-Z]{2}\d{6})$/.test(trimmed);
+    if (!isValid) return;
+    // Don't re-lookup if we already have a result for this number
+    if (lookupResult && lookupResult.companyNumber?.toUpperCase() === trimmed) return;
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setLookupLoading(true);
+      setLookupError(null);
+      setLookupResult(null);
+      setRegisteredAddress('');
+      try {
+        const result = await lookupCompanyForClient(trimmed);
+        if (result.success) {
+          setLookupResult(result);
+          setRegisteredAddress(result.registeredAddress);
+          // Auto-fill company name if the name field is empty
+          setName(prev => prev.trim() ? prev : result.companyName);
+        } else {
+          setLookupError(result.error);
+        }
+      } catch {
+        setLookupError('An unexpected error occurred');
+      } finally {
+        setLookupLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [registeredNumber, isCorporate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Flatten sector options from config
   const sectorOptions = Object.values(sectorMapping.categories).flat();

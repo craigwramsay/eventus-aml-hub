@@ -9,7 +9,6 @@ import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
 import { FinaliseButton } from './FinaliseButton';
 import { DeleteAssessmentButton } from './DeleteAssessmentButton';
-import { EvidenceSection } from './EvidenceSection';
 import { AssessmentDetail } from './AssessmentDetail';
 import { CDDChecklist } from './CDDChecklist';
 import { CDDStatusBanner } from './CDDStatusBanner';
@@ -85,13 +84,11 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const canFinalise = profile ? canFinaliseAssessment(profile.role) : false;
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
 
-  // Compute CDD longstop status
+  // Compute CDD longstop status — only applies when a previous CDD date exists
   const cddConfig = getCddStalenessConfig();
   const longstopMonths = cddConfig.universalLongstopMonths ?? 24;
   let cddLongstopBreached = false;
-  if (!client.last_cdd_verified_at) {
-    cddLongstopBreached = true;
-  } else {
+  if (client.last_cdd_verified_at) {
     const verifiedAt = new Date(client.last_cdd_verified_at);
     const longstopDate = new Date(verifiedAt);
     longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
@@ -208,16 +205,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         </section>
       )}
 
-      {/* 6. General Evidence */}
-      <EvidenceSection
-        assessmentId={assessment.id}
-        evidence={evidence}
-        registeredNumber={registeredNumber}
-        isCorporate={isCorporate}
-        isFinalised={isFinalised}
-      />
-
-      {/* 7. Assessment Detail (collapsible) */}
+      {/* 6. Assessment Detail (collapsible) */}
       <AssessmentDetail
         riskFactors={outputSnapshot.riskFactors}
         rationale={outputSnapshot.rationale}

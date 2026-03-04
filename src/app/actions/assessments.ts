@@ -572,21 +572,17 @@ export async function finaliseAssessment(
       const cddConfig = getCddStalenessConfig();
       const longstopMonths = cddConfig.universalLongstopMonths ?? 24;
 
-      if (!lastCddVerifiedAt) {
-        return {
-          success: false,
-          error: 'CDD re-verification required: no CDD verification is recorded for this client. CDD must be verified before finalisation.',
-        };
-      }
-
-      const verifiedAt = new Date(lastCddVerifiedAt);
-      const longstopDate = new Date(verifiedAt);
-      longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
-      if (new Date() >= longstopDate) {
-        return {
-          success: false,
-          error: `CDD re-verification required: CDD was last verified on ${verifiedAt.toLocaleDateString('en-GB')} and the ${longstopMonths / 12}-year longstop has been exceeded. CDD must be re-verified before finalisation.`,
-        };
+      // Longstop only applies when a previous CDD date exists — new clients are not blocked
+      if (lastCddVerifiedAt) {
+        const verifiedAt = new Date(lastCddVerifiedAt);
+        const longstopDate = new Date(verifiedAt);
+        longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
+        if (new Date() >= longstopDate) {
+          return {
+            success: false,
+            error: `CDD re-verification required: CDD was last verified on ${verifiedAt.toLocaleDateString('en-GB')} and the ${longstopMonths / 12}-year longstop has been exceeded. CDD must be re-verified before finalisation.`,
+          };
+        }
       }
     }
 

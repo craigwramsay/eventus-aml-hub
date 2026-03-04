@@ -10,12 +10,12 @@
  * When finalised: all controls disabled, checkboxes display-only.
  */
 
-import { useState, useTransition, useCallback } from 'react';
+import { useState, useEffect, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { MandatoryAction, EDDTriggerResult } from '@/lib/rules-engine/types';
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification } from '@/lib/supabase/types';
 import { toggleItemCompletion } from '@/app/actions/progress';
-import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid } from '@/app/actions/evidence';
+import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved } from '@/app/actions/evidence';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
 import { initiateAmiqusVerification } from '@/app/actions/amiqus';
 import { getSowSofFormConfig } from '@/lib/rules-engine/config-loader';
@@ -120,6 +120,11 @@ function isConfirmAction(action: MandatoryAction): boolean {
     action.actionId === 'verify_consistency' ||
     action.actionId === 'confirm_transparency' ||
     action.actionId === 'confirm_bo';
+}
+
+/** Check if an action is a document-confirm action (save to compliance folder) */
+function isDocumentConfirmAction(action: MandatoryAction): boolean {
+  return action.actionId === 'obtain_documents';
 }
 
 /** Check if an action is an MLRO approval action */
@@ -288,7 +293,6 @@ export function CDDChecklist({
   const [openUpload, setOpenUpload] = useState<string | null>(null);
   const [openManual, setOpenManual] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState<string | null>(null);
-  const [manualLabel, setManualLabel] = useState('');
   const [manualNotes, setManualNotes] = useState('');
   const [verifiedAt, setVerifiedAt] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
@@ -302,6 +306,15 @@ export function CDDChecklist({
     }
     return set;
   });
+
+  // Sync optimistic state when server progress changes (e.g. after router.refresh())
+  useEffect(() => {
+    const serverSet = new Set<string>();
+    for (const p of progress) {
+      if (p.completed_at) serverSet.add(p.action_id);
+    }
+    setOptimisticCompleted(serverSet);
+  }, [progress]);
 
   // Build evidence map: actionId -> evidence[]
   const evidenceByAction = new Map<string, AssessmentEvidence[]>();
@@ -355,6 +368,12 @@ export function CDDChecklist({
       if (!result.success) {
         setError(result.error);
       } else {
+        // Server already marked as complete — update optimistic state
+        setOptimisticCompleted(prev => {
+          const next = new Set(prev);
+          next.add(actionId);
+          return next;
+        });
         router.refresh();
       }
     });
@@ -376,27 +395,6 @@ export function CDDChecklist({
       }
     });
   }, [assessmentId, router, startTransition]);
-
-  const handleManualRecord = useCallback((actionId: string, isIdentity: boolean, e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-
-    startTransition(async () => {
-      const result = await addManualRecord(
-        assessmentId, manualLabel, manualNotes, actionId,
-        isIdentity ? (verifiedAt || null) : null
-      );
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        setOpenManual(null);
-        setManualLabel('');
-        setManualNotes('');
-        setVerifiedAt('');
-        router.refresh();
-      }
-    });
-  }, [assessmentId, manualLabel, manualNotes, verifiedAt, router, startTransition]);
 
   const handleRequestApproval = useCallback(() => {
     setError(null);
@@ -486,6 +484,25 @@ export function CDDChecklist({
       }
     });
   }, [assessmentId, lastCddVerifiedAt, riskLevel, router, startTransition]);
+
+  const handleDocumentConfirm = useCallback((actionId: string) => {
+    setError(null);
+
+    startTransition(async () => {
+      const result = await confirmDocumentSaved(assessmentId, actionId);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        // Optimistic: mark as completed
+        setOptimisticCompleted(prev => {
+          const next = new Set(prev);
+          next.add(actionId);
+          return next;
+        });
+        router.refresh();
+      }
+    });
+  }, [assessmentId, router, startTransition]);
 
   // Group non-EDD actions by category (excluding monitoring)
   const groupedActions: Record<string, MandatoryAction[]> = {};
@@ -643,6 +660,7 @@ export function CDDChecklist({
     const showForm = isFormAction(action);
     const showApproval = isApprovalAction(action);
     const showConfirm = isConfirmAction(action);
+    const showDocumentConfirm = isDocumentConfirmAction(action);
 
     // For approval actions, auto-mark as completed if approved
     const approvalCompleted = showApproval && approvalStatus?.status === 'approved';
@@ -870,7 +888,28 @@ export function CDDChecklist({
                 {openForm === action.actionId ? 'Close Form' : 'Open Form'}
               </button>
             )}
-            {showConfirm ? (
+            {showDocumentConfirm ? (
+              <>
+                {isCorporate && registeredNumber && (
+                  <a
+                    href={`https://find-and-update.company-information.service.gov.uk/company/${encodeURIComponent(registeredNumber)}/filing-history`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.evidenceActionButton}
+                  >
+                    View Filing History (Companies House)
+                  </a>
+                )}
+                <button
+                  type="button"
+                  className={effectiveCompleted ? styles.evidenceActionButton : styles.formSubmit}
+                  onClick={() => handleDocumentConfirm(action.actionId)}
+                  disabled={isPending || effectiveCompleted}
+                >
+                  {effectiveCompleted ? 'Saved to compliance folder' : 'Saved to matter compliance folder'}
+                </button>
+              </>
+            ) : showConfirm ? (
               <button
                 type="button"
                 className={effectiveCompleted ? styles.evidenceActionButton : styles.formSubmit}
@@ -901,7 +940,7 @@ export function CDDChecklist({
                   }}
                   disabled={isPending}
                 >
-                  Add Record
+                  Add File Note
                 </button>
               </>
             )}
@@ -954,26 +993,29 @@ export function CDDChecklist({
           </form>
         )}
 
-        {/* Inline manual record form */}
+        {/* Inline file note form */}
         {openManual === action.actionId && (
           <form
-            onSubmit={(e) => handleManualRecord(action.actionId, showAmiqus, e)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              setError(null);
+              startTransition(async () => {
+                const result = await addManualRecord(
+                  assessmentId, 'File note', manualNotes, action.actionId,
+                  showAmiqus ? (verifiedAt || null) : null
+                );
+                if (!result.success) {
+                  setError(result.error);
+                } else {
+                  setOpenManual(null);
+                  setManualNotes('');
+                  setVerifiedAt('');
+                  router.refresh();
+                }
+              });
+            }}
             className={styles.evidenceForm}
           >
-            <div className={styles.formField}>
-              <label htmlFor={`manual-label-${action.actionId}`} className={styles.formLabel}>
-                Label
-              </label>
-              <input
-                id={`manual-label-${action.actionId}`}
-                type="text"
-                value={manualLabel}
-                onChange={(e) => setManualLabel(e.target.value)}
-                required
-                placeholder="e.g. Passport verified in person"
-                className={styles.formInput}
-              />
-            </div>
             {showAmiqus && (
               <div className={styles.formField}>
                 <label htmlFor={`verified-at-manual-${action.actionId}`} className={styles.formLabel}>
@@ -990,19 +1032,20 @@ export function CDDChecklist({
             )}
             <div className={styles.formField}>
               <label htmlFor={`manual-notes-${action.actionId}`} className={styles.formLabel}>
-                Notes
+                File Note
               </label>
               <textarea
                 id={`manual-notes-${action.actionId}`}
                 value={manualNotes}
                 onChange={(e) => setManualNotes(e.target.value)}
-                rows={2}
-                placeholder="Additional details..."
+                rows={3}
+                required
+                placeholder="Enter your file note..."
                 className={styles.formTextarea}
               />
             </div>
             <button type="submit" disabled={isPending} className={styles.formSubmit}>
-              {isPending ? 'Saving...' : 'Save Record'}
+              {isPending ? 'Saving...' : 'Save File Note'}
             </button>
           </form>
         )}
