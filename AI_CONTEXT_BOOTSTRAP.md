@@ -517,7 +517,7 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Deployment infrastructure (Dockerfile, docker-compose, CI/CD, health check)
 - [x] Error boundaries (error.tsx, not-found.tsx)
 - [x] Assessment re-run workflow (re-run button, pre-populate from previous answers, assessment history on matter page)
-- [x] PDF export of determinations (browser print with `@media print` styles)
+- [x] PDF export of completed assessment page (browser print with `@media print` styles; auto-expands CH cards, declarations, Assessment Detail for print; hides interactive buttons; preserves green completed styling)
 - [x] Sortable tables on all list pages (click column headers for asc/desc, per-column dropdown filters for Risk level)
 - [x] Client/matter/assessment search and filtering (text search + type/status pill filters)
 - [x] Entity deletion with RLS policies (clients, matters, assessments, evidence, CDD progress — MLRO/admin/platform_admin)
@@ -555,6 +555,9 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] Amiqus webhook configured (webhook URL registered in Amiqus dashboard, webhook secret stored in `firm_integrations` table, signature verification via SECURITY DEFINER RPC)
 - [x] Companies House lookup on new client form (company number field with CH API lookup for corporate clients, auto-populate registered address, adopt CH name)
 - [x] Corporate form funds direction question (field 56 in `CMLRA_corporate.json` — mirrors individual form; gates SoF questions by paying/receiving/both direction; receiving-only hides "Who provides funds?" and "Source of funds?", shows "Who will send?" and "Nature of incoming?"; no scoring impact — purely visibility control via `show_if` + `smart_logic_fields`)
+- [x] "Compliance Assistant" renamed to "Compliance Hub" in all user-facing form text (individual + corporate CMLRA forms); assistant internal system prompt unchanged
+- [x] "View Determination" button renamed to "View Risk Assessment Scoring"; determination page now shows only scoring breakdown (assessment details, risk determination, scoring table) — not full determination document
+- [x] Export as PDF button on assessment page (`ExportPdfButton.tsx`) — uses `window.print()` with `@media print` CSS; collapsible sections (AssessmentDetail, CompaniesHouseCard, DeclarationCard) always render content in DOM (hidden via CSS class), forced visible in print
 
 ### Pending SQL Migrations (not yet applied to Supabase)
 
