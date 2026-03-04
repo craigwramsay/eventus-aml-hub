@@ -463,6 +463,166 @@ export async function lookupCompaniesHouse(
 }
 
 /**
+ * Carry forward a Companies House lookup from a prior assessment for the same client.
+ * Copies the CH evidence record to the new assessment with 'Carried forward' source.
+ * Only carries forward if the prior lookup is within the 24-month longstop.
+ * Returns the copied evidence record, or null if nothing to carry forward.
+ */
+export async function carryForwardCompaniesHouse(
+  newAssessmentId: string,
+  clientId: string,
+  firmId: string,
+  userId: string
+): Promise<AssessmentEvidence | null> {
+  try {
+    const supabase = await createClient();
+
+    // Get all matters for this client
+    const { data: matters } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('client_id', clientId);
+
+    if (!matters || matters.length === 0) return null;
+
+    const matterIds = matters.map((m) => m.id);
+
+    // Get all assessments for these matters (excluding the new one)
+    const { data: assessments } = await supabase
+      .from('assessments')
+      .select('id')
+      .in('matter_id', matterIds)
+      .neq('id', newAssessmentId)
+      .order('created_at', { ascending: false });
+
+    if (!assessments || assessments.length === 0) return null;
+
+    const assessmentIds = assessments.map((a) => a.id);
+
+    // Find the most recent CH evidence from any prior assessment
+    const { data: chEvidence } = await supabase
+      .from('assessment_evidence')
+      .select('*')
+      .in('assessment_id', assessmentIds)
+      .eq('evidence_type', 'companies_house')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!chEvidence) return null;
+
+    // Check 24-month longstop
+    const cddConfig = getCddStalenessConfig();
+    const longstopMonths = cddConfig.universalLongstopMonths ?? 24;
+    const createdAt = new Date(chEvidence.created_at);
+    const longstopDate = new Date(createdAt);
+    longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
+    if (new Date() >= longstopDate) return null;
+
+    // Copy the evidence record to the new assessment
+    const { data: copied, error: insertErr } = await supabase
+      .from('assessment_evidence')
+      .insert({
+        firm_id: firmId,
+        assessment_id: newAssessmentId,
+        action_id: chEvidence.action_id,
+        evidence_type: 'companies_house',
+        label: chEvidence.label,
+        source: 'Carried forward',
+        data: chEvidence.data,
+        notes: `Carried forward from assessment created on ${createdAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+        created_by: userId,
+      })
+      .select()
+      .single();
+
+    if (insertErr || !copied) {
+      console.error('Failed to carry forward CH evidence:', insertErr);
+      return null;
+    }
+
+    // Mark the CDD item as complete
+    if (chEvidence.action_id) {
+      await toggleItemCompletion(newAssessmentId, chEvidence.action_id, true);
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: firmId,
+      entity_type: 'assessment_evidence',
+      entity_id: copied.id,
+      action: 'ch_evidence_carried_forward',
+      metadata: {
+        new_assessment_id: newAssessmentId,
+        source_assessment_id: chEvidence.assessment_id,
+        source_evidence_id: chEvidence.id,
+        original_lookup_date: chEvidence.created_at,
+      },
+      created_by: userId,
+    });
+
+    return copied as AssessmentEvidence;
+  } catch (err) {
+    // Non-fatal — log but don't fail the assessment creation
+    console.error('Error in carryForwardCompaniesHouse:', err);
+    return null;
+  }
+}
+
+/**
+ * Get the latest SoW declaration evidence for a client across all their assessments.
+ * Used for pre-populating the SoW form on new assessments.
+ */
+export async function getLatestSowForClient(
+  clientId: string
+): Promise<Record<string, string | string[]> | null> {
+  try {
+    if (!clientId) return null;
+
+    const { supabase, error } = await getUserAndProfile();
+    if (error) return null;
+
+    // Get all matters for this client
+    const { data: matters } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('client_id', clientId);
+
+    if (!matters || matters.length === 0) return null;
+
+    const matterIds = matters.map((m) => m.id);
+
+    // Get all assessments for these matters
+    const { data: assessments } = await supabase
+      .from('assessments')
+      .select('id')
+      .in('matter_id', matterIds)
+      .order('created_at', { ascending: false });
+
+    if (!assessments || assessments.length === 0) return null;
+
+    const assessmentIds = assessments.map((a) => a.id);
+
+    // Find the most recent SoW declaration
+    const { data: sowEvidence } = await supabase
+      .from('assessment_evidence')
+      .select('data')
+      .in('assessment_id', assessmentIds)
+      .eq('evidence_type', 'sow_declaration')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!sowEvidence?.data) return null;
+
+    return sowEvidence.data as Record<string, string | string[]>;
+  } catch (err) {
+    console.error('Error in getLatestSowForClient:', err);
+    return null;
+  }
+}
+
+/**
  * Check if an action ID corresponds to an identity verification action.
  * Mirrors the client-side isIdentityAction() logic.
  */

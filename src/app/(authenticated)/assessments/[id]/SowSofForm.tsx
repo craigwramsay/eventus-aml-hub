@@ -28,6 +28,8 @@ interface SowSofFormProps {
   formConfig: FormConfig;
   assessmentId: string;
   existingData?: Record<string, string | string[]> | null;
+  /** Prior declaration data from a previous client assessment (for pre-population) */
+  priorData?: Record<string, string | string[]> | null;
   onClose: () => void;
 }
 
@@ -36,15 +38,18 @@ export function SowSofForm({
   formConfig,
   assessmentId,
   existingData,
+  priorData,
   onClose,
 }: SowSofFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // Use existing data first, then fall back to prior client data for pre-population
   const [formValues, setFormValues] = useState<Record<string, string | string[]>>(
-    existingData || {}
+    existingData || priorData || {}
   );
+  const isPrePopulated = !existingData && !!priorData;
 
   // Build a flat field map by ID
   const fieldMap = new Map<string, FormFieldConfig>();
@@ -197,6 +202,11 @@ export function SowSofForm({
       {saved && (
         <div style={{ padding: '0.5rem 0.75rem', background: '#dcfce7', color: '#166534', borderRadius: '0.375rem', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
           Declaration saved successfully.
+        </div>
+      )}
+      {isPrePopulated && !saved && (
+        <div style={{ padding: '0.5rem 0.75rem', background: '#eff6ff', color: '#1e40af', borderRadius: '0.375rem', fontSize: '0.875rem', marginBottom: '0.5rem', border: '1px solid #93c5fd' }}>
+          Pre-filled from a previous assessment. Review and update as needed.
         </div>
       )}
 

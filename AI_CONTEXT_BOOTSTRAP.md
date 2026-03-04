@@ -558,6 +558,18 @@ The `GlobalAssistantButton` (floating "?" button, bottom-right) is rendered on a
 - [x] "Compliance Assistant" renamed to "Compliance Hub" in all user-facing form text (individual + corporate CMLRA forms); assistant internal system prompt unchanged
 - [x] "View Determination" button renamed to "View Risk Assessment Scoring"; determination page now shows only scoring breakdown (assessment details, risk determination, scoring table) — not full determination document
 - [x] Export as PDF button on assessment page (`ExportPdfButton.tsx`) — uses `window.print()` with `@media print` CSS; collapsible sections (AssessmentDetail, CompaniesHouseCard, DeclarationCard) always render content in DOM (hidden via CSS class), forced visible in print
+- [x] Existing client pre-population & CDD carry-forward:
+  - `isExistingClient` is now **client-level** (any prior assessment across any matter), not matter-level
+  - New matter for existing client pre-populates client-level fields (Sections 2 & 4) from latest prior assessment; matter-specific fields (Sections 3, 5, 7) left blank
+  - Corporate client fields carried forward: 20, 22, 24, 26, 28, 30, 32, 34, 45, 46, 47, 51, 72; Individual: 16, 18, 20, 31, 32, 52
+  - Delivery channel field locked (read-only) for existing clients: field 72 (corporate), field 52 (individual)
+  - Re-run on same matter still copies ALL fields (existing behaviour preserved)
+  - Info banner shown when pre-populating from a different matter
+  - `getLatestAssessmentForClient()` in `assessments.ts` — queries all matters for client, returns latest full assessment
+  - Companies House lookup auto-carried forward to new assessments for corporate clients (`carryForwardCompaniesHouse()` in `evidence.ts`); checks 24-month longstop; copies evidence with "Carried forward" source; auto-marks CDD item complete; "Carried forward" badge + "Refresh Lookup" button on CDD checklist
+  - SoW declaration pre-populated from prior client assessment (`getLatestSowForClient()` in `evidence.ts`); form fully editable; "Pre-filled from a previous assessment" info banner
+  - Identity verification (directors, BOs, individual): handled by existing "Confirm Still Valid" mechanism — `client.last_cdd_verified_at` is client-level, so carry-forward works automatically on new matters
+  - SoF: NOT carried forward (matter-specific — different transaction = different funds)
 
 ### Pending SQL Migrations (not yet applied to Supabase)
 

@@ -14,6 +14,7 @@ import type { FormAnswers, ClientType, AssessmentOutput } from '@/lib/rules-engi
 import type { Assessment, Client, Matter } from '@/lib/supabase/types';
 import { canCreateAssessment, canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
+import { carryForwardCompaniesHouse } from '@/app/actions/evidence';
 import type { UserRole } from '@/lib/auth/roles';
 import { getConfigForAssessment } from '@/lib/rules-engine/config-loader-server';
 
@@ -250,6 +251,16 @@ export async function submitAssessment(
       created_by: user.id,
     });
 
+    // Carry forward Companies House evidence for corporate clients
+    if (derivedClientType === 'corporate') {
+      await carryForwardCompaniesHouse(
+        data.id,
+        client.id,
+        profile.firm_id,
+        user.id
+      );
+    }
+
     return { success: true, assessment: data as Assessment };
   } catch (error) {
     console.error('Error in submitAssessment:', error);
@@ -262,6 +273,48 @@ export async function submitAssessment(
 
 
 
+
+/**
+ * Get the latest assessment for a client across all their matters.
+ * Returns the full assessment (with input_snapshot) or null.
+ * Used for client-level pre-population when starting a new matter.
+ */
+export async function getLatestAssessmentForClient(
+  clientId: string
+): Promise<Assessment | null> {
+  try {
+    if (!clientId) return null;
+
+    const { supabase, error } = await getUserAndProfile();
+    if (error) return null;
+
+    // Get all matters for this client
+    const { data: matters } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('client_id', clientId);
+
+    if (!matters || matters.length === 0) return null;
+
+    const matterIds = matters.map((m) => m.id);
+
+    // Find the latest assessment across all matters
+    const { data, error: fetchErr } = await supabase
+      .from('assessments')
+      .select('*')
+      .in('matter_id', matterIds)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (fetchErr || !data) return null;
+
+    return data as Assessment;
+  } catch (error) {
+    console.error('Error in getLatestAssessmentForClient:', error);
+    return null;
+  }
+}
 
 /**
  * Get a single assessment by ID

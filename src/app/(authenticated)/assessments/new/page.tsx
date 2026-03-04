@@ -4,7 +4,7 @@
  */
 
 import Link from 'next/link';
-import { getMatterForAssessment, getAssessmentsForMatter } from '@/app/actions/assessments';
+import { getMatterForAssessment, getAssessmentsForMatter, getLatestAssessmentForClient } from '@/app/actions/assessments';
 import { AssessmentForm } from './AssessmentForm';
 import type { FormAnswers, FormConfig } from '@/lib/rules-engine/types';
 import styles from './page.module.css';
@@ -55,10 +55,16 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
   // Build matter display: prefer description, fall back to reference
   const matterDisplay = matter.description || matter.reference;
 
-  // Check for existing assessments on this matter to determine new/existing status
+  // Check for existing assessments on this matter (re-run scenario)
   const existingAssessments = await getAssessmentsForMatter(matter_id);
-  const isExistingClient = existingAssessments.length > 0;
   const isReassessment = existingAssessments.length > 0;
+
+  // Check for prior assessments on ANY matter for this client (existing client detection)
+  const latestClientAssessment = await getLatestAssessmentForClient(matter.client.id);
+  const isExistingClient = latestClientAssessment !== null;
+
+  // Determine if we're pre-populating from a different matter (not a re-run)
+  const isCarryForwardFromOtherMatter = !isReassessment && isExistingClient;
 
   // If re-running, pre-populate from the most recent assessment's form answers
   // (assessments are ordered newest-first by getAssessmentsForMatter)
@@ -72,6 +78,10 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
     }
   }
 
+  // Client-level fields to carry forward from a prior assessment on a different matter
+  const CORPORATE_CLIENT_FIELDS = ['20', '22', '24', '26', '28', '30', '32', '34', '45', '46', '47', '51', '72'];
+  const INDIVIDUAL_CLIENT_FIELDS = ['16', '18', '20', '31', '32', '52'];
+
   // Build initial values from client/matter data
   // Field IDs differ between individual and corporate forms
   const initialValues: FormAnswers = {};
@@ -80,6 +90,21 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
   // Start with previous assessment answers as base (user can modify these)
   if (isReassessment) {
     Object.assign(initialValues, previousAnswers);
+  } else if (isCarryForwardFromOtherMatter && latestClientAssessment) {
+    // Pre-populate only client-level fields from the prior assessment
+    const priorSnapshot = latestClientAssessment.input_snapshot as unknown as {
+      formAnswers?: FormAnswers;
+    };
+    if (priorSnapshot?.formAnswers) {
+      const clientFields = derivedClientType === 'corporate'
+        ? CORPORATE_CLIENT_FIELDS
+        : INDIVIDUAL_CLIENT_FIELDS;
+      for (const fieldId of clientFields) {
+        if (priorSnapshot.formAnswers[fieldId] !== undefined) {
+          initialValues[fieldId] = priorSnapshot.formAnswers[fieldId];
+        }
+      }
+    }
   }
 
   // Override with client/matter data (these are always read-only)
@@ -114,6 +139,10 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
     if (matter.description) {
       initialValues['41'] = matter.description;
       readOnlyFields.push('41');
+    }
+    // Lock delivery channel for existing clients
+    if (isExistingClient) {
+      readOnlyFields.push('72');
     }
     // Derive sector risk from config and pre-populate field 49 (read-only)
     if (matter.client.sector) {
@@ -150,6 +179,10 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
       initialValues['23'] = matter.description;
       readOnlyFields.push('23');
     }
+    // Lock delivery channel for existing clients
+    if (isExistingClient) {
+      readOnlyFields.push('52');
+    }
   }
 
   return (
@@ -168,6 +201,12 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
       {isReassessment && (
         <div className={styles.reassessmentBanner}>
           This matter has {existingAssessments.length} previous assessment{existingAssessments.length > 1 ? 's' : ''}. Submitting will create a new assessment — the original{existingAssessments.length > 1 ? 's are' : ' is'} preserved.
+        </div>
+      )}
+
+      {isCarryForwardFromOtherMatter && (
+        <div className={styles.reassessmentBanner}>
+          Client-level answers have been pre-filled from a previous assessment. Review and update as needed.
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getAssessmentWithDetails } from '@/app/actions/assessments';
-import { getEvidenceForAssessment } from '@/app/actions/evidence';
+import { getEvidenceForAssessment, getLatestSowForClient } from '@/app/actions/evidence';
 import { getProgressForAssessment } from '@/app/actions/progress';
 import { getApprovalForAssessment } from '@/app/actions/approvals';
 import { getAmiqusVerifications } from '@/app/actions/amiqus';
@@ -79,6 +79,10 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const approval = approvalResult.success ? approvalResult.approval : null;
   const amiqusVerifications = amiqusResult.success ? amiqusResult.verifications : [];
   const amiqusConfigured = !!process.env.AMIQUS_API_KEY;
+
+  // Fetch prior SoW data for pre-population (only if no SoW on this assessment yet)
+  const hasSowOnThisAssessment = evidence.some((e) => e.evidence_type === 'sow_declaration');
+  const priorSowData = hasSowOnThisAssessment ? null : await getLatestSowForClient(client.id);
   const isFinalised = assessment.finalised_at !== null;
   const isCorporate = client.client_type !== 'individual';
   const profile = await getUserProfile();
@@ -183,6 +187,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         clientEmail=""
         lastCddVerifiedAt={client.last_cdd_verified_at ?? null}
         riskLevel={assessment.risk_level}
+        priorSowData={priorSowData}
       />
 
       {/* 4. Monitoring Statement */}

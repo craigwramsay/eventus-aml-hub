@@ -77,6 +77,8 @@ interface CDDChecklistProps {
   lastCddVerifiedAt?: string | null;
   /** Assessment risk level (for carry-forward threshold) */
   riskLevel?: string;
+  /** Prior SoW declaration data from a previous client assessment (for pre-population) */
+  priorSowData?: Record<string, string | string[]> | null;
 }
 
 function formatDate(dateStr: string): string {
@@ -285,6 +287,7 @@ export function CDDChecklist({
   clientEmail = '',
   lastCddVerifiedAt,
   riskLevel,
+  priorSowData,
 }: CDDChecklistProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -719,7 +722,41 @@ export function CDDChecklist({
           <div className={styles.cddItemEvidence}>
             {itemEvidence.map((ev) => {
               if (ev.evidence_type === 'companies_house') {
-                return <CompaniesHouseCard key={ev.id} evidence={ev} />;
+                const isCarriedForward = ev.source === 'Carried forward';
+                return (
+                  <div key={ev.id}>
+                    {isCarriedForward && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          background: '#dbeafe',
+                          color: '#1e40af',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          padding: '0.125rem 0.5rem',
+                          borderRadius: '0.25rem',
+                        }}>
+                          Carried forward
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          Original lookup: {formatDate(ev.created_at)}
+                        </span>
+                      </div>
+                    )}
+                    <CompaniesHouseCard evidence={ev} />
+                    {isCarriedForward && !isFinalised && showCH && (
+                      <button
+                        type="button"
+                        className={styles.evidenceActionButton}
+                        onClick={() => handleCHLookup(action.actionId)}
+                        disabled={isPending}
+                        style={{ marginTop: '0.375rem' }}
+                      >
+                        {isPending ? 'Looking up...' : 'Refresh Lookup'}
+                      </button>
+                    )}
+                  </div>
+                );
               }
               if (ev.evidence_type === 'sow_declaration' || ev.evidence_type === 'sof_declaration') {
                 return <DeclarationCard key={ev.id} evidence={ev} />;
@@ -1060,12 +1097,15 @@ export function CDDChecklist({
             (ev) => ev.evidence_type === (formType === 'sow' ? 'sow_declaration' : 'sof_declaration')
           );
           const existingData = existingDeclaration?.data as Record<string, string | string[]> | null;
+          // For SoW, fall back to prior client data for pre-population
+          const priorData = formType === 'sow' && !existingData ? priorSowData : null;
           return (
             <SowSofForm
               formType={formType}
               formConfig={formConfig}
               assessmentId={assessmentId}
               existingData={existingData}
+              priorData={priorData}
               onClose={() => setOpenForm(null)}
             />
           );
