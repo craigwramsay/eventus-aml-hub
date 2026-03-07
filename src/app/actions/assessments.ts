@@ -17,6 +17,7 @@ import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
 import { carryForwardCompaniesHouse } from '@/app/actions/evidence';
 import type { UserRole } from '@/lib/auth/roles';
 import { getConfigForAssessment } from '@/lib/rules-engine/config-loader-server';
+import { triggerClioFinalisationSync } from '@/app/actions/clio-drive';
 
 /** Matter with joined client data */
 export interface MatterWithClient extends Matter {
@@ -679,6 +680,9 @@ export async function finaliseAssessment(
     if (auditError) {
       console.error('Failed to insert audit event:', auditError);
     }
+
+    // Clio Drive sync: upload finalisation HTML (non-blocking)
+    triggerClioFinalisationSync(assessmentId, profile.firm_id, user.id).catch(() => {});
 
     return { success: true, assessment };
   } catch (error) {

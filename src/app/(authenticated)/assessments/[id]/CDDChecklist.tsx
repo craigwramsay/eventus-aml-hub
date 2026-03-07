@@ -13,13 +13,14 @@
 import { useState, useEffect, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { MandatoryAction, EDDTriggerResult } from '@/lib/rules-engine/types';
-import type { AssessmentEvidence, CddItemProgress, AmiqusVerification } from '@/lib/supabase/types';
+import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
 import { toggleItemCompletion } from '@/app/actions/progress';
 import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved } from '@/app/actions/evidence';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
 import { initiateAmiqusVerification } from '@/app/actions/amiqus';
 import { getSowSofFormConfig } from '@/lib/rules-engine/config-loader';
 import { CompaniesHouseCard } from './CompaniesHouseCard';
+import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
 import { SowSofForm } from './SowSofForm';
 import styles from './page.module.css';
 
@@ -79,6 +80,8 @@ interface CDDChecklistProps {
   riskLevel?: string;
   /** Prior SoW declaration data from a previous client assessment (for pre-population) */
   priorSowData?: Record<string, string | string[]> | null;
+  /** Clio Drive sync records for this assessment */
+  syncRecords?: ClioDriveSync[];
 }
 
 function formatDate(dateStr: string): string {
@@ -288,6 +291,7 @@ export function CDDChecklist({
   lastCddVerifiedAt,
   riskLevel,
   priorSowData,
+  syncRecords = [],
 }: CDDChecklistProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -744,6 +748,9 @@ export function CDDChecklist({
                       </div>
                     )}
                     <CompaniesHouseCard evidence={ev} />
+                    {syncRecords.length > 0 && (
+                      <ClioDriveSyncBadge evidenceId={ev.id} syncRecords={syncRecords} />
+                    )}
                     {isCarriedForward && !isFinalised && showCH && (
                       <button
                         type="button"
@@ -786,6 +793,9 @@ export function CDDChecklist({
                   <span className={styles.evidenceMeta}>
                     {formatDate(ev.created_at)}
                   </span>
+                  {syncRecords.length > 0 && (
+                    <ClioDriveSyncBadge evidenceId={ev.id} syncRecords={syncRecords} />
+                  )}
                 </div>
               );
             })}

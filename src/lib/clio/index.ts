@@ -2,7 +2,7 @@
  * Clio Integration Module
  *
  * Client for the Clio Manage REST API v4.
- * Used for OAuth, syncing matters/contacts, and webhook management.
+ * Used for OAuth, syncing matters/contacts, webhook management, and Drive sync.
  */
 
 export {
@@ -14,6 +14,11 @@ export {
   refreshClioToken,
   registerClioWebhook,
   deleteClioWebhook,
+  findClioFolder,
+  createClioFolder,
+  ensureComplianceFolder,
+  uploadDocumentToClio,
+  getClioDocumentUrl,
 } from './client';
 
 export type {
@@ -23,4 +28,12 @@ export type {
   ClioWebhookResponse,
   ClioWebhookPayload,
   ClioApiResponse,
+  ClioFolder,
+  ClioDocument,
+  ClioFolderListResponse,
 } from './types';
+
+export { getClioAccessTokenForFirm } from './token';
+
+export { generateSowHtml, generateSofHtml } from './sow-sof-html';
+export type { SowHtmlParams, SofHtmlParams } from './sow-sof-html';

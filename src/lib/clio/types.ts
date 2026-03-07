@@ -67,3 +67,32 @@ export interface ClioWebhookPayload {
 export interface ClioApiResponse<T> {
   data: T;
 }
+
+/** Clio Drive Folder */
+export interface ClioFolder {
+  id: number;
+  etag: string;
+  name: string;
+  parent: { id: number; type: string } | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Clio Drive Document (with version info for upload) */
+export interface ClioDocument {
+  id: number;
+  etag?: string;
+  name: string;
+  latest_document_version?: {
+    uuid: string;
+    put_url: string;
+    put_headers: Array<{ name: string; value: string }>;
+  };
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Clio folder list response */
+export interface ClioFolderListResponse {
+  data: ClioFolder[];
+}

@@ -245,6 +245,29 @@ export interface FirmDocument {
   config_version_id: string | null;
 }
 
+export type ClioDriveSyncType = 'evidence' | 'finalisation_html';
+export type ClioDriveSyncStatus = 'pending' | 'uploading' | 'synced' | 'failed';
+
+export interface ClioDriveSync {
+  id: string;
+  firm_id: string;
+  assessment_id: string;
+  evidence_id: string | null;
+  sync_type: ClioDriveSyncType;
+  status: ClioDriveSyncStatus;
+  clio_matter_id: string;
+  clio_folder_id: number | null;
+  clio_document_id: number | null;
+  clio_document_url: string | null;
+  error_message: string | null;
+  retry_count: number;
+  last_attempted_at: string | null;
+  synced_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export type SourceType = 'external' | 'internal';
 
 export interface AssistantSource {
@@ -350,6 +373,11 @@ export interface Database {
         Row: FirmDocument;
         Insert: Partial<FirmDocument> & Pick<FirmDocument, 'firm_id' | 'document_type' | 'file_name' | 'file_path' | 'uploaded_by'>;
         Update: never;
+      };
+      clio_drive_sync: {
+        Row: ClioDriveSync;
+        Insert: Partial<ClioDriveSync> & Pick<ClioDriveSync, 'firm_id' | 'assessment_id' | 'sync_type' | 'clio_matter_id'>;
+        Update: Partial<Pick<ClioDriveSync, 'status' | 'clio_folder_id' | 'clio_document_id' | 'clio_document_url' | 'error_message' | 'retry_count' | 'last_attempted_at' | 'synced_at' | 'updated_at'>>;
       };
     };
     Views: Record<string, never>;

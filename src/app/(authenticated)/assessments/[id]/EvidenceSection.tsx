@@ -11,9 +11,10 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import type { AssessmentEvidence } from '@/lib/supabase/types';
+import type { AssessmentEvidence, ClioDriveSync } from '@/lib/supabase/types';
 import { uploadEvidence, addManualRecord, lookupCompaniesHouse } from '@/app/actions/evidence';
 import { CompaniesHouseCard } from './CompaniesHouseCard';
+import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
 import styles from './page.module.css';
 
 interface EvidenceSectionProps {
@@ -22,6 +23,7 @@ interface EvidenceSectionProps {
   registeredNumber: string | null;
   isCorporate: boolean;
   isFinalised: boolean;
+  syncRecords?: ClioDriveSync[];
 }
 
 function formatDate(dateStr: string): string {
@@ -46,6 +48,7 @@ export function EvidenceSection({
   registeredNumber,
   isCorporate,
   isFinalised,
+  syncRecords = [],
 }: EvidenceSectionProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -147,6 +150,9 @@ export function EvidenceSection({
                 <div className={styles.evidenceMeta}>
                   Added {formatDate(item.created_at)}
                 </div>
+                {syncRecords.length > 0 && (
+                  <ClioDriveSyncBadge evidenceId={item.id} syncRecords={syncRecords} />
+                )}
               </div>
             );
           })}

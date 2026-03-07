@@ -10,6 +10,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { AssessmentEvidence, EvidenceType } from '@/lib/supabase/types';
+import { triggerClioSync } from '@/app/actions/clio-drive';
 import { lookupCompany, CompaniesHouseError } from '@/lib/companies-house';
 import type { UserRole } from '@/lib/auth/roles';
 import { canCreateAssessment } from '@/lib/auth/roles';
@@ -204,6 +205,9 @@ export async function uploadEvidence(
       await updateClientCddDate(supabase, assessmentId, verifiedAt);
     }
 
+    // Clio Drive sync (non-blocking)
+    triggerClioSync(assessmentId, data.id, profile.firm_id, user.id).catch(() => {});
+
     return { success: true, evidence: data as AssessmentEvidence };
   } catch (err) {
     console.error('Error in uploadEvidence:', err);
@@ -366,6 +370,9 @@ export async function saveSowSofForm(
       created_by: user.id,
     });
 
+    // Non-blocking Clio Drive sync
+    triggerClioSync(assessmentId, data.id, profile.firm_id, user.id).catch(() => {});
+
     return { success: true, evidence: data as AssessmentEvidence };
   } catch (err) {
     console.error('Error in saveSowSofForm:', err);
@@ -454,6 +461,9 @@ export async function lookupCompaniesHouse(
       },
       created_by: user.id,
     });
+
+    // Clio Drive sync (non-blocking)
+    triggerClioSync(assessmentId, data.id, profile.firm_id, user.id).catch(() => {});
 
     return { success: true, evidence: data as AssessmentEvidence };
   } catch (err) {
@@ -560,6 +570,9 @@ export async function carryForwardCompaniesHouse(
       },
       created_by: userId,
     });
+
+    // Clio Drive sync (non-blocking)
+    triggerClioSync(newAssessmentId, copied.id, firmId, userId).catch(() => {});
 
     return copied as AssessmentEvidence;
   } catch (err) {

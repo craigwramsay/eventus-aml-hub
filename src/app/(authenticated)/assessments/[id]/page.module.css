@@ -1313,6 +1313,85 @@ button.evidenceCardHeader:hover {
   /* Hide expand/collapse icons */
   .expandIcon { display: none !important; }
   .collapsibleHeader { cursor: default !important; }
+
+  /* Hide Clio sync badges in print */
+  .clioSyncBadge { display: none !important; }
+}
+
+/* ── Clio Drive Sync Badges ── */
+
+.clioSyncBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+  margin-left: 0.5rem;
+}
+
+.clioSyncPending {
+  background: #f0f9ff;
+  color: #0369a1;
+}
+
+.clioSyncSpinner {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid #0369a1;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: clioSpin 0.8s linear infinite;
+}
+
+@keyframes clioSpin {
+  to { transform: rotate(360deg); }
+}
+
+.clioSyncSynced {
+  background: #d1fae5;
+  color: #065f46;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.clioSyncSynced:hover {
+  background: #a7f3d0;
+  text-decoration: underline;
+}
+
+.clioSyncFailed {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.clioRetryButton {
+  background: none;
+  border: 1px solid #991b1b;
+  color: #991b1b;
+  font-size: 0.7rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.clioRetryButton:hover {
+  background: #991b1b;
+  color: #fff;
+}
+
+.clioRetryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clioRetryError {
+  color: #991b1b;
+  font-size: 0.7rem;
 }
 
 /* ── Responsive ── */

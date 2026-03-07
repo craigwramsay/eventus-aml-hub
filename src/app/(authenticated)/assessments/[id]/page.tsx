@@ -4,6 +4,7 @@ import { getEvidenceForAssessment, getLatestSowForClient } from '@/app/actions/e
 import { getProgressForAssessment } from '@/app/actions/progress';
 import { getApprovalForAssessment } from '@/app/actions/approvals';
 import { getAmiqusVerifications } from '@/app/actions/amiqus';
+import { getClioDriveSyncForAssessment } from '@/app/actions/clio-drive';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
@@ -14,6 +15,7 @@ import { AssessmentDetail } from './AssessmentDetail';
 import { CDDChecklist } from './CDDChecklist';
 import { CDDStatusBanner } from './CDDStatusBanner';
 import { MonitoringStatement } from './MonitoringStatement';
+import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
 import type { MandatoryAction, AssessmentWarning } from '@/lib/rules-engine/types';
 import type { RiskLevel } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -53,12 +55,13 @@ function getRiskHeroClass(riskLevel: string): string {
 
 export default async function AssessmentViewPage({ params }: PageProps) {
   const { id } = await params;
-  const [result, evidenceResult, progressResult, approvalResult, amiqusResult] = await Promise.all([
+  const [result, evidenceResult, progressResult, approvalResult, amiqusResult, clioDriveSyncRecords] = await Promise.all([
     getAssessmentWithDetails(id),
     getEvidenceForAssessment(id),
     getProgressForAssessment(id),
     getApprovalForAssessment(id),
     getAmiqusVerifications(id),
+    getClioDriveSyncForAssessment(id),
   ]);
 
   if (!result.success) {
@@ -125,6 +128,15 @@ export default async function AssessmentViewPage({ params }: PageProps) {
             <span className={isFinalised ? styles.statusFinalised : styles.statusDraft}>
               {isFinalised ? 'Finalised' : 'Draft'}
             </span>
+            {isFinalised && clioDriveSyncRecords.length > 0 && (
+              <>
+                {' '}&middot;{' '}
+                <ClioDriveSyncBadge
+                  syncType="finalisation_html"
+                  syncRecords={clioDriveSyncRecords}
+                />
+              </>
+            )}
           </p>
         </div>
       </header>
@@ -188,6 +200,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         lastCddVerifiedAt={client.last_cdd_verified_at ?? null}
         riskLevel={assessment.risk_level}
         priorSowData={priorSowData}
+        syncRecords={clioDriveSyncRecords}
       />
 
       {/* 4. Monitoring Statement */}

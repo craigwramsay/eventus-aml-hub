@@ -11,6 +11,9 @@ import type {
   ClioTokenResponse,
   ClioWebhookResponse,
   ClioApiResponse,
+  ClioFolder,
+  ClioDocument,
+  ClioFolderListResponse,
 } from './types';
 
 export class ClioError extends Error {
@@ -220,4 +223,171 @@ export async function deleteClioWebhook(
       response.status
     );
   }
+}
+
+// ── Clio Drive: Folder & Document Operations ──────────────────────────
+
+/**
+ * Find a folder by name under a Clio matter.
+ * Returns null if not found.
+ */
+export async function findClioFolder(
+  clioMatterId: number,
+  folderName: string,
+  accessToken: string
+): Promise<ClioFolder | null> {
+  const fields = 'id,etag,name,parent,created_at,updated_at';
+  const params = new URLSearchParams({
+    fields,
+    parent_id: String(clioMatterId),
+    parent_type: 'Matter',
+    name: folderName,
+  });
+
+  const data = await clioFetch<ClioFolderListResponse>(
+    `/api/v4/folders.json?${params.toString()}`,
+    accessToken
+  );
+
+  return data.data.length > 0 ? data.data[0] : null;
+}
+
+/**
+ * Create a folder under a Clio matter.
+ */
+export async function createClioFolder(
+  clioMatterId: number,
+  folderName: string,
+  accessToken: string
+): Promise<ClioFolder> {
+  const fields = 'id,etag,name,parent,created_at,updated_at';
+  const data = await clioFetch<ClioApiResponse<ClioFolder>>(
+    `/api/v4/folders.json?fields=${encodeURIComponent(fields)}`,
+    accessToken,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        data: {
+          name: folderName,
+          parent: { id: clioMatterId, type: 'Matter' },
+        },
+      }),
+    }
+  );
+
+  return data.data;
+}
+
+/**
+ * Find or create the "Compliance" folder under a Clio matter.
+ * Idempotent: returns existing folder if already present.
+ * Handles race conditions (concurrent creates) by catching errors and re-finding.
+ */
+export async function ensureComplianceFolder(
+  clioMatterId: number,
+  accessToken: string
+): Promise<ClioFolder> {
+  const folderName = 'Compliance';
+
+  // Try to find existing folder first
+  const existing = await findClioFolder(clioMatterId, folderName, accessToken);
+  if (existing) return existing;
+
+  // Create the folder — handle race condition where another request creates it first
+  try {
+    return await createClioFolder(clioMatterId, folderName, accessToken);
+  } catch (err) {
+    if (err instanceof ClioError && (err.statusCode === 422 || err.statusCode === 409)) {
+      // Race condition: folder was created by another concurrent request
+      const retryFind = await findClioFolder(clioMatterId, folderName, accessToken);
+      if (retryFind) return retryFind;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Upload a document to Clio Drive (3-step process).
+ *
+ * 1. POST /documents.json → create record + get pre-signed S3 URL
+ * 2. PUT file bytes to S3
+ * 3. PATCH to mark fully_uploaded
+ */
+export async function uploadDocumentToClio(
+  folderId: number,
+  fileName: string,
+  fileContent: Buffer | Uint8Array,
+  contentType: string,
+  accessToken: string
+): Promise<ClioDocument> {
+  // Step 1: Create document record
+  const fields = 'id,name,latest_document_version{uuid,put_url,put_headers}';
+  const createResult = await clioFetch<ClioApiResponse<ClioDocument>>(
+    `/api/v4/documents.json?fields=${encodeURIComponent(fields)}`,
+    accessToken,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        data: {
+          name: fileName,
+          parent: { id: folderId, type: 'Folder' },
+        },
+      }),
+    }
+  );
+
+  const doc = createResult.data;
+  const version = doc.latest_document_version;
+  if (!version?.put_url) {
+    throw new ClioError('Clio did not return a put_url for document upload');
+  }
+
+  // Step 2: PUT file bytes to the pre-signed S3 URL
+  const putHeaders: Record<string, string> = {};
+  for (const h of version.put_headers) {
+    putHeaders[h.name] = h.value;
+  }
+  putHeaders['Content-Type'] = contentType;
+  putHeaders['Content-Length'] = String(fileContent.byteLength);
+
+  const putResponse = await fetch(version.put_url, {
+    method: 'PUT',
+    headers: putHeaders,
+    body: new Uint8Array(fileContent),
+  });
+
+  if (!putResponse.ok) {
+    throw new ClioError(
+      `S3 upload failed: ${putResponse.status} ${putResponse.statusText}`,
+      putResponse.status
+    );
+  }
+
+  // Step 3: PATCH to mark fully_uploaded
+  await clioFetch<ClioApiResponse<ClioDocument>>(
+    `/api/v4/documents/${doc.id}.json`,
+    accessToken,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        data: {
+          latest_document_version: {
+            uuid: version.uuid,
+            fully_uploaded: true,
+          },
+        },
+      }),
+    }
+  );
+
+  return doc;
+}
+
+/**
+ * Build the Clio web UI URL for a document.
+ * Uses the Clio Manage hash-based routing format.
+ */
+export function getClioDocumentUrl(documentId: number): string {
+  const baseUrl = getClioBaseUrl();
+  return `${baseUrl}/nc/#/documents/${documentId}`;
 }
