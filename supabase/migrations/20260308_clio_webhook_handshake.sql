@@ -7,6 +7,9 @@
 -- This table temporarily stores the secret during the handshake so the callback
 -- route can retrieve it after the registration API call completes.
 
+-- Ensure pgcrypto is available (needed for hmac() in verify_clio_webhook)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE clio_webhook_handshakes (
   webhook_id text PRIMARY KEY,
   secret     text NOT NULL,
@@ -70,7 +73,7 @@ CREATE OR REPLACE FUNCTION verify_clio_webhook(
 RETURNS TABLE(firm_id uuid, access_token text)
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   r RECORD;
