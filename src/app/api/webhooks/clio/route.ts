@@ -126,13 +126,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    console.log('Clio webhook received, action:', payload.action, 'data.id:', payload.data?.id);
+    // Log full payload structure so we can see exactly what Clio sends
+    console.log('Clio webhook payload keys:', Object.keys(payload));
+    console.log('Clio webhook payload:', JSON.stringify(payload).substring(0, 500));
 
-    // Handle matter creation event
-    // Clio uses 'action' field (not 'type') — may send 'matter.created' or 'matter.create'
-    const action = payload.action ?? '';
-    const isMatterCreate = action === 'matter.created' || action === 'matter.create';
-    if (isMatterCreate && payload.data?.id) {
+    // This webhook is ONLY registered for model:"matter", events:["created"].
+    // Clio doesn't reliably include an event/action/type field in the payload,
+    // so we process any valid payload that has data.id as a matter creation.
+    if (payload.data?.id) {
       const matterId = payload.data.id;
 
       // Fetch full matter details from Clio API (webhook payloads are minimal)
@@ -173,12 +174,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Auto-renew webhook if expiring within 2 days
-    // (runs in background after processing, non-blocking)
-    renewWebhookIfNeeded(supabase, firm_id, access_token).catch(() => {});
-
-    // Unhandled event action — acknowledge but don't process
-    return NextResponse.json({ status: 'ignored', action });
+    // No data.id in payload — nothing to process
+    console.warn('Clio webhook payload has no data.id, ignoring');
+    return NextResponse.json({ status: 'ignored', reason: 'no_data_id' });
   } catch (err) {
     console.error('Clio webhook error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
