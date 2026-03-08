@@ -81,6 +81,38 @@ export async function GET(request: NextRequest) {
       ['created']
     );
 
+    // Log full webhook response for debugging field names
+    console.log('Clio webhook registration response:', JSON.stringify(webhook.data, null, 2));
+
+    // Resolve the webhook secret: try API response first, then handshake table.
+    // Clio shares the secret via X-Hook-Secret header during handshake, which our
+    // webhook handler stores in a temp table. The API response may or may not include it.
+    const webhookData = webhook.data as Record<string, unknown>;
+    let webhookSecret =
+      webhookData.shared_secret ??
+      webhookData.secret ??
+      null;
+
+    if (!webhookSecret) {
+      console.log('Webhook secret not in API response, checking handshake table...');
+      const { data: handshakeSecret } = await supabase.rpc(
+        'get_clio_webhook_handshake',
+        { p_webhook_id: String(webhook.data.id) }
+      );
+      if (handshakeSecret) {
+        webhookSecret = handshakeSecret;
+        console.log('Retrieved webhook secret from handshake table');
+      } else {
+        console.error('No webhook secret found in API response or handshake table!');
+      }
+    }
+
+    // Resolve expires_at: try both 'expires_at' and 'expired_at' field names
+    const webhookExpiresAt =
+      webhookData.expires_at ??
+      webhookData.expired_at ??
+      null;
+
     // Upsert firm_integrations row
     const { error: upsertErr } = await supabase
       .from('firm_integrations')
@@ -92,8 +124,8 @@ export async function GET(request: NextRequest) {
           refresh_token: tokens.refresh_token,
           token_expires_at: tokenExpiresAt,
           webhook_id: String(webhook.data.id),
-          webhook_secret: webhook.data.shared_secret,
-          webhook_expires_at: webhook.data.expires_at,
+          webhook_secret: webhookSecret as string | null,
+          webhook_expires_at: webhookExpiresAt as string | null,
           config: { region: process.env.CLIO_REGION || 'us' },
           connected_at: new Date().toISOString(),
           connected_by: user.id,
@@ -116,7 +148,8 @@ export async function GET(request: NextRequest) {
       action: 'clio_connected',
       metadata: {
         webhook_id: String(webhook.data.id),
-        webhook_expires_at: webhook.data.expires_at,
+        webhook_expires_at: webhookExpiresAt,
+        secret_source: webhookData.shared_secret ? 'api_response' : 'handshake',
       },
       created_by: user.id,
     });

@@ -87,12 +87,26 @@ export async function GET(request: NextRequest) {
         const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/clio`;
         const webhook = await registerClioWebhook(accessToken, webhookUrl, ['created']);
 
+        // Resolve secret: try API response first, then handshake table
+        const webhookData = webhook.data as Record<string, unknown>;
+        let webhookSecret = (webhookData.shared_secret ?? webhookData.secret ?? null) as string | null;
+
+        if (!webhookSecret) {
+          const { data: handshakeSecret } = await supabase.rpc(
+            'get_clio_webhook_handshake',
+            { p_webhook_id: String(webhook.data.id) }
+          );
+          if (handshakeSecret) webhookSecret = handshakeSecret;
+        }
+
+        const webhookExpiresAt = (webhookData.expires_at ?? webhookData.expired_at ?? null) as string | null;
+
         // Update DB via RPC
         const { error: updateErr } = await supabase.rpc('update_clio_webhook', {
           p_integration_id: integration.integration_id,
           p_webhook_id: String(webhook.data.id),
-          p_webhook_secret: webhook.data.shared_secret,
-          p_webhook_expires_at: webhook.data.expires_at,
+          p_webhook_secret: webhookSecret,
+          p_webhook_expires_at: webhookExpiresAt,
           p_access_token: newAccessToken,
           p_refresh_token: newRefreshToken,
           p_token_expires_at: newTokenExpiresAt,

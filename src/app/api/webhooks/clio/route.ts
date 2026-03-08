@@ -19,8 +19,26 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
 
     // Handle Clio webhook handshake: if X-Hook-Secret is present, echo it back
+    // AND store the secret in the database for the callback route to retrieve.
+    // Clio shares the HMAC secret via this handshake header, not in the API response.
     const hookSecret = request.headers.get('X-Hook-Secret');
     if (hookSecret) {
+      // Parse body to get the webhook ID so we can store the secret keyed by webhook ID
+      try {
+        const handshakePayload = JSON.parse(body || '{}');
+        const webhookId = handshakePayload?.data?.id ?? handshakePayload?.id;
+        if (webhookId) {
+          const supabase = await createClient();
+          await supabase.rpc('store_clio_webhook_handshake', {
+            p_webhook_id: String(webhookId),
+            p_secret: hookSecret,
+          });
+        }
+      } catch {
+        // Non-fatal — the callback can still try the API response
+        console.warn('Failed to store webhook handshake secret');
+      }
+
       return new NextResponse(null, {
         status: 200,
         headers: { 'X-Hook-Secret': hookSecret },
@@ -44,6 +62,8 @@ export async function POST(request: NextRequest) {
 
     if (verifyErr || !verifyResult || verifyResult.length === 0) {
       console.error('Clio webhook signature verification failed:', verifyErr);
+      console.error('Signature (first 16 chars):', signature?.substring(0, 16) + '...');
+      console.error('Signature length:', signature?.length, 'Body length:', body.length);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
@@ -147,12 +167,26 @@ async function renewWebhookIfNeeded(
   const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/clio`;
   const webhook = await registerClioWebhook(accessToken, webhookUrl, ['created']);
 
+  // Resolve secret: try API response first, then handshake table
+  const webhookData = webhook.data as Record<string, unknown>;
+  let webhookSecret = webhookData.shared_secret ?? webhookData.secret ?? null;
+
+  if (!webhookSecret) {
+    const { data: handshakeSecret } = await supabase.rpc(
+      'get_clio_webhook_handshake',
+      { p_webhook_id: String(webhook.data.id) }
+    );
+    if (handshakeSecret) webhookSecret = handshakeSecret;
+  }
+
+  const webhookExpiresAt = webhookData.expires_at ?? webhookData.expired_at ?? null;
+
   await supabase
     .from('firm_integrations')
     .update({
       webhook_id: String(webhook.data.id),
-      webhook_secret: webhook.data.shared_secret,
-      webhook_expires_at: webhook.data.expires_at,
+      webhook_secret: webhookSecret as string | null,
+      webhook_expires_at: webhookExpiresAt as string | null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', integration.id);

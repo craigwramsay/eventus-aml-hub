@@ -212,13 +212,27 @@ export async function renewClioWebhook(): Promise<DisconnectResult> {
     const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/clio`;
     const webhook = await registerClioWebhook(accessToken!, webhookUrl, ['created']);
 
+    // Resolve secret: try API response first, then handshake table
+    const webhookData = webhook.data as Record<string, unknown>;
+    let webhookSecret = webhookData.shared_secret ?? webhookData.secret ?? null;
+
+    if (!webhookSecret) {
+      const { data: handshakeSecret } = await supabase.rpc(
+        'get_clio_webhook_handshake',
+        { p_webhook_id: String(webhook.data.id) }
+      );
+      if (handshakeSecret) webhookSecret = handshakeSecret;
+    }
+
+    const webhookExpiresAt = webhookData.expires_at ?? webhookData.expired_at ?? null;
+
     // Update DB
     const { error: updateErr } = await supabase
       .from('firm_integrations')
       .update({
         webhook_id: String(webhook.data.id),
-        webhook_secret: webhook.data.shared_secret,
-        webhook_expires_at: webhook.data.expires_at,
+        webhook_secret: webhookSecret as string | null,
+        webhook_expires_at: webhookExpiresAt as string | null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', typed.id);
@@ -236,7 +250,7 @@ export async function renewClioWebhook(): Promise<DisconnectResult> {
       action: 'clio_webhook_renewed',
       metadata: {
         webhook_id: String(webhook.data.id),
-        webhook_expires_at: webhook.data.expires_at,
+        webhook_expires_at: webhookExpiresAt,
       },
       created_by: user.id,
     });
