@@ -3,13 +3,14 @@
  *
  * POST /api/webhooks/clio
  * Receives webhook events from Clio (matter.create, etc.).
- * Verifies HMAC signature via SECURITY DEFINER RPC, then processes the event.
+ * Verifies HMAC signature using Node.js crypto, then processes the event.
  *
  * No user session required — webhook endpoints are in PUBLIC_ROUTES.
  * All DB writes happen through SECURITY DEFINER functions.
  */
 
 import { NextResponse, type NextRequest } from 'next/server';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import { fetchClioMatter, fetchClioContact, registerClioWebhook, deleteClioWebhook } from '@/lib/clio';
 import type { ClioWebhookPayload } from '@/lib/clio';
@@ -64,21 +65,53 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Call RPC to verify signature against stored webhook secrets
-    const { data: verifyResult, error: verifyErr } = await supabase
-      .rpc('verify_clio_webhook', {
-        p_signature: signature,
-        p_body: body,
-      });
+    // Verify HMAC signature in Node.js (avoids pgcrypto dependency issues)
+    // Fetch all Clio integrations with webhook secrets via SECURITY DEFINER RPC
+    const { data: integrations, error: fetchErr } = await supabase
+      .rpc('get_clio_integrations_for_verification');
 
-    if (verifyErr || !verifyResult || verifyResult.length === 0) {
-      console.error('Clio webhook signature verification failed:', verifyErr);
-      console.error('Signature (first 16 chars):', signature?.substring(0, 16) + '...');
-      console.error('Signature length:', signature?.length, 'Body length:', body.length);
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    if (fetchErr || !integrations || integrations.length === 0) {
+      console.error('Failed to fetch Clio integrations for verification:', fetchErr);
+      return NextResponse.json({ error: 'No integrations configured' }, { status: 401 });
     }
 
-    const { firm_id, access_token } = verifyResult[0];
+    // Try each integration's secret to find a match
+    let firm_id: string | null = null;
+    let access_token: string | null = null;
+
+    for (const integration of integrations) {
+      const computed = createHmac('sha256', integration.webhook_secret)
+        .update(body)
+        .digest('hex');
+
+      // Use timing-safe comparison to prevent timing attacks
+      try {
+        const sigBuf = Buffer.from(signature, 'utf8');
+        const computedBuf = Buffer.from(computed, 'utf8');
+        if (sigBuf.length === computedBuf.length && timingSafeEqual(sigBuf, computedBuf)) {
+          firm_id = integration.firm_id;
+          access_token = integration.access_token;
+          break;
+        }
+      } catch {
+        // Length mismatch — not a match, try next
+      }
+    }
+
+    if (!firm_id || !access_token) {
+      console.error('Clio webhook signature verification failed: no matching secret');
+      console.error('Signature (first 16 chars):', signature?.substring(0, 16) + '...');
+      console.error('Signature length:', signature?.length, 'Body length:', body.length);
+      // Log computed HMAC for first integration (for debugging)
+      if (integrations.length > 0) {
+        const debugHmac = createHmac('sha256', integrations[0].webhook_secret)
+          .update(body)
+          .digest('hex');
+        console.error('Computed HMAC (first 16 chars):', debugHmac.substring(0, 16) + '...');
+        console.error('Secret (first 8 chars):', integrations[0].webhook_secret.substring(0, 8) + '...');
+      }
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
 
     if (!access_token) {
       console.error('No access token available for firm:', firm_id);

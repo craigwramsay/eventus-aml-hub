@@ -64,52 +64,19 @@ BEGIN
 END;
 $$;
 
--- Update verify_clio_webhook to try BOTH hex and base64 HMAC encoding.
--- Different Clio regions or API versions may use different encoding.
-CREATE OR REPLACE FUNCTION verify_clio_webhook(
-  p_signature text,
-  p_body text
-)
-RETURNS TABLE(firm_id uuid, access_token text)
+-- Return Clio integrations with webhook secrets for HMAC verification in app code.
+-- HMAC is computed in Node.js (crypto.createHmac) to avoid pgcrypto dependency issues.
+CREATE OR REPLACE FUNCTION get_clio_integrations_for_verification()
+RETURNS TABLE(firm_id uuid, access_token text, webhook_secret text)
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, extensions
+SET search_path = public
 AS $$
-DECLARE
-  r RECORD;
-  computed_hmac_hex text;
-  computed_hmac_b64 text;
 BEGIN
-  FOR r IN
+  RETURN QUERY
     SELECT fi.firm_id, fi.access_token, fi.webhook_secret
     FROM firm_integrations fi
     WHERE fi.provider = 'clio'
-      AND fi.webhook_secret IS NOT NULL
-  LOOP
-    -- Try hex encoding (most common)
-    computed_hmac_hex := encode(
-      hmac(convert_to(p_body, 'UTF8'), convert_to(r.webhook_secret, 'UTF8'), 'sha256'),
-      'hex'
-    );
-    IF computed_hmac_hex = p_signature THEN
-      firm_id := r.firm_id;
-      access_token := r.access_token;
-      RETURN NEXT;
-      RETURN;
-    END IF;
-
-    -- Try base64 encoding (alternative)
-    computed_hmac_b64 := encode(
-      hmac(convert_to(p_body, 'UTF8'), convert_to(r.webhook_secret, 'UTF8'), 'sha256'),
-      'base64'
-    );
-    IF computed_hmac_b64 = p_signature THEN
-      firm_id := r.firm_id;
-      access_token := r.access_token;
-      RETURN NEXT;
-      RETURN;
-    END IF;
-  END LOOP;
-  -- No match found — return empty
+      AND fi.webhook_secret IS NOT NULL;
 END;
 $$;
