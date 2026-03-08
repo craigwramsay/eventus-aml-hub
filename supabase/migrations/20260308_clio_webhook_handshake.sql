@@ -34,7 +34,8 @@ BEGIN
 END;
 $$;
 
--- Retrieve and delete the handshake secret (called by callback route)
+-- Retrieve the handshake secret (non-destructive for polling support).
+-- Cleans up stale records older than 1 hour.
 CREATE OR REPLACE FUNCTION get_clio_webhook_handshake(p_webhook_id text)
 RETURNS text
 LANGUAGE plpgsql
@@ -44,11 +45,16 @@ AS $$
 DECLARE
   v_secret text;
 BEGIN
-  DELETE FROM clio_webhook_handshakes
-  WHERE webhook_id = p_webhook_id
-  RETURNING secret INTO v_secret;
+  SELECT secret INTO v_secret
+  FROM clio_webhook_handshakes
+  WHERE webhook_id = p_webhook_id;
 
-  -- Also clean up any stale handshake records (older than 1 hour)
+  -- If found, delete it (consumed)
+  IF v_secret IS NOT NULL THEN
+    DELETE FROM clio_webhook_handshakes WHERE webhook_id = p_webhook_id;
+  END IF;
+
+  -- Clean up any stale handshake records (older than 1 hour)
   DELETE FROM clio_webhook_handshakes WHERE created_at < now() - interval '1 hour';
 
   RETURN v_secret;

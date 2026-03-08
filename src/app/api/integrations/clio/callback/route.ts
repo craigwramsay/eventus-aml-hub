@@ -94,27 +94,38 @@ export async function GET(request: NextRequest) {
       null;
 
     if (!webhookSecret) {
-      console.log('Webhook secret not in API response, checking handshake table...');
-      // Try by webhook ID first, then by 'pending' key (fallback when handshake body is empty)
-      const { data: handshakeSecret } = await supabase.rpc(
-        'get_clio_webhook_handshake',
-        { p_webhook_id: String(webhook.data.id) }
-      );
-      if (handshakeSecret) {
-        webhookSecret = handshakeSecret;
-        console.log('Retrieved webhook secret from handshake table (by webhook ID)');
-      } else {
-        // Try 'pending' key — used when handshake body didn't contain webhook ID
-        const { data: pendingSecret } = await supabase.rpc(
+      console.log('Webhook secret not in API response, polling handshake table...');
+      // Clio sends the handshake POST asynchronously — it may arrive AFTER the
+      // API response returns. Poll the handshake table with retries to handle this.
+      const webhookIdStr = String(webhook.data.id);
+      for (let attempt = 0; attempt < 6; attempt++) {
+        // Try by webhook ID first
+        const { data: byId } = await supabase.rpc(
+          'get_clio_webhook_handshake',
+          { p_webhook_id: webhookIdStr }
+        );
+        if (byId) {
+          webhookSecret = byId;
+          console.log(`Retrieved webhook secret by webhook ID (attempt ${attempt + 1})`);
+          break;
+        }
+        // Try 'pending' key
+        const { data: byPending } = await supabase.rpc(
           'get_clio_webhook_handshake',
           { p_webhook_id: 'pending' }
         );
-        if (pendingSecret) {
-          webhookSecret = pendingSecret;
-          console.log('Retrieved webhook secret from handshake table (pending key)');
-        } else {
-          console.error('No webhook secret found in API response or handshake table!');
+        if (byPending) {
+          webhookSecret = byPending;
+          console.log(`Retrieved webhook secret by pending key (attempt ${attempt + 1})`);
+          break;
         }
+        // Wait 500ms before retrying (Clio handshake is typically <1s after API response)
+        if (attempt < 5) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      if (!webhookSecret) {
+        console.error('No webhook secret found after 3s of polling!');
       }
     }
 
