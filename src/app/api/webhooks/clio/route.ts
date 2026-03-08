@@ -23,20 +23,31 @@ export async function POST(request: NextRequest) {
     // Clio shares the HMAC secret via this handshake header, not in the API response.
     const hookSecret = request.headers.get('X-Hook-Secret');
     if (hookSecret) {
-      // Parse body to get the webhook ID so we can store the secret keyed by webhook ID
+      console.log('Clio webhook handshake received, body:', body || '(empty)');
+
+      // Store the secret keyed by webhook ID (parsed from body) or 'pending' as fallback.
+      // The callback route will retrieve it after registerClioWebhook returns.
       try {
-        const handshakePayload = JSON.parse(body || '{}');
-        const webhookId = handshakePayload?.data?.id ?? handshakePayload?.id;
-        if (webhookId) {
-          const supabase = await createClient();
-          await supabase.rpc('store_clio_webhook_handshake', {
-            p_webhook_id: String(webhookId),
-            p_secret: hookSecret,
-          });
+        let webhookId = 'pending';
+        if (body) {
+          try {
+            const handshakePayload = JSON.parse(body);
+            const parsedId = handshakePayload?.data?.id ?? handshakePayload?.id;
+            if (parsedId) webhookId = String(parsedId);
+          } catch {
+            // Body isn't JSON — use 'pending' key
+          }
         }
-      } catch {
-        // Non-fatal — the callback can still try the API response
-        console.warn('Failed to store webhook handshake secret');
+
+        console.log('Storing handshake secret with key:', webhookId);
+        const supabase = await createClient();
+        await supabase.rpc('store_clio_webhook_handshake', {
+          p_webhook_id: webhookId,
+          p_secret: hookSecret,
+        });
+        console.log('Handshake secret stored successfully');
+      } catch (err) {
+        console.error('Failed to store webhook handshake secret:', err);
       }
 
       return new NextResponse(null, {
@@ -176,7 +187,15 @@ async function renewWebhookIfNeeded(
       'get_clio_webhook_handshake',
       { p_webhook_id: String(webhook.data.id) }
     );
-    if (handshakeSecret) webhookSecret = handshakeSecret;
+    if (handshakeSecret) {
+      webhookSecret = handshakeSecret;
+    } else {
+      const { data: pendingSecret } = await supabase.rpc(
+        'get_clio_webhook_handshake',
+        { p_webhook_id: 'pending' }
+      );
+      if (pendingSecret) webhookSecret = pendingSecret;
+    }
   }
 
   const webhookExpiresAt = webhookData.expires_at ?? webhookData.expired_at ?? null;

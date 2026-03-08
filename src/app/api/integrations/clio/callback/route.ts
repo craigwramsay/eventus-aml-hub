@@ -95,15 +95,26 @@ export async function GET(request: NextRequest) {
 
     if (!webhookSecret) {
       console.log('Webhook secret not in API response, checking handshake table...');
+      // Try by webhook ID first, then by 'pending' key (fallback when handshake body is empty)
       const { data: handshakeSecret } = await supabase.rpc(
         'get_clio_webhook_handshake',
         { p_webhook_id: String(webhook.data.id) }
       );
       if (handshakeSecret) {
         webhookSecret = handshakeSecret;
-        console.log('Retrieved webhook secret from handshake table');
+        console.log('Retrieved webhook secret from handshake table (by webhook ID)');
       } else {
-        console.error('No webhook secret found in API response or handshake table!');
+        // Try 'pending' key — used when handshake body didn't contain webhook ID
+        const { data: pendingSecret } = await supabase.rpc(
+          'get_clio_webhook_handshake',
+          { p_webhook_id: 'pending' }
+        );
+        if (pendingSecret) {
+          webhookSecret = pendingSecret;
+          console.log('Retrieved webhook secret from handshake table (pending key)');
+        } else {
+          console.error('No webhook secret found in API response or handshake table!');
+        }
       }
     }
 

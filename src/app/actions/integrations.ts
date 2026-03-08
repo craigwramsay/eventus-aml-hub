@@ -221,7 +221,15 @@ export async function renewClioWebhook(): Promise<DisconnectResult> {
         'get_clio_webhook_handshake',
         { p_webhook_id: String(webhook.data.id) }
       );
-      if (handshakeSecret) webhookSecret = handshakeSecret;
+      if (handshakeSecret) {
+        webhookSecret = handshakeSecret;
+      } else {
+        const { data: pendingSecret } = await supabase.rpc(
+          'get_clio_webhook_handshake',
+          { p_webhook_id: 'pending' }
+        );
+        if (pendingSecret) webhookSecret = pendingSecret;
+      }
     }
 
     const webhookExpiresAt = webhookData.expires_at ?? webhookData.expired_at ?? null;

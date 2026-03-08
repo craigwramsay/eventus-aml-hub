@@ -96,7 +96,15 @@ export async function GET(request: NextRequest) {
             'get_clio_webhook_handshake',
             { p_webhook_id: String(webhook.data.id) }
           );
-          if (handshakeSecret) webhookSecret = handshakeSecret;
+          if (handshakeSecret) {
+            webhookSecret = handshakeSecret;
+          } else {
+            const { data: pendingSecret } = await supabase.rpc(
+              'get_clio_webhook_handshake',
+              { p_webhook_id: 'pending' }
+            );
+            if (pendingSecret) webhookSecret = pendingSecret as string;
+          }
         }
 
         const webhookExpiresAt = (webhookData.expires_at ?? webhookData.expired_at ?? null) as string | null;
