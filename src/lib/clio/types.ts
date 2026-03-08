@@ -56,11 +56,13 @@ export interface ClioWebhookResponse {
 }
 
 export interface ClioWebhookPayload {
-  type: string;
+  /** Clio uses 'action' (e.g. 'matter.create', 'matter.updated') — NOT 'type'. */
+  action: string;
   data: {
     id: number;
-    url: string;
+    url?: string;
     etag?: string;
+    [key: string]: unknown;
   };
 }
 

@@ -126,10 +126,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    console.log('Clio webhook received, type:', payload.type, 'data.id:', payload.data?.id);
+    console.log('Clio webhook received, action:', payload.action, 'data.id:', payload.data?.id);
 
-    // Handle matter creation event (Clio may send 'created' or 'create')
-    const isMatterCreate = payload.type === 'matter.created' || payload.type === 'matter.create';
+    // Handle matter creation event
+    // Clio uses 'action' field (not 'type') — may send 'matter.created' or 'matter.create'
+    const action = payload.action ?? '';
+    const isMatterCreate = action === 'matter.created' || action === 'matter.create';
     if (isMatterCreate && payload.data?.id) {
       const matterId = payload.data.id;
 
@@ -175,8 +177,8 @@ export async function POST(request: NextRequest) {
     // (runs in background after processing, non-blocking)
     renewWebhookIfNeeded(supabase, firm_id, access_token).catch(() => {});
 
-    // Unhandled event type — acknowledge but don't process
-    return NextResponse.json({ status: 'ignored', type: payload.type });
+    // Unhandled event action — acknowledge but don't process
+    return NextResponse.json({ status: 'ignored', action });
   } catch (err) {
     console.error('Clio webhook error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
