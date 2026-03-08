@@ -126,8 +126,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    // Handle matter.create event
-    if (payload.type === 'matter.create' && payload.data?.id) {
+    console.log('Clio webhook received, type:', payload.type, 'data.id:', payload.data?.id);
+
+    // Handle matter creation event (Clio may send 'created' or 'create')
+    const isMatterCreate = payload.type === 'matter.created' || payload.type === 'matter.create';
+    if (isMatterCreate && payload.data?.id) {
       const matterId = payload.data.id;
 
       // Fetch full matter details from Clio API (webhook payloads are minimal)
