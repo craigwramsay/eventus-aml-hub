@@ -88,7 +88,7 @@ BEGIN
   LOOP
     -- Try hex encoding (most common)
     computed_hmac_hex := encode(
-      hmac(p_body::bytea, r.webhook_secret::bytea, 'sha256'),
+      hmac(convert_to(p_body, 'UTF8'), convert_to(r.webhook_secret, 'UTF8'), 'sha256'),
       'hex'
     );
     IF computed_hmac_hex = p_signature THEN
@@ -100,7 +100,7 @@ BEGIN
 
     -- Try base64 encoding (alternative)
     computed_hmac_b64 := encode(
-      hmac(p_body::bytea, r.webhook_secret::bytea, 'sha256'),
+      hmac(convert_to(p_body, 'UTF8'), convert_to(r.webhook_secret, 'UTF8'), 'sha256'),
       'base64'
     );
     IF computed_hmac_b64 = p_signature THEN
