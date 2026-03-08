@@ -194,14 +194,14 @@ BEGIN
   VALUES (
     p_firm_id,
     'matter',
-    v_matter_id::text,
+    v_matter_id,
     'clio_webhook_sync',
     jsonb_build_object(
       'clio_matter_id', p_clio_matter_id,
       'clio_contact_id', p_clio_contact_id,
       'contact_name', p_contact_name
     ),
-    COALESCE(p_user_id, '00000000-0000-0000-0000-000000000000')
+    NULLIF(p_user_id, '00000000-0000-0000-0000-000000000000')
   );
 
   RETURN jsonb_build_object(
