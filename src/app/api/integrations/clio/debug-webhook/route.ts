@@ -54,8 +54,9 @@ export async function GET() {
     if (integration.webhook_id && integration.access_token) {
       try {
         const baseUrl = getClioBaseUrl();
+        const fields = 'id,etag,url,model,events,status,expires_at,created_at,updated_at,shared_secret';
         const response = await fetch(
-          `${baseUrl}/api/v4/webhooks/${integration.webhook_id}.json`,
+          `${baseUrl}/api/v4/webhooks/${integration.webhook_id}.json?fields=${encodeURIComponent(fields)}`,
           {
             headers: {
               Authorization: `Bearer ${integration.access_token}`,
@@ -78,8 +79,9 @@ export async function GET() {
       // Also list ALL webhooks to see what's registered
       try {
         const baseUrl = getClioBaseUrl();
+        const listFields = 'id,url,model,events,status,expires_at';
         const response = await fetch(
-          `${baseUrl}/api/v4/webhooks.json`,
+          `${baseUrl}/api/v4/webhooks.json?fields=${encodeURIComponent(listFields)}`,
           {
             headers: {
               Authorization: `Bearer ${integration.access_token}`,
