@@ -5,6 +5,14 @@
  * Saved to Clio Drive so users can find the assessment from within Clio.
  */
 
+interface ActionEvidence {
+  type: string;           // 'amiqus', 'file_upload', 'companies_house', 'manual_record', etc.
+  source: string;         // 'Amiqus', 'Manual', 'Companies House', etc.
+  verifiedAt?: string;    // Date string
+  label?: string;         // Evidence label
+  amiqusUrl?: string;     // Link to Amiqus record (for identity verification)
+}
+
 interface AssessmentHtmlParams {
   assessmentId: string;
   assessmentReference: string;
@@ -14,8 +22,11 @@ interface AssessmentHtmlParams {
   score: number;
   finalisedAt: string;
   mandatoryActions: Array<{
+    actionId?: string;
     description: string;
     category: string;
+    completed?: boolean;
+    evidence?: ActionEvidence[];
   }>;
   eddTriggers?: Array<{ description: string }>;
   clioDocuments?: Array<{ label: string; url: string }>;
@@ -85,24 +96,55 @@ export function generateAssessmentHtml(params: AssessmentHtmlParams): string {
   });
 
   // Group actions by category
-  const actionsByCategory = new Map<string, string[]>();
+  type ActionEntry = typeof mandatoryActions[number];
+  const actionsByCategory = new Map<string, ActionEntry[]>();
   for (const action of mandatoryActions) {
     const cat = action.category;
     if (!actionsByCategory.has(cat)) {
       actionsByCategory.set(cat, []);
     }
-    actionsByCategory.get(cat)!.push(action.description);
+    actionsByCategory.get(cat)!.push(action);
   }
 
+  // Count completed vs total
+  const hasEvidenceData = mandatoryActions.some(a => a.completed !== undefined);
+  const completedCount = mandatoryActions.filter(a => a.completed).length;
+  const totalCount = mandatoryActions.length;
+
   let actionsHtml = '';
-  for (const [category, descriptions] of actionsByCategory) {
+
+  if (hasEvidenceData) {
+    actionsHtml += `<p style="margin:0 0 12px;font-size:13px;color:#666;">${completedCount} of ${totalCount} requirements completed</p>`;
+  }
+
+  for (const [category, actions] of actionsByCategory) {
     const label = CATEGORY_LABELS[category] || category;
     actionsHtml += `<h3 style="margin:16px 0 8px;font-size:14px;color:#333;">${escapeHtml(label)}</h3>`;
-    actionsHtml += '<ul style="margin:0 0 8px;padding-left:24px;">';
-    for (const desc of descriptions) {
-      actionsHtml += `<li style="margin:4px 0;font-size:13px;color:#444;">${escapeHtml(desc)}</li>`;
+
+    for (const action of actions) {
+      const checkmark = action.completed
+        ? '<span style="color:#155724;font-weight:bold;">&#10003;</span>'
+        : '<span style="color:#999;">&#10007;</span>';
+      const statusIndicator = hasEvidenceData ? `${checkmark} ` : '';
+
+      actionsHtml += `<div style="margin:6px 0;padding:8px 12px;background:#f8f9fa;border-radius:4px;border-left:3px solid ${action.completed ? '#28a745' : '#dee2e6'};">`;
+      actionsHtml += `<div style="font-size:13px;color:#333;">${statusIndicator}${escapeHtml(action.description)}</div>`;
+
+      // Show evidence details if present
+      if (action.evidence && action.evidence.length > 0) {
+        for (const ev of action.evidence) {
+          const datePart = ev.verifiedAt
+            ? ` &mdash; ${new Date(ev.verifiedAt + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+            : '';
+          const linkPart = ev.amiqusUrl
+            ? ` &mdash; <a href="${escapeHtml(ev.amiqusUrl)}" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">View in Amiqus</a>`
+            : '';
+          actionsHtml += `<div style="font-size:12px;color:#666;margin-top:4px;padding-left:18px;">${escapeHtml(ev.source)}${datePart}${linkPart}</div>`;
+        }
+      }
+
+      actionsHtml += '</div>';
     }
-    actionsHtml += '</ul>';
   }
 
   let eddHtml = '';
