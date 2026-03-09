@@ -17,7 +17,7 @@ import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDrive
 import { toggleItemCompletion } from '@/app/actions/progress';
 import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved } from '@/app/actions/evidence';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
-import { initiateAmiqusVerification } from '@/app/actions/amiqus';
+import { initiateAmiqusVerification, linkExistingAmiqusRecord } from '@/app/actions/amiqus';
 import { getSowSofFormConfig } from '@/lib/rules-engine/config-loader';
 import { CompaniesHouseCard } from './CompaniesHouseCard';
 import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
@@ -304,6 +304,8 @@ export function CDDChecklist({
   const [verifiedAt, setVerifiedAt] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
   const [confirmingAction, setConfirmingAction] = useState<string | null>(null);
+  const [openLinkAmiqus, setOpenLinkAmiqus] = useState<string | null>(null);
+  const [linkRecordId, setLinkRecordId] = useState('');
 
   // Build a set of completed action IDs for optimistic UI
   const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(() => {
@@ -467,6 +469,32 @@ export function CDDChecklist({
       }
     });
   }, [assessmentId, clientName, clientEmail, router, startTransition]);
+
+  const handleLinkAmiqus = useCallback((actionId: string, e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    const recordId = parseInt(linkRecordId, 10);
+    if (isNaN(recordId) || recordId <= 0) {
+      setError('Please enter a valid Amiqus record ID');
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await linkExistingAmiqusRecord(assessmentId, actionId, recordId);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setOpenLinkAmiqus(null);
+        setLinkRecordId('');
+        setOptimisticCompleted(prev => {
+          const next = new Set(prev);
+          next.add(actionId);
+          return next;
+        });
+        router.refresh();
+      }
+    });
+  }, [assessmentId, linkRecordId, router, startTransition]);
 
   const handleConfirmStillValid = useCallback((actionId: string) => {
     if (!lastCddVerifiedAt || !riskLevel) return;
@@ -836,14 +864,29 @@ export function CDDChecklist({
               const verification = amiqusVerificationByAction.get(action.actionId);
               if (!verification && amiqusConfigured) {
                 return (
-                  <button
-                    type="button"
-                    className={styles.amiqusLinkButton}
-                    onClick={() => handleInitiateAmiqus(action.actionId)}
-                    disabled={isPending || !clientEmail}
-                  >
-                    {isPending ? 'Initiating...' : 'Initiate Amiqus Verification'}
-                  </button>
+                  <div className={styles.amiqusStatusGroup}>
+                    <button
+                      type="button"
+                      className={styles.amiqusLinkButton}
+                      onClick={() => handleInitiateAmiqus(action.actionId)}
+                      disabled={isPending || !clientEmail}
+                    >
+                      {isPending ? 'Initiating...' : 'Initiate Amiqus Verification'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.evidenceActionButton}
+                      onClick={() => {
+                        setOpenLinkAmiqus(openLinkAmiqus === action.actionId ? null : action.actionId);
+                        setLinkRecordId('');
+                        setOpenUpload(null);
+                        setOpenManual(null);
+                      }}
+                      disabled={isPending}
+                    >
+                      {openLinkAmiqus === action.actionId ? 'Cancel' : 'Link Existing Record'}
+                    </button>
+                  </div>
                 );
               }
               if (verification?.status === 'pending' || verification?.status === 'in_progress') {
@@ -1093,6 +1136,36 @@ export function CDDChecklist({
             </div>
             <button type="submit" disabled={isPending} className={styles.formSubmit}>
               {isPending ? 'Saving...' : 'Save File Note'}
+            </button>
+          </form>
+        )}
+
+        {/* Inline Link Existing Amiqus Record form */}
+        {openLinkAmiqus === action.actionId && (
+          <form
+            onSubmit={(e) => handleLinkAmiqus(action.actionId, e)}
+            className={styles.evidenceForm}
+          >
+            <div className={styles.formField}>
+              <label htmlFor={`amiqus-record-id-${action.actionId}`} className={styles.formLabel}>
+                Amiqus Record ID
+              </label>
+              <input
+                id={`amiqus-record-id-${action.actionId}`}
+                type="number"
+                value={linkRecordId}
+                onChange={(e) => setLinkRecordId(e.target.value)}
+                required
+                min="1"
+                placeholder="e.g. 12345"
+                className={styles.formInput}
+              />
+              <p className={styles.formHint}>
+                Find the record ID in the Amiqus dashboard. The record must have a completed status.
+              </p>
+            </div>
+            <button type="submit" disabled={isPending} className={styles.formSubmit}>
+              {isPending ? 'Linking...' : 'Link Record'}
             </button>
           </form>
         )}

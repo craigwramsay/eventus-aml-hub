@@ -465,6 +465,12 @@ button.evidenceCardHeader:hover {
   color: var(--foreground);
 }
 
+.formHint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
 .formTextarea {
   display: block;
   width: 100%;

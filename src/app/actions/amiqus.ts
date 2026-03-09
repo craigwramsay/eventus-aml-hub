@@ -15,6 +15,7 @@ import {
   getAmiqusApiKey,
   createAmiqusClient,
   createAmiqusRecord,
+  getAmiqusRecord,
   AmiqusError,
 } from '@/lib/amiqus';
 
@@ -24,6 +25,10 @@ export type InitiateVerificationResult =
 
 export type GetVerificationsResult =
   | { success: true; verifications: AmiqusVerification[] }
+  | { success: false; error: string };
+
+export type LinkAmiqusResult =
+  | { success: true; verification: AmiqusVerification }
   | { success: false; error: string };
 
 /**
@@ -209,6 +214,183 @@ export async function getAmiqusVerifications(
     return { success: true, verifications: (data || []) as AmiqusVerification[] };
   } catch (err) {
     console.error('Error in getAmiqusVerifications:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Link an existing Amiqus record to an assessment action.
+ *
+ * Fetches the record from Amiqus to validate it exists and is complete,
+ * then creates the same evidence trail as a webhook-completed verification:
+ * amiqus_verifications row, assessment_evidence row, and client CDD date update.
+ */
+export async function linkExistingAmiqusRecord(
+  assessmentId: string,
+  actionId: string,
+  amiqusRecordId: number
+): Promise<LinkAmiqusResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit linking verification records' };
+    }
+
+    // Check Amiqus is configured
+    const apiKey = getAmiqusApiKey();
+    if (!apiKey) {
+      return { success: false, error: 'Amiqus integration is not configured' };
+    }
+
+    // Validate assessment access
+    const { data: assessment } = await supabase
+      .from('assessments')
+      .select('id, firm_id')
+      .eq('id', assessmentId)
+      .single();
+
+    if (!assessment || assessment.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Assessment not found or access denied' };
+    }
+
+    // Check for existing verification for this assessment+action (any status)
+    const { data: existing } = await supabase
+      .from('amiqus_verifications')
+      .select('id, status')
+      .eq('assessment_id', assessmentId)
+      .eq('action_id', actionId)
+      .in('status', ['pending', 'in_progress', 'complete'])
+      .maybeSingle();
+
+    if (existing) {
+      return { success: false, error: 'A verification already exists for this action' };
+    }
+
+    // Fetch the record from Amiqus to validate it exists and is complete
+    let amiqusRecord;
+    try {
+      amiqusRecord = await getAmiqusRecord(amiqusRecordId, apiKey);
+    } catch (err) {
+      if (err instanceof AmiqusError) {
+        if (err.statusCode === 404) {
+          return { success: false, error: 'Amiqus record not found. Check the record ID and try again.' };
+        }
+        return { success: false, error: `Amiqus API error: ${err.message}` };
+      }
+      throw err;
+    }
+
+    // Record must be complete
+    if (amiqusRecord.status !== 'complete') {
+      return {
+        success: false,
+        error: `Amiqus record is not complete (current status: ${amiqusRecord.status}). Only completed records can be linked.`,
+      };
+    }
+
+    // Extract verified_at date from completed_at
+    const verifiedAt = amiqusRecord.completed_at
+      ? amiqusRecord.completed_at.split('T')[0]
+      : new Date().toISOString().split('T')[0];
+
+    // Insert amiqus_verifications row
+    const { data: verification, error: insertErr } = await supabase
+      .from('amiqus_verifications')
+      .insert({
+        firm_id: profile.firm_id,
+        assessment_id: assessmentId,
+        action_id: actionId,
+        amiqus_record_id: amiqusRecordId,
+        amiqus_client_id: amiqusRecord.client_id,
+        status: 'complete',
+        perform_url: amiqusRecord.perform_url,
+        verified_at: verifiedAt,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (insertErr || !verification) {
+      console.error('Failed to store linked Amiqus verification:', insertErr);
+      return { success: false, error: 'Failed to store verification record' };
+    }
+
+    // Insert assessment_evidence row (matching webhook RPC format)
+    const { error: evidenceErr } = await supabase
+      .from('assessment_evidence')
+      .insert({
+        assessment_id: assessmentId,
+        action_id: actionId,
+        evidence_type: 'amiqus',
+        label: 'Amiqus Identity Verification',
+        source: 'Amiqus',
+        data: { amiqus_record_id: amiqusRecordId, verified_at: verifiedAt },
+        verified_at: verifiedAt,
+        created_by: user.id,
+      });
+
+    if (evidenceErr) {
+      console.error('Failed to create evidence for linked Amiqus record:', evidenceErr);
+      // Non-fatal — verification row already exists
+    }
+
+    // Update clients.last_cdd_verified_at (assessment -> matter -> client)
+    try {
+      const { data: assessmentForMatter } = await supabase
+        .from('assessments')
+        .select('matter_id')
+        .eq('id', assessmentId)
+        .single();
+
+      if (assessmentForMatter) {
+        const { data: matter } = await supabase
+          .from('matters')
+          .select('client_id')
+          .eq('id', assessmentForMatter.matter_id)
+          .single();
+
+        if (matter) {
+          const { data: client } = await supabase
+            .from('clients')
+            .select('last_cdd_verified_at')
+            .eq('id', matter.client_id)
+            .single();
+
+          if (client && (!client.last_cdd_verified_at || verifiedAt > client.last_cdd_verified_at)) {
+            await supabase
+              .from('clients')
+              .update({ last_cdd_verified_at: verifiedAt })
+              .eq('id', matter.client_id);
+          }
+        }
+      }
+    } catch (err) {
+      // Non-fatal — log but don't fail
+      console.error('Failed to update client CDD date:', err);
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'amiqus_verification',
+      entity_id: verification.id,
+      action: 'amiqus_record_linked',
+      metadata: {
+        assessment_id: assessmentId,
+        action_id: actionId,
+        amiqus_record_id: amiqusRecordId,
+        verified_at: verifiedAt,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true, verification: verification as AmiqusVerification };
+  } catch (err) {
+    console.error('Error in linkExistingAmiqusRecord:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
