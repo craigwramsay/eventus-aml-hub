@@ -287,8 +287,9 @@ export async function linkExistingAmiqusRecord(
 
     const amiqusData = amiqusResult.data;
 
-    // Record/case must be complete
-    if (amiqusData.status !== 'complete') {
+    // Record/case must be complete — records use 'complete', cases use 'approved'
+    const completedStatuses = ['complete', 'approved'];
+    if (!completedStatuses.includes(amiqusData.status)) {
       return {
         success: false,
         error: `Amiqus ${amiqusResult.type} is not complete (current status: ${amiqusData.status}). Only completed verifications can be linked.`,
