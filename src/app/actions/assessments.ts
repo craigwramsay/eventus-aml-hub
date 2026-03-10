@@ -172,32 +172,36 @@ export async function submitAssessment(
     const { riskScoring, cddRuleset, sectorMapping, configVersionId } =
       await getConfigForAssessment(profile.firm_id);
 
-    const clientSector = client.sector;
+    // Sector risk scoring only applies to corporate clients.
+    // Individual occupation (field 18) is captured but intentionally not mapped
+    // to risk tiers per risk_scoring_v3_8.json design notes.
+    let enrichedFormAnswers: FormAnswers = { ...form_answers };
 
-    if (!clientSector) {
-      return { success: false, error: 'Client sector not set' };
-    }
+    if (derivedClientType === 'corporate') {
+      const clientSector = client.sector;
 
-    let derivedSectorRisk: 'Standard' | 'Higher-risk' | 'Prohibited' | null = null;
-
-    for (const [category, sectors] of Object.entries(sectorMapping.categories)) {
-      if (sectors.includes(clientSector)) {
-        derivedSectorRisk = category as 'Standard' | 'Higher-risk' | 'Prohibited';
-        break;
+      if (!clientSector) {
+        return { success: false, error: 'Client sector not set' };
       }
-    }
 
-    if (!derivedSectorRisk) {
-      return {
-        success: false,
-        error: `Client sector "${clientSector}" not mapped in sector_mapping.json`,
-      };
-    }
+      let derivedSectorRisk: 'Standard' | 'Higher-risk' | 'Prohibited' | null = null;
 
-    const enrichedFormAnswers: FormAnswers = {
-      ...form_answers,
-      '49': derivedSectorRisk,
-    };
+      for (const [category, sectors] of Object.entries(sectorMapping.categories)) {
+        if (sectors.includes(clientSector)) {
+          derivedSectorRisk = category as 'Standard' | 'Higher-risk' | 'Prohibited';
+          break;
+        }
+      }
+
+      if (!derivedSectorRisk) {
+        return {
+          success: false,
+          error: `Client sector "${clientSector}" not mapped in sector_mapping.json`,
+        };
+      }
+
+      enrichedFormAnswers['49'] = derivedSectorRisk;
+    }
 
     const assessmentOutput = runAssessmentWithConfig(
       { clientType: derivedClientType, formAnswers: enrichedFormAnswers },

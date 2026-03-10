@@ -166,8 +166,8 @@ BEGIN
   WHERE firm_id = p_firm_id AND clio_contact_id = p_clio_contact_id;
 
   IF v_client_id IS NULL THEN
-    INSERT INTO clients (firm_id, name, entity_type, client_type, sector, clio_contact_id)
-    VALUES (p_firm_id, p_contact_name, v_entity_type, v_client_type, 'general', p_clio_contact_id)
+    INSERT INTO clients (firm_id, name, entity_type, client_type, clio_contact_id)
+    VALUES (p_firm_id, p_contact_name, v_entity_type, v_client_type, p_clio_contact_id)
     RETURNING id INTO v_client_id;
   END IF;
 
