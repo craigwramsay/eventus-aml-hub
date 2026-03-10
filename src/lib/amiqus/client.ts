@@ -9,6 +9,7 @@
 import type {
   AmiqusClient,
   AmiqusRecord,
+  AmiqusCase,
   AmiqusRecordStep,
   AmiqusWebhookResponse,
 } from './types';
@@ -107,6 +108,40 @@ export async function getAmiqusRecord(
   apiKey: string
 ): Promise<AmiqusRecord> {
   return amiqusFetch<AmiqusRecord>(`/records/${recordId}`, apiKey);
+}
+
+/**
+ * Get a case from Amiqus by ID.
+ */
+export async function getAmiqusCase(
+  caseId: number,
+  apiKey: string
+): Promise<AmiqusCase> {
+  return amiqusFetch<AmiqusCase>(`/cases/${caseId}`, apiKey);
+}
+
+/**
+ * Try to find an Amiqus record or case by ID.
+ * Tries /records/{id} first, then /cases/{id} if not found.
+ * Returns a normalised shape with the resource type.
+ */
+export async function getAmiqusRecordOrCase(
+  id: number,
+  apiKey: string
+): Promise<{ type: 'record' | 'case'; data: { id: number; status: string; client_id: number; completed_at: string | null } }> {
+  // Try records first
+  try {
+    const record = await getAmiqusRecord(id, apiKey);
+    return { type: 'record', data: record };
+  } catch (err) {
+    if (!(err instanceof AmiqusError) || err.statusCode !== 404) {
+      throw err; // Re-throw non-404 errors
+    }
+  }
+
+  // Fall back to cases
+  const caseData = await getAmiqusCase(id, apiKey);
+  return { type: 'case', data: caseData };
 }
 
 /**

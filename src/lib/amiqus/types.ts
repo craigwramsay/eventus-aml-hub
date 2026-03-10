@@ -30,6 +30,15 @@ export interface AmiqusRecord {
   completed_at: string | null;
 }
 
+export interface AmiqusCase {
+  id: number;
+  status: string;
+  client_id: number;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
 export interface AmiqusWebhookResponse {
   id: number;
   url: string;

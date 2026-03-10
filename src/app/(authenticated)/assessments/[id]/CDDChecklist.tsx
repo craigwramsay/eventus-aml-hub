@@ -1148,7 +1148,7 @@ export function CDDChecklist({
           >
             <div className={styles.formField}>
               <label htmlFor={`amiqus-record-id-${action.actionId}`} className={styles.formLabel}>
-                Amiqus Record ID
+                Amiqus ID
               </label>
               <input
                 id={`amiqus-record-id-${action.actionId}`}
@@ -1157,11 +1157,11 @@ export function CDDChecklist({
                 onChange={(e) => setLinkRecordId(e.target.value)}
                 required
                 min="1"
-                placeholder="e.g. 12345"
+                placeholder="e.g. 45306"
                 className={styles.formInput}
               />
               <p className={styles.formHint}>
-                Find the record ID in the Amiqus dashboard. The record must have a completed status.
+                The number from your Amiqus URL (e.g. id.amiqus.co/cases/<strong>45306</strong>). Works with both case and record IDs.
               </p>
             </div>
             <button type="submit" disabled={isPending} className={styles.formSubmit}>

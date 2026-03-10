@@ -15,7 +15,7 @@ import {
   getAmiqusApiKey,
   createAmiqusClient,
   createAmiqusRecord,
-  getAmiqusRecord,
+  getAmiqusRecordOrCase,
   AmiqusError,
 } from '@/lib/amiqus';
 
@@ -270,31 +270,34 @@ export async function linkExistingAmiqusRecord(
       return { success: false, error: 'A verification already exists for this action' };
     }
 
-    // Fetch the record from Amiqus to validate it exists and is complete
-    let amiqusRecord;
+    // Fetch the record or case from Amiqus to validate it exists and is complete.
+    // Amiqus has both /records/{id} and /cases/{id} — try records first, then cases.
+    let amiqusResult;
     try {
-      amiqusRecord = await getAmiqusRecord(amiqusRecordId, apiKey);
+      amiqusResult = await getAmiqusRecordOrCase(amiqusRecordId, apiKey);
     } catch (err) {
       if (err instanceof AmiqusError) {
         if (err.statusCode === 404) {
-          return { success: false, error: 'Amiqus record not found. Check the record ID and try again.' };
+          return { success: false, error: 'Amiqus record/case not found. Check the ID and try again.' };
         }
         return { success: false, error: `Amiqus API error: ${err.message}` };
       }
       throw err;
     }
 
-    // Record must be complete
-    if (amiqusRecord.status !== 'complete') {
+    const amiqusData = amiqusResult.data;
+
+    // Record/case must be complete
+    if (amiqusData.status !== 'complete') {
       return {
         success: false,
-        error: `Amiqus record is not complete (current status: ${amiqusRecord.status}). Only completed records can be linked.`,
+        error: `Amiqus ${amiqusResult.type} is not complete (current status: ${amiqusData.status}). Only completed verifications can be linked.`,
       };
     }
 
     // Extract verified_at date from completed_at
-    const verifiedAt = amiqusRecord.completed_at
-      ? amiqusRecord.completed_at.split('T')[0]
+    const verifiedAt = amiqusData.completed_at
+      ? amiqusData.completed_at.split('T')[0]
       : new Date().toISOString().split('T')[0];
 
     // Insert amiqus_verifications row
@@ -305,9 +308,8 @@ export async function linkExistingAmiqusRecord(
         assessment_id: assessmentId,
         action_id: actionId,
         amiqus_record_id: amiqusRecordId,
-        amiqus_client_id: amiqusRecord.client_id,
+        amiqus_client_id: amiqusData.client_id,
         status: 'complete',
-        perform_url: amiqusRecord.perform_url,
         verified_at: verifiedAt,
         created_by: user.id,
       })

@@ -12,12 +12,15 @@ export {
   createAmiqusClient,
   createAmiqusRecord,
   getAmiqusRecord,
+  getAmiqusCase,
+  getAmiqusRecordOrCase,
   registerAmiqusWebhook,
 } from './client';
 
 export type {
   AmiqusClient,
   AmiqusRecord,
+  AmiqusCase,
   AmiqusRecordStep,
   AmiqusWebhookResponse,
   AmiqusWebhookPayload,
