@@ -81,6 +81,13 @@ export function ClioDriveSyncBadge({
     return (
       <span className={`${styles.clioSyncBadge} ${styles.clioSyncFailed}`}>
         Clio sync failed
+        {record.error_message && (
+          <span className={styles.clioRetryError} title={record.error_message}>
+            {record.error_message.length > 80
+              ? record.error_message.substring(0, 80) + '…'
+              : record.error_message}
+          </span>
+        )}
         <button
           type="button"
           className={styles.clioRetryButton}
