@@ -206,7 +206,7 @@ describe('syncEvidenceToClio', () => {
     expect(uploadDocumentToClio).toHaveBeenCalledWith(
       100, 'doc.pdf', expect.any(Buffer), 'application/pdf', 'tok_valid'
     );
-    expect(getClioDocumentUrl).toHaveBeenCalledWith(200);
+    expect(getClioDocumentUrl).toHaveBeenCalledWith(200, 456);
   });
 
   it('handles companies_house evidence type by serializing JSON', async () => {

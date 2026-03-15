@@ -400,7 +400,7 @@ async function executeSyncUpload(
 
     // Upload to Clio Drive
     const doc = await uploadDocumentToClio(folder.id, fileName, fileContent, contentType, accessToken);
-    const docUrl = getClioDocumentUrl(doc.id);
+    const docUrl = getClioDocumentUrl(doc.id, clioMatterIdNum);
 
     // Mark as synced
     await supabase
@@ -458,7 +458,7 @@ async function executeDirectUpload(
       .eq('id', syncId);
 
     const doc = await uploadDocumentToClio(folder.id, fileName, fileContent, contentType, accessToken);
-    const docUrl = getClioDocumentUrl(doc.id);
+    const docUrl = getClioDocumentUrl(doc.id, clioMatterIdNum);
 
     await supabase
       .from('clio_drive_sync')

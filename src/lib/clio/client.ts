@@ -395,10 +395,15 @@ export async function uploadDocumentToClio(
 }
 
 /**
- * Build the Clio web UI URL for a document.
- * Uses the Clio Manage path-based routing format.
+ * Build a Clio web UI URL for viewing documents.
+ * Links to the matter's documents tab (Clio EU doesn't support
+ * deep-linking to individual documents).
  */
-export function getClioDocumentUrl(documentId: number): string {
+export function getClioDocumentUrl(documentId: number, clioMatterId?: number): string {
   const baseUrl = getClioBaseUrl();
-  return `${baseUrl}/nc/#/co/documents/${documentId}`;
+  if (clioMatterId) {
+    return `${baseUrl}/nc/#/matters/${clioMatterId}/documents`;
+  }
+  // Fallback if no matter ID available
+  return `${baseUrl}/nc/#/documents/${documentId}`;
 }
