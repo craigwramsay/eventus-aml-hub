@@ -375,6 +375,8 @@ export async function uploadDocumentToClio(
   }
 
   // Step 3: PATCH to mark fully_uploaded
+  // Clio expects uuid and fully_uploaded at the top level of data,
+  // NOT nested under latest_document_version (which is silently ignored).
   await clioFetch<ClioApiResponse<ClioDocument>>(
     `/api/v4/documents/${doc.id}.json`,
     accessToken,
@@ -382,10 +384,8 @@ export async function uploadDocumentToClio(
       method: 'PATCH',
       body: JSON.stringify({
         data: {
-          latest_document_version: {
-            uuid: version.uuid,
-            fully_uploaded: true,
-          },
+          uuid: version.uuid,
+          fully_uploaded: true,
         },
       }),
     }
@@ -396,9 +396,9 @@ export async function uploadDocumentToClio(
 
 /**
  * Build the Clio web UI URL for a document.
- * Uses the Clio Manage hash-based routing format.
+ * Uses the Clio Manage path-based routing format.
  */
 export function getClioDocumentUrl(documentId: number): string {
   const baseUrl = getClioBaseUrl();
-  return `${baseUrl}/nc/#/documents/${documentId}`;
+  return `${baseUrl}/nc/#/co/documents/${documentId}`;
 }
