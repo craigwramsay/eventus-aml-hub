@@ -15,6 +15,9 @@ import { getClioBaseUrl } from '@/lib/clio';
 import { getClioAccessTokenForFirm } from '@/lib/clio/token';
 import type { UserRole } from '@/lib/auth/roles';
 
+// Bump this to verify which code version is deployed
+const DIAG_VERSION = '3';
+
 async function testEndpoint(
   url: string,
   accessToken: string
@@ -54,12 +57,15 @@ export async function GET(request: NextRequest) {
   const results: Record<string, unknown> = {};
 
   try {
+    results.diag_version = DIAG_VERSION;
+    results.timestamp = new Date().toISOString();
+
     // 1. Auth check
     const supabase = await createClient();
     const { data: { user }, error: userErr } = await supabase.auth.getUser();
 
     if (userErr || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated', diag_version: DIAG_VERSION }, { status: 401 });
     }
 
     const { data: profile } = await supabase
@@ -69,7 +75,7 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (!profile || !canManageIntegrations(profile.role as UserRole)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json({ error: 'Insufficient permissions', diag_version: DIAG_VERSION }, { status: 403 });
     }
 
     results.firm_id = profile.firm_id;
@@ -103,75 +109,86 @@ export async function GET(request: NextRequest) {
 
     results.test_clio_matter_id = clioMatterId;
 
-    // 4. Test matters (basic read)
-    results.test_matters = await testEndpoint(
-      `${baseUrl}/api/v4/matters.json?fields=id,display_number&limit=1`,
+    if (!clioMatterId) {
+      results.error = 'No Clio-linked matter found';
+      return NextResponse.json(results);
+    }
+
+    // 4. Test: list folders using matter_id (the working approach)
+    results.folders_list = await testEndpoint(
+      `${baseUrl}/api/v4/folders.json?fields=id,name&matter_id=${clioMatterId}`,
       accessToken
     );
 
-    // 5. Test documents list (with matter filter)
-    if (clioMatterId) {
-      results.test_documents = await testEndpoint(
-        `${baseUrl}/api/v4/documents.json?fields=id,name&matter_id=${clioMatterId}&limit=1`,
-        accessToken
-      );
-    }
+    // 5. Test: CREATE a folder under the matter (this is what the sync does)
+    results.folder_create = await testPost(
+      `${baseUrl}/api/v4/folders.json?fields=id,name,parent`,
+      accessToken,
+      {
+        data: {
+          name: `_diag_test_${Date.now()}`,
+          parent: { id: Number(clioMatterId), type: 'Matter' },
+        },
+      }
+    );
 
-    // 6. Test folder variations — try different API parameter formats
-    if (clioMatterId) {
-      // Variation A: parent_id + parent_type (what our code uses)
-      results.folders_v1_parent_id_type = await testEndpoint(
-        `${baseUrl}/api/v4/folders.json?fields=id,name&parent_id=${clioMatterId}&parent_type=Matter`,
-        accessToken
-      );
-
-      // Variation B: just parent_id (no type)
-      results.folders_v2_parent_id_only = await testEndpoint(
-        `${baseUrl}/api/v4/folders.json?fields=id,name&parent_id=${clioMatterId}`,
-        accessToken
-      );
-
-      // Variation C: matter_id (like documents endpoint uses)
-      results.folders_v3_matter_id = await testEndpoint(
-        `${baseUrl}/api/v4/folders.json?fields=id,name&matter_id=${clioMatterId}`,
-        accessToken
-      );
-
-      // Variation D: no filter (list all folders)
-      results.folders_v4_all = await testEndpoint(
-        `${baseUrl}/api/v4/folders.json?fields=id,name&limit=5`,
-        accessToken
-      );
-
-      // Variation E: nested under document_categories (Clio uses this for matter folders)
-      results.folders_v5_document_categories = await testEndpoint(
-        `${baseUrl}/api/v4/document_categories.json?fields=id,name&matter_id=${clioMatterId}`,
-        accessToken
-      );
-
-      // 7. Try creating a test folder via POST (dry-run info only — won't execute if GET works)
-      // Only try this if all GETs failed
-      const allFoldersFailed = [
-        results.folders_v1_parent_id_type,
-        results.folders_v2_parent_id_only,
-        results.folders_v3_matter_id,
-        results.folders_v4_all,
-      ].every((r: unknown) => !(r as { ok: boolean }).ok);
-
-      if (allFoldersFailed) {
-        // Test POST to create a folder (this will actually create it if successful)
-        results.folders_create_test = await testPost(
-          `${baseUrl}/api/v4/folders.json?fields=id,name,parent`,
-          accessToken,
-          {
-            data: {
-              name: '_diagnose_test_' + Date.now(),
-              parent: { id: Number(clioMatterId), type: 'Matter' },
-            },
-          }
-        );
+    // 6. If folder was created, clean it up (delete it)
+    const createBody = results.folder_create as { ok: boolean; body: { data?: { id: number } } };
+    if (createBody.ok && createBody.body?.data?.id) {
+      const folderId = createBody.body.data.id;
+      results.folder_created_id = folderId;
+      try {
+        const delResponse = await fetch(`${baseUrl}/api/v4/folders/${folderId}.json`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        results.folder_cleanup = { status: delResponse.status, ok: delResponse.ok };
+      } catch (err) {
+        results.folder_cleanup = { error: String(err) };
       }
     }
+
+    // 7. Test: CREATE a document (the upload step)
+    // Only test if folder creation worked — use the matter's existing folder
+    const foldersList = results.folders_list as { ok: boolean; body: { data?: Array<{ id: number; name: string }> } };
+    if (foldersList.ok && foldersList.body?.data && foldersList.body.data.length > 0) {
+      const testFolderId = foldersList.body.data[0].id;
+      results.document_create_test_folder = testFolderId;
+      results.document_create = await testPost(
+        `${baseUrl}/api/v4/documents.json?fields=id,name,latest_document_version{uuid,put_url}`,
+        accessToken,
+        {
+          data: {
+            name: `_diag_test_${Date.now()}.txt`,
+            parent: { id: testFolderId, type: 'Folder' },
+          },
+        }
+      );
+
+      // Clean up test document if created
+      const docBody = results.document_create as { ok: boolean; body: { data?: { id: number } } };
+      if (docBody.ok && docBody.body?.data?.id) {
+        try {
+          const delResponse = await fetch(`${baseUrl}/api/v4/documents/${docBody.body.data.id}.json`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          results.document_cleanup = { status: delResponse.status, ok: delResponse.ok };
+        } catch (err) {
+          results.document_cleanup = { error: String(err) };
+        }
+      }
+    }
+
+    // 8. Check existing sync records for this matter's assessments
+    const { data: syncRecords } = await supabase
+      .from('clio_drive_sync')
+      .select('id, status, error_message, sync_type, created_at, updated_at')
+      .eq('clio_matter_id', clioMatterId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    results.recent_sync_records = syncRecords;
 
     return NextResponse.json(results, { status: 200 });
   } catch (err) {
