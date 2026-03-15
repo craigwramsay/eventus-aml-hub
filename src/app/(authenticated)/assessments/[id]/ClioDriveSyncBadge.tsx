@@ -31,8 +31,9 @@ export function ClioDriveSyncBadge({
   const [isPending, startTransition] = useTransition();
   const [retryError, setRetryError] = useState<string | null>(null);
 
-  // Find the matching sync record
-  const record = syncRecords.find((r) => {
+  // Find the most recent matching sync record (records are sorted ascending by created_at,
+  // so findLast gives us the newest — important when retries create additional records)
+  const record = syncRecords.findLast((r) => {
     if (syncType === 'finalisation_html') {
       return r.sync_type === 'finalisation_html';
     }
