@@ -415,7 +415,7 @@ async function executeSyncUpload(
       .eq('id', syncId);
   } catch (err) {
     const message = err instanceof ClioError
-      ? `Clio API error: ${err.message} (${err.statusCode || 'unknown'})`
+      ? `${err.message} (${err.statusCode || 'unknown'})`
       : err instanceof Error
         ? err.message
         : 'Unknown error';
@@ -472,7 +472,7 @@ async function executeDirectUpload(
       .eq('id', syncId);
   } catch (err) {
     const message = err instanceof ClioError
-      ? `Clio API error: ${err.message} (${err.statusCode || 'unknown'})`
+      ? `${err.message} (${err.statusCode || 'unknown'})`
       : err instanceof Error
         ? err.message
         : 'Unknown error';
