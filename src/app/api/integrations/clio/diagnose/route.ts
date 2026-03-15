@@ -1,9 +1,8 @@
 /**
- * Clio Integration Diagnostic Route
+ * Clio Integration Diagnostic Route — v5
  *
  * GET /api/integrations/clio/diagnose
- * Tests the Clio API connection step by step to identify permission issues.
- * Only accessible to users who can manage integrations (mlro/admin/platform_admin).
+ * Full end-to-end upload test: create doc, S3 upload, mark fully_uploaded.
  *
  * TEMPORARY: Remove once Clio Drive sync is confirmed working.
  */
@@ -15,16 +14,7 @@ import { getClioBaseUrl } from '@/lib/clio';
 import { getClioAccessTokenForFirm } from '@/lib/clio/token';
 import type { UserRole } from '@/lib/auth/roles';
 
-const DIAG_VERSION = '4';
-
-async function clioGet(url: string, accessToken: string): Promise<{ status: number; ok: boolean; body: unknown }> {
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-  });
-  let body: unknown;
-  try { body = await response.json(); } catch { body = await response.text().catch(() => ''); }
-  return { status: response.status, ok: response.ok, body };
-}
+const DIAG_VERSION = '5';
 
 export async function GET(request: NextRequest) {
   const results: Record<string, unknown> = {};
@@ -48,15 +38,12 @@ export async function GET(request: NextRequest) {
     }
 
     const tokenResult = await getClioAccessTokenForFirm(supabase, profile.firm_id);
-    if (!tokenResult) {
-      results.token = 'NOT CONNECTED';
-      return NextResponse.json(results);
-    }
+    if (!tokenResult) return NextResponse.json({ ...results, error: 'Clio not connected' });
 
     const { accessToken } = tokenResult;
     const baseUrl = getClioBaseUrl();
 
-    // Get the Clio matter ID
+    // Get matter
     const testMatterId = request.nextUrl.searchParams.get('matter_id');
     let clioMatterId: string | null = testMatterId;
     if (!clioMatterId) {
@@ -68,70 +55,176 @@ export async function GET(request: NextRequest) {
         .single();
       clioMatterId = linkedMatter?.clio_matter_id || null;
     }
+    if (!clioMatterId) return NextResponse.json({ ...results, error: 'No Clio-linked matter' });
 
     results.test_clio_matter_id = clioMatterId;
 
-    if (!clioMatterId) {
-      return NextResponse.json({ ...results, error: 'No Clio-linked matter' });
-    }
-
-    // 1. List all folders under this matter
-    const foldersResult = await clioGet(
-      `${baseUrl}/api/v4/folders.json?fields=id,name,parent&matter_id=${clioMatterId}`,
-      accessToken
+    // Find Compliance folder
+    const foldersResp = await fetch(
+      `${baseUrl}/api/v4/folders.json?fields=id,name&matter_id=${clioMatterId}`,
+      { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
     );
-    results.folders = foldersResult;
+    const foldersData = await foldersResp.json();
+    const complianceFolder = foldersData.data?.find((f: { name: string }) => f.name === 'Compliance');
 
-    // 2. Find the Compliance folder
-    const foldersData = foldersResult.ok
-      ? ((foldersResult.body as { data?: Array<{ id: number; name: string }> })?.data || [])
-      : [];
-    const complianceFolder = foldersData.find((f: { name: string }) => f.name === 'Compliance');
-    results.compliance_folder = complianceFolder || 'NOT FOUND';
+    if (!complianceFolder) {
+      return NextResponse.json({ ...results, error: 'No Compliance folder found' });
+    }
+    results.compliance_folder_id = complianceFolder.id;
 
-    // 3. If Compliance folder exists, list its documents
-    if (complianceFolder) {
-      // Try listing docs with folder_id
-      const docsInFolder = await clioGet(
-        `${baseUrl}/api/v4/documents.json?fields=id,name,created_at,latest_document_version{fully_uploaded,content_type}&parent_id=${complianceFolder.id}&parent_type=Folder`,
-        accessToken
-      );
-      results.docs_in_compliance_v1_parent = docsInFolder;
+    // ── Full Upload Test ──────────────────────────────────────────
 
-      // Also try with matter_id filter
-      const docsForMatter = await clioGet(
-        `${baseUrl}/api/v4/documents.json?fields=id,name,created_at,latest_document_version{fully_uploaded,content_type}&matter_id=${clioMatterId}`,
-        accessToken
-      );
-      results.docs_in_matter = docsForMatter;
+    const testContent = '<html><body><h1>Upload Test</h1><p>This is a diagnostic test file.</p></body></html>';
+    const testFileName = `_upload_test_${Date.now()}.html`;
+
+    // Step 1: Create document record (with put_headers)
+    const createFields = 'id,name,latest_document_version{uuid,put_url,put_headers}';
+    const createResp = await fetch(
+      `${baseUrl}/api/v4/documents.json?fields=${encodeURIComponent(createFields)}`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: {
+            name: testFileName,
+            parent: { id: complianceFolder.id, type: 'Folder' },
+          },
+        }),
+      }
+    );
+    const createBody = await createResp.json();
+    results.step1_create = {
+      status: createResp.status,
+      ok: createResp.ok,
+      body: createBody,
+    };
+
+    if (!createResp.ok) {
+      return NextResponse.json({ ...results, error: 'Step 1 (create) failed' });
     }
 
-    // 4. Get sync records with full details
-    const { data: syncRecords } = await supabase
+    const doc = createBody.data;
+    const version = doc?.latest_document_version;
+    results.step1_put_url = version?.put_url ? 'present' : 'MISSING';
+    results.step1_put_headers = version?.put_headers || 'NONE RETURNED';
+
+    if (!version?.put_url) {
+      return NextResponse.json({ ...results, error: 'No put_url returned' });
+    }
+
+    // Step 2: PUT file bytes to S3
+    const putHeaders: Record<string, string> = {};
+    if (Array.isArray(version.put_headers)) {
+      for (const h of version.put_headers) {
+        putHeaders[h.name] = h.value;
+      }
+    }
+    putHeaders['Content-Type'] = 'text/html';
+    const fileBuffer = new TextEncoder().encode(testContent);
+    putHeaders['Content-Length'] = String(fileBuffer.byteLength);
+
+    results.step2_headers_sent = putHeaders;
+
+    const putResp = await fetch(version.put_url, {
+      method: 'PUT',
+      headers: putHeaders,
+      body: fileBuffer,
+    });
+
+    let putRespBody = '';
+    try { putRespBody = await putResp.text(); } catch { /* ignore */ }
+
+    results.step2_s3_upload = {
+      status: putResp.status,
+      ok: putResp.ok,
+      statusText: putResp.statusText,
+      body: putRespBody.substring(0, 500),
+    };
+
+    if (!putResp.ok) {
+      // Clean up the doc record
+      await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      return NextResponse.json({ ...results, error: 'Step 2 (S3 upload) failed' });
+    }
+
+    // Step 3: PATCH to mark fully_uploaded
+    const patchResp = await fetch(
+      `${baseUrl}/api/v4/documents/${doc.id}.json`,
+      {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: {
+            latest_document_version: {
+              uuid: version.uuid,
+              fully_uploaded: true,
+            },
+          },
+        }),
+      }
+    );
+    let patchBody: unknown;
+    try { patchBody = await patchResp.json(); } catch { patchBody = await patchResp.text().catch(() => ''); }
+
+    results.step3_patch = {
+      status: patchResp.status,
+      ok: patchResp.ok,
+      body: patchBody,
+    };
+
+    // Step 4: Verify — re-fetch the document to check it's complete
+    const verifyResp = await fetch(
+      `${baseUrl}/api/v4/documents/${doc.id}.json?fields=id,name,latest_document_version{uuid,fully_uploaded}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const verifyBody = await verifyResp.json();
+    results.step4_verify = {
+      status: verifyResp.status,
+      ok: verifyResp.ok,
+      body: verifyBody,
+    };
+
+    // Step 5: Check if it appears in document listings now
+    const listResp = await fetch(
+      `${baseUrl}/api/v4/documents.json?fields=id,name&matter_id=${clioMatterId}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const listBody = await listResp.json();
+    results.step5_listing = {
+      status: listResp.status,
+      ok: listResp.ok,
+      total_docs: listBody.meta?.records || 0,
+      docs: listBody.data,
+    };
+
+    // Clean up test document
+    const delResp = await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    results.cleanup = { status: delResp.status, ok: delResp.ok };
+
+    // Also check the existing synced document
+    const { data: syncedRecord } = await supabase
       .from('clio_drive_sync')
-      .select('id, status, error_message, sync_type, clio_document_id, clio_document_url, clio_folder_id, created_at, updated_at')
+      .select('clio_document_id, clio_document_url, clio_folder_id')
       .eq('clio_matter_id', clioMatterId)
+      .eq('status', 'synced')
+      .eq('sync_type', 'finalisation_html')
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(1)
+      .single();
 
-    results.sync_records = syncRecords;
-
-    // 5. If we have a synced document ID, check it exists in Clio
-    const syncedRecord = syncRecords?.find((r: { status: string }) => r.status === 'synced');
     if (syncedRecord?.clio_document_id) {
-      const docCheck = await clioGet(
-        `${baseUrl}/api/v4/documents/${syncedRecord.clio_document_id}.json?fields=id,name,parent{id,name,type},latest_document_version{fully_uploaded,content_type,filename}`,
-        accessToken
+      const existingDocResp = await fetch(
+        `${baseUrl}/api/v4/documents/${syncedRecord.clio_document_id}.json?fields=id,name,latest_document_version{uuid,fully_uploaded}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-      results.synced_document_check = docCheck;
-
-      // Suggest URL formats
-      results.url_formats = {
-        current: syncedRecord.clio_document_url,
-        format_nc_hash: `${baseUrl}/nc/#/documents/${syncedRecord.clio_document_id}`,
-        format_co_documents: `${baseUrl}/nc/#/co/documents/${syncedRecord.clio_document_id}`,
-        format_matters_docs: `${baseUrl}/nc/#/matters/${clioMatterId}/documents/${syncedRecord.clio_document_id}`,
-        format_direct: `${baseUrl}/documents/${syncedRecord.clio_document_id}`,
+      const existingDocBody = await existingDocResp.json();
+      results.existing_synced_doc = {
+        sync_record: syncedRecord,
+        clio_check: existingDocBody,
       };
     }
 
