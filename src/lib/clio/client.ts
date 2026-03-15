@@ -66,8 +66,15 @@ async function clioFetch<T>(path: string, accessToken: string, options?: Request
   }
 
   if (!response.ok) {
+    // Include response body for diagnostic context on errors
+    let errorBody = '';
+    try {
+      errorBody = await response.text();
+      if (errorBody.length > 200) errorBody = errorBody.substring(0, 200);
+    } catch { /* ignore */ }
+
     throw new ClioError(
-      `Clio API error: ${response.status} ${response.statusText}`,
+      `Clio API error on ${path.split('?')[0]}: ${response.status} ${response.statusText}${errorBody ? ` — ${errorBody}` : ''}`,
       response.status
     );
   }
