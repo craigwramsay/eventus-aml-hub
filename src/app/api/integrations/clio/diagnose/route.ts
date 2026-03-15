@@ -1,8 +1,8 @@
 /**
- * Clio Integration Diagnostic Route — v5
+ * Clio Integration Diagnostic Route — v6
  *
- * GET /api/integrations/clio/diagnose
- * Full end-to-end upload test: create doc, S3 upload, mark fully_uploaded.
+ * Tests alternative PATCH formats for marking a document as fully_uploaded.
+ * The current format is silently ignored by Clio EU.
  *
  * TEMPORARY: Remove once Clio Drive sync is confirmed working.
  */
@@ -14,7 +14,7 @@ import { getClioBaseUrl } from '@/lib/clio';
 import { getClioAccessTokenForFirm } from '@/lib/clio/token';
 import type { UserRole } from '@/lib/auth/roles';
 
-const DIAG_VERSION = '5';
+const DIAG_VERSION = '6';
 
 export async function GET(request: NextRequest) {
   const results: Record<string, unknown> = {};
@@ -57,176 +57,137 @@ export async function GET(request: NextRequest) {
     }
     if (!clioMatterId) return NextResponse.json({ ...results, error: 'No Clio-linked matter' });
 
-    results.test_clio_matter_id = clioMatterId;
-
     // Find Compliance folder
     const foldersResp = await fetch(
       `${baseUrl}/api/v4/folders.json?fields=id,name&matter_id=${clioMatterId}`,
       { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
     );
-    const foldersData = await foldersResp.json();
-    const complianceFolder = foldersData.data?.find((f: { name: string }) => f.name === 'Compliance');
+    const foldersBody = await foldersResp.json();
+    const complianceFolder = foldersBody.data?.find((f: { name: string }) => f.name === 'Compliance');
+    if (!complianceFolder) return NextResponse.json({ ...results, error: 'No Compliance folder' });
 
-    if (!complianceFolder) {
-      return NextResponse.json({ ...results, error: 'No Compliance folder found' });
-    }
-    results.compliance_folder_id = complianceFolder.id;
-
-    // ── Full Upload Test ──────────────────────────────────────────
-
-    const testContent = '<html><body><h1>Upload Test</h1><p>This is a diagnostic test file.</p></body></html>';
-    const testFileName = `_upload_test_${Date.now()}.html`;
-
-    // Step 1: Create document record (with put_headers)
-    const createFields = 'id,name,latest_document_version{uuid,put_url,put_headers}';
+    // Step 1: Create document — request ALL version fields
+    const createFields = 'id,name,latest_document_version{id,uuid,put_url,put_headers,fully_uploaded,filename,content_type}';
     const createResp = await fetch(
       `${baseUrl}/api/v4/documents.json?fields=${encodeURIComponent(createFields)}`,
       {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          data: {
-            name: testFileName,
-            parent: { id: complianceFolder.id, type: 'Folder' },
-          },
+          data: { name: `_patch_test_${Date.now()}.html`, parent: { id: complianceFolder.id, type: 'Folder' } },
         }),
       }
     );
     const createBody = await createResp.json();
-    results.step1_create = {
-      status: createResp.status,
-      ok: createResp.ok,
-      body: createBody,
-    };
+    results.step1_create = createBody;
 
-    if (!createResp.ok) {
-      return NextResponse.json({ ...results, error: 'Step 1 (create) failed' });
-    }
+    if (!createResp.ok) return NextResponse.json({ ...results, error: 'Create failed' });
 
     const doc = createBody.data;
     const version = doc?.latest_document_version;
-    results.step1_put_url = version?.put_url ? 'present' : 'MISSING';
-    results.step1_put_headers = version?.put_headers || 'NONE RETURNED';
+    if (!version?.put_url) return NextResponse.json({ ...results, error: 'No put_url' });
 
-    if (!version?.put_url) {
-      return NextResponse.json({ ...results, error: 'No put_url returned' });
-    }
-
-    // Step 2: PUT file bytes to S3
+    // Step 2: Upload to S3
     const putHeaders: Record<string, string> = {};
     if (Array.isArray(version.put_headers)) {
-      for (const h of version.put_headers) {
-        putHeaders[h.name] = h.value;
-      }
+      for (const h of version.put_headers) putHeaders[h.name] = h.value;
     }
     putHeaders['Content-Type'] = 'text/html';
-    const fileBuffer = new TextEncoder().encode(testContent);
-    putHeaders['Content-Length'] = String(fileBuffer.byteLength);
+    const content = new TextEncoder().encode('<html><body><h1>Test</h1></body></html>');
+    putHeaders['Content-Length'] = String(content.byteLength);
 
-    results.step2_headers_sent = putHeaders;
-
-    const putResp = await fetch(version.put_url, {
-      method: 'PUT',
-      headers: putHeaders,
-      body: fileBuffer,
-    });
-
-    let putRespBody = '';
-    try { putRespBody = await putResp.text(); } catch { /* ignore */ }
-
-    results.step2_s3_upload = {
-      status: putResp.status,
-      ok: putResp.ok,
-      statusText: putResp.statusText,
-      body: putRespBody.substring(0, 500),
-    };
+    const putResp = await fetch(version.put_url, { method: 'PUT', headers: putHeaders, body: content });
+    results.step2_s3 = { status: putResp.status, ok: putResp.ok };
 
     if (!putResp.ok) {
-      // Clean up the doc record
-      await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json`, {
-        method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      return NextResponse.json({ ...results, error: 'Step 2 (S3 upload) failed' });
+      await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json`, { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } });
+      return NextResponse.json({ ...results, error: 'S3 upload failed' });
     }
 
-    // Step 3: PATCH to mark fully_uploaded
-    const patchResp = await fetch(
-      `${baseUrl}/api/v4/documents/${doc.id}.json`,
-      {
+    // Step 3: Try MULTIPLE PATCH formats to find the one that works
+
+    // Format A (current code): nested under latest_document_version
+    const patchA = await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json?fields=id,latest_document_version{uuid,fully_uploaded}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: { latest_document_version: { uuid: version.uuid, fully_uploaded: true } },
+      }),
+    });
+    const patchABody = await patchA.json();
+    results.patch_format_A = { label: 'nested latest_document_version', status: patchA.status, body: patchABody };
+
+    // Check if A worked
+    const verifyA = await fetch(
+      `${baseUrl}/api/v4/documents/${doc.id}.json?fields=id,latest_document_version{uuid,fully_uploaded}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const verifyABody = await verifyA.json();
+    results.verify_after_A = verifyABody;
+
+    const aWorked = verifyABody.data?.latest_document_version?.fully_uploaded === true;
+    results.patch_A_worked = aWorked;
+
+    if (!aWorked) {
+      // Format B: flat data with uuid and fully_uploaded
+      const patchB = await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json?fields=id,latest_document_version{uuid,fully_uploaded}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          data: {
-            latest_document_version: {
-              uuid: version.uuid,
-              fully_uploaded: true,
-            },
-          },
+          data: { uuid: version.uuid, fully_uploaded: true },
         }),
-      }
-    );
-    let patchBody: unknown;
-    try { patchBody = await patchResp.json(); } catch { patchBody = await patchResp.text().catch(() => ''); }
+      });
+      const patchBBody = await patchB.json();
+      results.patch_format_B = { label: 'flat uuid + fully_uploaded', status: patchB.status, body: patchBBody };
 
-    results.step3_patch = {
-      status: patchResp.status,
-      ok: patchResp.ok,
-      body: patchBody,
-    };
-
-    // Step 4: Verify — re-fetch the document to check it's complete
-    const verifyResp = await fetch(
-      `${baseUrl}/api/v4/documents/${doc.id}.json?fields=id,name,latest_document_version{uuid,fully_uploaded}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    const verifyBody = await verifyResp.json();
-    results.step4_verify = {
-      status: verifyResp.status,
-      ok: verifyResp.ok,
-      body: verifyBody,
-    };
-
-    // Step 5: Check if it appears in document listings now
-    const listResp = await fetch(
-      `${baseUrl}/api/v4/documents.json?fields=id,name&matter_id=${clioMatterId}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    const listBody = await listResp.json();
-    results.step5_listing = {
-      status: listResp.status,
-      ok: listResp.ok,
-      total_docs: listBody.meta?.records || 0,
-      docs: listBody.data,
-    };
-
-    // Clean up test document
-    const delResp = await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json`, {
-      method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    results.cleanup = { status: delResp.status, ok: delResp.ok };
-
-    // Also check the existing synced document
-    const { data: syncedRecord } = await supabase
-      .from('clio_drive_sync')
-      .select('clio_document_id, clio_document_url, clio_folder_id')
-      .eq('clio_matter_id', clioMatterId)
-      .eq('status', 'synced')
-      .eq('sync_type', 'finalisation_html')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (syncedRecord?.clio_document_id) {
-      const existingDocResp = await fetch(
-        `${baseUrl}/api/v4/documents/${syncedRecord.clio_document_id}.json?fields=id,name,latest_document_version{uuid,fully_uploaded}`,
+      const verifyB = await fetch(
+        `${baseUrl}/api/v4/documents/${doc.id}.json?fields=id,latest_document_version{uuid,fully_uploaded}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-      const existingDocBody = await existingDocResp.json();
-      results.existing_synced_doc = {
-        sync_record: syncedRecord,
-        clio_check: existingDocBody,
-      };
+      results.verify_after_B = await verifyB.json();
+      const bWorked = (results.verify_after_B as { data?: { latest_document_version?: { fully_uploaded?: boolean } } })?.data?.latest_document_version?.fully_uploaded === true;
+      results.patch_B_worked = bWorked;
+
+      if (!bWorked && version.id) {
+        // Format C: PATCH the version endpoint directly using version ID
+        const patchC = await fetch(`${baseUrl}/api/v4/document_versions/${version.id}.json?fields=id,uuid,fully_uploaded`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: { fully_uploaded: true },
+          }),
+        });
+        let patchCBody: unknown;
+        try { patchCBody = await patchC.json(); } catch { patchCBody = await patchC.text(); }
+        results.patch_format_C = { label: 'PATCH version endpoint by id', status: patchC.status, body: patchCBody };
+      }
+
+      // Format D: PATCH the version endpoint using UUID
+      const patchD = await fetch(`${baseUrl}/api/v4/document_versions/${version.uuid}.json?fields=id,uuid,fully_uploaded`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: { fully_uploaded: true },
+        }),
+      });
+      let patchDBody: unknown;
+      try { patchDBody = await patchD.json(); } catch { patchDBody = await patchD.text(); }
+      results.patch_format_D = { label: 'PATCH version endpoint by uuid', status: patchD.status, body: patchDBody };
+
+      const verifyD = await fetch(
+        `${baseUrl}/api/v4/documents/${doc.id}.json?fields=id,latest_document_version{uuid,fully_uploaded}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      results.verify_after_D = await verifyD.json();
+      const dWorked = (results.verify_after_D as { data?: { latest_document_version?: { fully_uploaded?: boolean } } })?.data?.latest_document_version?.fully_uploaded === true;
+      results.patch_D_worked = dWorked;
     }
+
+    // Clean up
+    await fetch(`${baseUrl}/api/v4/documents/${doc.id}.json`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    results.cleaned_up = true;
 
     return NextResponse.json(results, { status: 200 });
   } catch (err) {
