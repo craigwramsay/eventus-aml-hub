@@ -237,6 +237,10 @@ export async function deleteClioWebhook(
 /**
  * Find a folder by name under a Clio matter.
  * Returns null if not found.
+ *
+ * Uses `matter_id` query param to list folders for the matter,
+ * then filters by name client-side (Clio doesn't support parent_id+parent_type
+ * query params for the folders list endpoint).
  */
 export async function findClioFolder(
   clioMatterId: number,
@@ -246,9 +250,7 @@ export async function findClioFolder(
   const fields = 'id,etag,name,parent,created_at,updated_at';
   const params = new URLSearchParams({
     fields,
-    parent_id: String(clioMatterId),
-    parent_type: 'Matter',
-    name: folderName,
+    matter_id: String(clioMatterId),
   });
 
   const data = await clioFetch<ClioFolderListResponse>(
@@ -256,7 +258,9 @@ export async function findClioFolder(
     accessToken
   );
 
-  return data.data.length > 0 ? data.data[0] : null;
+  // Filter by name client-side
+  const match = data.data.find((f) => f.name === folderName);
+  return match || null;
 }
 
 /**
