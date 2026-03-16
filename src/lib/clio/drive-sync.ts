@@ -103,7 +103,7 @@ export async function syncFinalisationHtmlToClio(
   // Fetch assessment with related data
   const { data: assessment } = await supabase
     .from('assessments')
-    .select('id, reference, risk_level, score, finalised_at, input_snapshot, output_snapshot, matter_id')
+    .select('id, reference, risk_level, score, finalised_at, matter_id')
     .eq('id', assessmentId)
     .single();
 
@@ -144,84 +144,7 @@ export async function syncFinalisationHtmlToClio(
     return;
   }
 
-  // Generate HTML
-  const outputSnapshot = assessment.output_snapshot as {
-    mandatoryActions?: Array<{ actionId: string; description: string; category: string }>;
-    eddTriggers?: Array<{ description: string }>;
-  };
-
-  // Fetch all synced document links for inclusion in the HTML
-  const clioDocuments = await fetchSyncedDocumentLinks(supabase, assessmentId);
-
-  // Fetch evidence, Amiqus verifications, and completion progress
-  const [evidenceResult, amiqusResult, progressResult] = await Promise.all([
-    supabase
-      .from('assessment_evidence')
-      .select('action_id, evidence_type, source, label, verified_at, data')
-      .eq('assessment_id', assessmentId),
-    supabase
-      .from('amiqus_verifications')
-      .select('action_id, status, amiqus_record_id, verified_at')
-      .eq('assessment_id', assessmentId)
-      .eq('status', 'complete'),
-    supabase
-      .from('cdd_item_progress')
-      .select('action_id, completed_at')
-      .eq('assessment_id', assessmentId),
-  ]);
-
-  // Build lookup maps
-  const evidenceByAction = new Map<string, Array<{ evidence_type: string; source: string; label: string; verified_at: string | null; data: Record<string, unknown> | null }>>();
-  for (const e of evidenceResult.data || []) {
-    if (e.action_id) {
-      const list = evidenceByAction.get(e.action_id) || [];
-      list.push(e);
-      evidenceByAction.set(e.action_id, list);
-    }
-  }
-
-  const amiqusByAction = new Map<string, { amiqus_record_id: number | null; verified_at: string | null }>();
-  for (const v of amiqusResult.data || []) {
-    if (v.action_id) {
-      amiqusByAction.set(v.action_id, v);
-    }
-  }
-
-  const completedActions = new Set<string>();
-  for (const p of progressResult.data || []) {
-    if (p.completed_at) {
-      completedActions.add(p.action_id);
-    }
-  }
-
-  // Build enriched mandatory actions with evidence details
-  const enrichedActions = (outputSnapshot.mandatoryActions || []).map((action) => {
-    const actionEvidence = evidenceByAction.get(action.actionId) || [];
-    const amiqusVerification = amiqusByAction.get(action.actionId);
-
-    const evidence = actionEvidence.map((ev) => {
-      const amiqusRecordId = amiqusVerification?.amiqus_record_id
-        ?? (ev.data as Record<string, unknown>)?.amiqus_record_id;
-      return {
-        type: ev.evidence_type,
-        source: ev.source || ev.evidence_type,
-        verifiedAt: ev.verified_at ?? undefined,
-        label: ev.label,
-        amiqusUrl: ev.evidence_type === 'amiqus' && amiqusRecordId
-          ? `https://id.amiqus.co/records/${amiqusRecordId}`
-          : undefined,
-      };
-    });
-
-    return {
-      actionId: action.actionId,
-      description: action.description,
-      category: action.category,
-      completed: completedActions.has(action.actionId),
-      evidence: evidence.length > 0 ? evidence : undefined,
-    };
-  });
-
+  // Generate lightweight landing page HTML (redirect to Hub)
   const hubBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eventus-aml-hub.vercel.app';
   const htmlContent = generateAssessmentHtml({
     assessmentId: assessment.id,
@@ -231,10 +154,7 @@ export async function syncFinalisationHtmlToClio(
     riskLevel: assessment.risk_level,
     score: assessment.score,
     finalisedAt: assessment.finalised_at || new Date().toISOString(),
-    mandatoryActions: enrichedActions,
-    eddTriggers: outputSnapshot.eddTriggers,
     hubBaseUrl,
-    clioDocuments: clioDocuments.length > 0 ? clioDocuments : undefined,
   });
 
   const fileName = `AML-Assessment-${assessment.reference}.html`;
@@ -400,7 +320,7 @@ async function executeSyncUpload(
 
     // Upload to Clio Drive
     const doc = await uploadDocumentToClio(folder.id, fileName, fileContent, contentType, accessToken);
-    const docUrl = getClioDocumentUrl(doc.id, clioMatterIdNum);
+    const docUrl = getClioDocumentUrl(doc.id, clioMatterIdNum, folder.id);
 
     // Mark as synced
     await supabase
@@ -458,7 +378,7 @@ async function executeDirectUpload(
       .eq('id', syncId);
 
     const doc = await uploadDocumentToClio(folder.id, fileName, fileContent, contentType, accessToken);
-    const docUrl = getClioDocumentUrl(doc.id, clioMatterIdNum);
+    const docUrl = getClioDocumentUrl(doc.id, clioMatterIdNum, folder.id);
 
     await supabase
       .from('clio_drive_sync')
@@ -517,48 +437,6 @@ async function fetchAssessmentContext(
     matterReference: matter.reference,
     assessmentReference: assessment.reference,
   };
-}
-
-/**
- * Fetch all synced Clio Drive document URLs for an assessment's evidence.
- */
-async function fetchSyncedDocumentLinks(
-  supabase: SupabaseClient,
-  assessmentId: string
-): Promise<Array<{ label: string; url: string }>> {
-  const { data: syncedDocs } = await supabase
-    .from('clio_drive_sync')
-    .select('evidence_id, clio_document_url')
-    .eq('assessment_id', assessmentId)
-    .eq('sync_type', 'evidence')
-    .eq('status', 'synced');
-
-  if (!syncedDocs || syncedDocs.length === 0) return [];
-
-  const evidenceIds = syncedDocs
-    .map((d: { evidence_id: string | null }) => d.evidence_id)
-    .filter((id: string | null): id is string => !!id);
-
-  if (evidenceIds.length === 0) return [];
-
-  const { data: evidenceRecords } = await supabase
-    .from('assessment_evidence')
-    .select('id, label, file_name, evidence_type')
-    .in('id', evidenceIds);
-
-  if (!evidenceRecords) return [];
-
-  const evidenceMap = new Map(
-    evidenceRecords.map((e: { id: string; label: string; file_name: string | null; evidence_type: string }) => [e.id, e])
-  );
-
-  return syncedDocs
-    .filter((d: { clio_document_url: string | null }) => d.clio_document_url)
-    .map((d: { evidence_id: string | null; clio_document_url: string | null }) => {
-      const evidence = d.evidence_id ? evidenceMap.get(d.evidence_id) : null;
-      const label = evidence?.label || evidence?.file_name || 'Document';
-      return { label, url: d.clio_document_url! };
-    });
 }
 
 /**

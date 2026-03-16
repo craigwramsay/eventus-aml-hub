@@ -206,7 +206,7 @@ describe('syncEvidenceToClio', () => {
     expect(uploadDocumentToClio).toHaveBeenCalledWith(
       100, 'doc.pdf', expect.any(Buffer), 'application/pdf', 'tok_valid'
     );
-    expect(getClioDocumentUrl).toHaveBeenCalledWith(200, 456);
+    expect(getClioDocumentUrl).toHaveBeenCalledWith(200, 456, 100);
   });
 
   it('handles companies_house evidence type by serializing JSON', async () => {
@@ -383,11 +383,6 @@ describe('syncFinalisationHtmlToClio', () => {
       risk_level: 'MEDIUM',
       score: 6,
       finalised_at: '2026-03-07T14:30:00.000Z',
-      input_snapshot: {},
-      output_snapshot: {
-        mandatoryActions: [{ description: 'Verify ID', category: 'cdd' }],
-        eddTriggers: [],
-      },
       matter_id: 'matter-123',
     };
     const matter = { reference: 'M-00001-2026', client_id: 'client-123' };

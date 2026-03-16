@@ -9,11 +9,6 @@ const BASE_PARAMS = {
   riskLevel: 'MEDIUM',
   score: 6,
   finalisedAt: '2026-03-07T14:30:00.000Z',
-  mandatoryActions: [
-    { description: 'Verify identity of instructing director', category: 'cdd' },
-    { description: 'Obtain company documents', category: 'cdd' },
-    { description: 'Source of Wealth form', category: 'sow' },
-  ],
   hubBaseUrl: 'https://eventus-aml-hub.vercel.app',
 };
 
@@ -54,42 +49,22 @@ describe('generateAssessmentHtml', () => {
     expect(html).toContain('M-00001-2026');
   });
 
-  it('includes a link back to the Hub assessment', () => {
+  it('includes a link to the Hub assessment page', () => {
     const html = generateAssessmentHtml(BASE_PARAMS);
     expect(html).toContain('https://eventus-aml-hub.vercel.app/assessments/test-uuid-123');
-    expect(html).toContain('View Full Assessment in Eventus Hub');
+    expect(html).toContain('Open in Eventus Hub');
   });
 
-  it('groups CDD requirements by category', () => {
+  it('includes meta refresh redirect to Hub', () => {
     const html = generateAssessmentHtml(BASE_PARAMS);
-    expect(html).toContain('Customer Due Diligence');
-    expect(html).toContain('Verify identity of instructing director');
-    expect(html).toContain('Obtain company documents');
-    expect(html).toContain('Source of Wealth');
-    expect(html).toContain('Source of Wealth form');
+    expect(html).toContain('meta http-equiv="refresh"');
+    expect(html).toContain('url=https://eventus-aml-hub.vercel.app/assessments/test-uuid-123');
   });
 
-  it('includes EDD triggers when present', () => {
-    const html = generateAssessmentHtml({
-      ...BASE_PARAMS,
-      eddTriggers: [
-        { description: 'Third party funder involved' },
-        { description: 'Cross-border transaction' },
-      ],
-    });
-    expect(html).toContain('EDD Triggers');
-    expect(html).toContain('Third party funder involved');
-    expect(html).toContain('Cross-border transaction');
-  });
-
-  it('omits EDD section when no triggers present', () => {
+  it('includes JavaScript redirect to Hub', () => {
     const html = generateAssessmentHtml(BASE_PARAMS);
-    expect(html).not.toContain('EDD Triggers');
-  });
-
-  it('omits EDD section when triggers is empty array', () => {
-    const html = generateAssessmentHtml({ ...BASE_PARAMS, eddTriggers: [] });
-    expect(html).not.toContain('EDD Triggers');
+    expect(html).toContain('window.top.location.href=');
+    expect(html).toContain('https://eventus-aml-hub.vercel.app/assessments/test-uuid-123');
   });
 
   it('includes the generated-by footer', () => {
@@ -106,34 +81,14 @@ describe('generateAssessmentHtml', () => {
     expect(html).not.toContain('Smith & Jones <Partners>');
   });
 
-  it('handles empty mandatory actions', () => {
-    const html = generateAssessmentHtml({ ...BASE_PARAMS, mandatoryActions: [] });
-    expect(html).toContain('Compliance Requirements');
-    // Should still be valid HTML
-    expect(html).toContain('</html>');
-  });
-
-  it('includes Clio document links when provided', () => {
-    const html = generateAssessmentHtml({
-      ...BASE_PARAMS,
-      clioDocuments: [
-        { label: 'Articles of Association', url: 'https://app.clio.com/nc/#/documents/100' },
-        { label: 'SoW-Declaration-A-00001-2026.html', url: 'https://app.clio.com/nc/#/documents/101' },
-      ],
-    });
-    expect(html).toContain('Compliance Documents in Clio');
-    expect(html).toContain('Articles of Association');
-    expect(html).toContain('https://app.clio.com/nc/#/documents/100');
-    expect(html).toContain('SoW-Declaration-A-00001-2026.html');
-  });
-
-  it('omits document links section when no documents provided', () => {
+  it('includes formatted finalised date', () => {
     const html = generateAssessmentHtml(BASE_PARAMS);
-    expect(html).not.toContain('Compliance Documents in Clio');
+    expect(html).toContain('Finalised');
+    expect(html).toContain('7 March 2026');
   });
 
-  it('omits document links section when empty array provided', () => {
-    const html = generateAssessmentHtml({ ...BASE_PARAMS, clioDocuments: [] });
-    expect(html).not.toContain('Compliance Documents in Clio');
+  it('shows CDD checklist description text', () => {
+    const html = generateAssessmentHtml(BASE_PARAMS);
+    expect(html).toContain('View the full CDD checklist, evidence, and scoring breakdown.');
   });
 });
