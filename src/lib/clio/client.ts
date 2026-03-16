@@ -395,15 +395,12 @@ export async function uploadDocumentToClio(
 }
 
 /**
- * Build a Clio web UI URL for viewing the Compliance folder.
- * Tries folder deep-link first, falls back to matter documents tab.
+ * Build a Clio web UI URL for the matter's documents tab.
+ * Clio EU doesn't support deep-linking to individual documents or folders,
+ * so we link to the matter documents page (one click from Compliance folder).
  */
-export function getClioDocumentUrl(documentId: number, clioMatterId?: number, clioFolderId?: number): string {
+export function getClioDocumentUrl(documentId: number, clioMatterId?: number, _clioFolderId?: number): string {
   const baseUrl = getClioBaseUrl();
-  if (clioFolderId) {
-    // Deep-link to the Compliance folder in Clio Drive
-    return `${baseUrl}/nc/#/documents/${clioFolderId}`;
-  }
   if (clioMatterId) {
     return `${baseUrl}/nc/#/matters/${clioMatterId}/documents`;
   }
