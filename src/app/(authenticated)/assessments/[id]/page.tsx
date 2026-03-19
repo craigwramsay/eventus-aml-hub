@@ -3,7 +3,7 @@ import { getAssessmentWithDetails } from '@/app/actions/assessments';
 import { getEvidenceForAssessment, getLatestSowForClient } from '@/app/actions/evidence';
 import { getProgressForAssessment } from '@/app/actions/progress';
 import { getApprovalForAssessment } from '@/app/actions/approvals';
-import { getAmiqusVerifications } from '@/app/actions/amiqus';
+import { getAmiqusVerifications, getClientLatestAmiqusVerification } from '@/app/actions/amiqus';
 import { getClioDriveSyncForAssessment } from '@/app/actions/clio-drive';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
@@ -88,6 +88,12 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const priorSowData = hasSowOnThisAssessment ? null : await getLatestSowForClient(client.id);
   const isFinalised = assessment.finalised_at !== null;
   const isCorporate = client.client_type !== 'individual';
+
+  // Look up client's latest Amiqus verification (for carry-forward identity link)
+  const clientAmiqus = amiqusVerifications.some(v => v.status === 'complete')
+    ? null  // Already have Amiqus on this assessment, no need for cross-assessment lookup
+    : await getClientLatestAmiqusVerification(client.id);
+
   const profile = await getUserProfile();
   const canFinalise = profile ? canFinaliseAssessment(profile.role) : false;
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
@@ -193,6 +199,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         priorSowData={priorSowData}
         syncRecords={clioDriveSyncRecords}
         userNames={userNames}
+        clientAmiqus={clientAmiqus}
       />
 
       {/* 4. Monitoring Statement */}

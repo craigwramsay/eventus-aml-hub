@@ -219,6 +219,57 @@ export async function getAmiqusVerifications(
 }
 
 /**
+ * Get the most recent completed Amiqus verification for a client across all assessments.
+ * Used to show the original Amiqus record link when identity was carried forward.
+ */
+export async function getClientLatestAmiqusVerification(
+  clientId: string
+): Promise<{ amiqusRecordId: number; verifiedAt: string | null } | null> {
+  try {
+    const { supabase, error } = await getUserAndProfile();
+    if (error) return null;
+
+    // Find the client's matters → assessments → amiqus_verifications
+    const { data: matters } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('client_id', clientId);
+
+    if (!matters || matters.length === 0) return null;
+
+    const matterIds = matters.map(m => m.id);
+
+    const { data: assessments } = await supabase
+      .from('assessments')
+      .select('id')
+      .in('matter_id', matterIds);
+
+    if (!assessments || assessments.length === 0) return null;
+
+    const assessmentIds = assessments.map(a => a.id);
+
+    const { data: verification } = await supabase
+      .from('amiqus_verifications')
+      .select('amiqus_record_id, verified_at')
+      .in('assessment_id', assessmentIds)
+      .eq('status', 'complete')
+      .not('amiqus_record_id', 'is', null)
+      .order('verified_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!verification?.amiqus_record_id) return null;
+
+    return {
+      amiqusRecordId: verification.amiqus_record_id,
+      verifiedAt: verification.verified_at,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Link an existing Amiqus record to an assessment action.
  *
  * Fetches the record from Amiqus to validate it exists and is complete,

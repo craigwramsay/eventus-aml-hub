@@ -85,6 +85,8 @@ interface CDDChecklistProps {
   syncRecords?: ClioDriveSync[];
   /** Map of user IDs to display names (for completion attribution) */
   userNames?: Record<string, string>;
+  /** Client's latest completed Amiqus verification (for carry-forward link) */
+  clientAmiqus?: { amiqusRecordId: number; verifiedAt: string | null } | null;
 }
 
 function formatDate(dateStr: string): string {
@@ -320,6 +322,7 @@ export function CDDChecklist({
   priorSowData,
   syncRecords = [],
   userNames = {},
+  clientAmiqus,
 }: CDDChecklistProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -931,6 +934,26 @@ export function CDDChecklist({
                 <span className={styles.amiqusStatusFailed}>
                   {verification.status === 'failed' ? 'Failed' : 'Expired'}
                 </span>
+              </div>
+            );
+          }
+          // No Amiqus verification on this assessment — check for carry-forward from prior assessment
+          if (clientAmiqus && effectiveCompleted) {
+            const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
+            return (
+              <div className={`${styles.amiqusStatusGroup} ${styles.cddItemFullWidth}`}>
+                <span className={styles.amiqusStatusComplete}>
+                  Original verification{clientAmiqus.verifiedAt && `: ${new Date(clientAmiqus.verifiedAt + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+                </span>
+                <span className={styles.amiqusRecordId}>Amiqus #{clientAmiqus.amiqusRecordId}</span>
+                <a
+                  href={amiqusUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.evidenceActionButton}
+                >
+                  View in Amiqus
+                </a>
               </div>
             );
           }
