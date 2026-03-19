@@ -5,27 +5,27 @@
  * self-contained HTML documents for upload to Clio Drive.
  */
 
-interface FieldDef {
+export interface FieldDef {
   id: string;
   label: string;
   type: 'text' | 'list';
 }
 
-const SOW_INDIVIDUAL_FIELDS: FieldDef[] = [
+export const SOW_INDIVIDUAL_FIELDS: FieldDef[] = [
   { id: 'sow_ind_2', label: 'Declared source(s) of wealth', type: 'list' },
   { id: 'sow_ind_3', label: 'Details for each declared source', type: 'text' },
   { id: 'sow_ind_4', label: 'Estimated total wealth range', type: 'text' },
   { id: 'sow_ind_5', label: 'How long has the client held the declared wealth?', type: 'text' },
 ];
 
-const SOW_CORPORATE_FIELDS: FieldDef[] = [
+export const SOW_CORPORATE_FIELDS: FieldDef[] = [
   { id: 'sow_corp_2', label: 'Declared source(s) of wealth', type: 'list' },
   { id: 'sow_corp_3', label: 'Details for each declared source', type: 'text' },
   { id: 'sow_corp_4', label: 'How long has the entity been trading or operating?', type: 'text' },
   { id: 'sow_corp_5', label: 'Most recent accounts period', type: 'text' },
 ];
 
-const SOF_FIELDS: FieldDef[] = [
+export const SOF_FIELDS: FieldDef[] = [
   { id: 'sof_2', label: 'Who is providing the funds?', type: 'text' },
   { id: 'sof_3', label: 'Origin of funds', type: 'text' },
   { id: 'sof_4', label: 'Bank or institution name', type: 'text' },

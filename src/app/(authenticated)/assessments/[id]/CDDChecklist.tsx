@@ -19,6 +19,7 @@ import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityS
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
 import { initiateAmiqusVerification, linkExistingAmiqusRecord } from '@/app/actions/amiqus';
 import { getSowSofFormConfig } from '@/lib/rules-engine/config-loader';
+import { SOW_INDIVIDUAL_FIELDS, SOW_CORPORATE_FIELDS, SOF_FIELDS } from '@/lib/clio/sow-sof-html';
 import { CompaniesHouseCard } from './CompaniesHouseCard';
 import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
 import { SowSofForm } from './SowSofForm';
@@ -174,6 +175,16 @@ function monthsSince(dateStr: string): number {
   return Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
 }
 
+/** Build a lookup map from field IDs to human-readable labels */
+const DECLARATION_FIELD_LABELS: Record<string, string> = Object.fromEntries(
+  [...SOW_INDIVIDUAL_FIELDS, ...SOW_CORPORATE_FIELDS, ...SOF_FIELDS].map(f => [f.id, f.label])
+);
+
+/** Get a human-readable label for a declaration field ID */
+function getFieldLabel(fieldId: string): string {
+  return DECLARATION_FIELD_LABELS[fieldId] || DECLARATION_FIELD_LABELS[fieldId.toLowerCase()] || fieldId;
+}
+
 /** Renders a saved SoW/SoF declaration as an expandable card */
 function DeclarationCard({ evidence }: { evidence: AssessmentEvidence }) {
   const [expanded, setExpanded] = useState(false);
@@ -211,7 +222,7 @@ function DeclarationCard({ evidence }: { evidence: AssessmentEvidence }) {
           <div className={styles.chGrid}>
             {Object.entries(data).map(([key, value]) => (
               <div key={key} className={styles.chField}>
-                <span className={styles.chFieldLabel}>{key}</span>
+                <span className={styles.chFieldLabel}>{getFieldLabel(key)}</span>
                 <span>{Array.isArray(value) ? value.join(', ') : String(value)}</span>
               </div>
             ))}

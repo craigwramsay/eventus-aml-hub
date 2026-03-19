@@ -15,7 +15,7 @@ import {
 } from './client';
 import { getClioAccessTokenForFirm } from './token';
 import { generateAssessmentPdf } from './drive-pdf';
-import type { CddItemSummary } from './drive-pdf';
+import type { CddItemSummary, DeclarationData, RiskFactorSummary } from './drive-pdf';
 import { generateSowHtml, generateSofHtml } from './sow-sof-html';
 
 /** Evidence types that produce files worth syncing to Clio Drive */
@@ -150,12 +150,14 @@ export async function syncFinalisationPdfToClio(
     mandatoryActions?: Array<{ actionId: string; description: string; category: string }>;
     eddTriggers?: Array<{ description: string }>;
     warnings?: Array<{ message: string }>;
+    riskFactors?: Array<{ factorLabel: string; selectedAnswer: string | string[]; score: number; rationale: string }>;
+    rationale?: string[];
   };
 
   const [evidenceResult, amiqusResult, progressResult] = await Promise.all([
     supabase
       .from('assessment_evidence')
-      .select('action_id, evidence_type, source, label, verified_at')
+      .select('action_id, evidence_type, source, label, verified_at, data')
       .eq('assessment_id', assessmentId),
     supabase
       .from('amiqus_verifications')
@@ -175,11 +177,20 @@ export async function syncFinalisationPdfToClio(
   }
 
   const evidenceByAction = new Map<string, Array<{ evidence_type: string; source: string; label: string; verified_at: string | null }>>();
+  const declarations: DeclarationData[] = [];
   for (const e of evidenceResult.data || []) {
     if (e.action_id) {
       const list = evidenceByAction.get(e.action_id) || [];
       list.push(e);
       evidenceByAction.set(e.action_id, list);
+    }
+    // Collect SoW/SoF declarations for expanded display in PDF
+    if ((e.evidence_type === 'sow_declaration' || e.evidence_type === 'sof_declaration') && e.data) {
+      declarations.push({
+        type: e.evidence_type as 'sow_declaration' | 'sof_declaration',
+        actionId: e.action_id,
+        data: e.data as Record<string, string | string[]>,
+      });
     }
   }
 
@@ -241,6 +252,9 @@ export async function syncFinalisationPdfToClio(
     totalCount: cddItems.length,
     eddTriggers: outputSnapshot.eddTriggers,
     warnings: outputSnapshot.warnings?.map(w => w.message),
+    declarations,
+    riskFactors: (outputSnapshot.riskFactors || []) as RiskFactorSummary[],
+    rationale: outputSnapshot.rationale || [],
   });
 
   const fileName = `AML-Assessment-${assessment.reference}.pdf`;

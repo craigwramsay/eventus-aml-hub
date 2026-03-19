@@ -4,11 +4,14 @@
  * Generates a professional PDF summary of a finalised assessment.
  * Uploaded to Clio Drive's Compliance folder on finalisation.
  *
+ * Content order: CDD Requirements (with declaration details) → Assessment Detail → Risk Scoring
+ *
  * Uses @react-pdf/renderer for server-side PDF generation (no headless browser needed).
  */
 
 import React from 'react';
 import { Document, Page, Text, View, Link, StyleSheet, renderToBuffer } from '@react-pdf/renderer';
+import { SOW_INDIVIDUAL_FIELDS, SOW_CORPORATE_FIELDS, SOF_FIELDS } from './sow-sof-html';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -20,6 +23,19 @@ interface CddItemSummary {
   evidenceSummary: string | null;
   /** Clickable Amiqus URL if applicable */
   amiqusUrl: string | null;
+}
+
+interface DeclarationData {
+  type: 'sow_declaration' | 'sof_declaration';
+  actionId: string | null;
+  data: Record<string, string | string[]>;
+}
+
+interface RiskFactorSummary {
+  factorLabel: string;
+  selectedAnswer: string | string[];
+  score: number;
+  rationale: string;
 }
 
 interface AssessmentPdfParams {
@@ -36,6 +52,22 @@ interface AssessmentPdfParams {
   totalCount: number;
   eddTriggers?: Array<{ description: string }>;
   warnings?: string[];
+  /** SoW/SoF declaration form data to show expanded in the PDF */
+  declarations?: DeclarationData[];
+  /** Risk factor breakdown for the scoring section */
+  riskFactors?: RiskFactorSummary[];
+  /** Human-readable rationale strings */
+  rationale?: string[];
+}
+
+// ── Field label lookup ─────────────────────────────────────────────────
+
+const FIELD_LABELS: Record<string, string> = Object.fromEntries(
+  [...SOW_INDIVIDUAL_FIELDS, ...SOW_CORPORATE_FIELDS, ...SOF_FIELDS].map(f => [f.id, f.label])
+);
+
+function getFieldLabel(fieldId: string): string {
+  return FIELD_LABELS[fieldId] || FIELD_LABELS[fieldId.toLowerCase()] || fieldId;
 }
 
 // ── Styles ─────────────────────────────────────────────────────────────
@@ -58,6 +90,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const s = StyleSheet.create({
   page: {
     padding: 40,
+    paddingBottom: 60,
     fontFamily: 'Helvetica',
     fontSize: 10,
     color: '#333',
@@ -117,12 +150,16 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  // CDD section
+  // Section titles
   sectionTitle: {
     fontSize: 13,
     fontFamily: 'Helvetica-Bold',
     color: '#1a1a2e',
     marginBottom: 8,
+    marginTop: 16,
+  },
+  sectionTitleFirst: {
+    marginTop: 0,
   },
   progressText: {
     fontSize: 9,
@@ -139,8 +176,8 @@ const s = StyleSheet.create({
   // CDD item
   cddItem: {
     flexDirection: 'row',
-    marginBottom: 4,
-    paddingVertical: 4,
+    marginBottom: 6,
+    paddingVertical: 6,
     paddingHorizontal: 8,
     backgroundColor: '#f8f9fa',
     borderRadius: 3,
@@ -179,6 +216,36 @@ const s = StyleSheet.create({
     color: '#1a73e8',
     fontSize: 8.5,
     marginTop: 1,
+  },
+  // Declaration details (shown expanded within CDD section)
+  declarationBlock: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 10,
+    backgroundColor: '#f0f4f8',
+    borderRadius: 4,
+    borderLeftWidth: 3,
+    borderLeftColor: '#6b7280',
+  },
+  declarationTitle: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    color: '#374151',
+    marginBottom: 6,
+  },
+  declarationFieldRow: {
+    marginBottom: 4,
+  },
+  declarationFieldLabel: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    marginBottom: 1,
+  },
+  declarationFieldValue: {
+    fontSize: 9,
+    color: '#333',
   },
   // EDD triggers
   eddSection: {
@@ -219,6 +286,49 @@ const s = StyleSheet.create({
   warningItem: {
     fontSize: 9,
     color: '#721c24',
+    marginBottom: 3,
+    paddingLeft: 10,
+  },
+  // Risk scoring table
+  scoringRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingVertical: 4,
+  },
+  scoringHeaderRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 2,
+    borderBottomColor: '#333',
+    paddingVertical: 4,
+  },
+  scoringFactor: {
+    flex: 3,
+    fontSize: 9,
+    color: '#333',
+  },
+  scoringAnswer: {
+    flex: 3,
+    fontSize: 9,
+    color: '#555',
+  },
+  scoringScore: {
+    width: 40,
+    fontSize: 9,
+    color: '#333',
+    textAlign: 'right',
+    fontFamily: 'Helvetica-Bold',
+  },
+  scoringHeaderText: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: '#555',
+    textTransform: 'uppercase',
+  },
+  // Rationale
+  rationaleItem: {
+    fontSize: 9,
+    color: '#555',
     marginBottom: 3,
     paddingLeft: 10,
   },
@@ -282,13 +392,16 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
     totalCount,
     eddTriggers,
     warnings,
+    declarations = [],
+    riskFactors = [],
+    rationale = [],
   } = params;
 
   const riskColour = RISK_COLOURS[riskLevel] || RISK_COLOURS.MEDIUM;
   const hubUrl = `${hubBaseUrl}/assessments/${assessmentId}`;
   const generatedAt = formatShortDate(new Date().toISOString());
 
-  // Group items by category
+  // Group CDD items by category
   const itemsByCategory = new Map<string, CddItemSummary[]>();
   for (const item of cddItems) {
     const list = itemsByCategory.get(item.category) || [];
@@ -296,9 +409,15 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
     itemsByCategory.set(item.category, list);
   }
 
+  // Index declarations by action_id for inline display
+  const declarationByAction = new Map<string, DeclarationData>();
+  for (const decl of declarations) {
+    if (decl.actionId) declarationByAction.set(decl.actionId, decl);
+  }
+
   return (
     <Document>
-      <Page size="A4" style={s.page}>
+      <Page size="A4" style={s.page} wrap>
         {/* Header */}
         <View style={s.header}>
           <Text style={s.headerTitle}>AML Risk Assessment</Text>
@@ -329,49 +448,76 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
           </View>
         </View>
 
-        {/* CDD Checklist */}
+        {/* ── SECTION 1: CDD Requirements ── */}
         <View>
-          <Text style={s.sectionTitle}>Compliance Requirements</Text>
+          <Text style={[s.sectionTitle, s.sectionTitleFirst]}>Compliance Requirements</Text>
           <Text style={s.progressText}>
             {completedCount} of {totalCount} requirements completed
           </Text>
 
           {Array.from(itemsByCategory.entries()).map(([category, items]) => (
-            <View key={category}>
+            <View key={category} wrap={false}>
               <Text style={s.categoryTitle}>
                 {CATEGORY_LABELS[category] || category}
               </Text>
-              {items.map((item, idx) => (
-                <View
-                  key={`${category}-${idx}`}
-                  style={[
-                    s.cddItem,
-                    item.completed ? s.cddItemCompleted : s.cddItemIncomplete,
-                  ]}
-                >
-                  <Text style={[s.checkmark, item.completed ? s.checkmarkGreen : s.checkmarkGrey]}>
-                    {item.completed ? '✓' : '✗'}
-                  </Text>
-                  <View style={s.cddItemText}>
-                    <Text style={s.cddItemDescription}>{item.description}</Text>
-                    {item.evidenceSummary && (
-                      <Text style={s.cddItemEvidence}>{item.evidenceSummary}</Text>
-                    )}
-                    {item.amiqusUrl && (
-                      <Link src={item.amiqusUrl} style={s.amiqusLink}>
-                        View in Amiqus
-                      </Link>
-                    )}
+              {items.map((item, idx) => {
+                // Find declaration data for this item (if SoW/SoF)
+                const decl = item.completed ? declarationByAction.get(
+                  cddItems.find(ci => ci.description === item.description && ci.category === item.category)
+                    ? (cddItems as (CddItemSummary & { actionId?: string })[]).find(
+                        ci => ci.description === item.description
+                      )?.actionId || ''
+                    : ''
+                ) : undefined;
+
+                return (
+                  <View key={`${category}-${idx}`}>
+                    <View style={[
+                      s.cddItem,
+                      item.completed ? s.cddItemCompleted : s.cddItemIncomplete,
+                    ]}>
+                      <Text style={[s.checkmark, item.completed ? s.checkmarkGreen : s.checkmarkGrey]}>
+                        {item.completed ? '✓' : '✗'}
+                      </Text>
+                      <View style={s.cddItemText}>
+                        <Text style={s.cddItemDescription}>{item.description}</Text>
+                        {item.evidenceSummary && (
+                          <Text style={s.cddItemEvidence}>{item.evidenceSummary}</Text>
+                        )}
+                        {item.amiqusUrl && (
+                          <Link src={item.amiqusUrl} style={s.amiqusLink}>
+                            View in Amiqus
+                          </Link>
+                        )}
+                      </View>
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           ))}
         </View>
 
+        {/* Declaration details shown expanded after the CDD section */}
+        {declarations.length > 0 && declarations.map((decl, idx) => (
+          <View key={idx} style={s.declarationBlock} wrap={false}>
+            <Text style={s.declarationTitle}>
+              {decl.type === 'sow_declaration' ? 'Source of Wealth Declaration' : 'Source of Funds Declaration'}
+            </Text>
+            {Object.entries(decl.data).map(([fieldId, value]) => (
+              <View key={fieldId} style={s.declarationFieldRow}>
+                <Text style={s.declarationFieldLabel}>{getFieldLabel(fieldId)}</Text>
+                <Text style={s.declarationFieldValue}>
+                  {Array.isArray(value) ? value.join(', ') : String(value) || 'Not provided'}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ))}
+
         {/* EDD Triggers */}
         {eddTriggers && eddTriggers.length > 0 && (
-          <View style={s.eddSection}>
+          <View style={s.eddSection} wrap={false}>
             <Text style={s.eddTitle}>EDD Triggers</Text>
             {eddTriggers.map((t, i) => (
               <Text key={i} style={s.eddItem}>• {t.description}</Text>
@@ -381,11 +527,47 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
 
         {/* Warnings */}
         {warnings && warnings.length > 0 && (
-          <View style={s.warningSection}>
+          <View style={s.warningSection} wrap={false}>
             <Text style={s.warningTitle}>Warnings</Text>
             {warnings.map((w, i) => (
               <Text key={i} style={s.warningItem}>• {w}</Text>
             ))}
+          </View>
+        )}
+
+        {/* ── SECTION 2: Assessment Detail (Rationale) ── */}
+        {rationale.length > 0 && (
+          <View>
+            <Text style={s.sectionTitle}>Assessment Detail</Text>
+            {rationale.map((r, i) => (
+              <Text key={i} style={s.rationaleItem}>• {r}</Text>
+            ))}
+          </View>
+        )}
+
+        {/* ── SECTION 3: Risk Assessment Scoring ── */}
+        {riskFactors.length > 0 && (
+          <View>
+            <Text style={s.sectionTitle}>Risk Assessment Scoring</Text>
+            <View style={s.scoringHeaderRow}>
+              <Text style={[s.scoringFactor, s.scoringHeaderText]}>Factor</Text>
+              <Text style={[s.scoringAnswer, s.scoringHeaderText]}>Answer</Text>
+              <Text style={[s.scoringScore, s.scoringHeaderText]}>Score</Text>
+            </View>
+            {riskFactors.map((rf, i) => (
+              <View key={i} style={s.scoringRow}>
+                <Text style={s.scoringFactor}>{rf.factorLabel}</Text>
+                <Text style={s.scoringAnswer}>
+                  {Array.isArray(rf.selectedAnswer) ? rf.selectedAnswer.join(', ') : rf.selectedAnswer}
+                </Text>
+                <Text style={s.scoringScore}>{rf.score > 0 ? `+${rf.score}` : String(rf.score)}</Text>
+              </View>
+            ))}
+            <View style={s.scoringRow}>
+              <Text style={[s.scoringFactor, { fontFamily: 'Helvetica-Bold' }]}>Total</Text>
+              <Text style={s.scoringAnswer} />
+              <Text style={s.scoringScore}>{score}</Text>
+            </View>
           </View>
         )}
 
@@ -405,7 +587,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
 
 // ── Public API ──────────────────────────────────────────────────────────
 
-export type { AssessmentPdfParams, CddItemSummary };
+export type { AssessmentPdfParams, CddItemSummary, DeclarationData, RiskFactorSummary };
 
 /**
  * Generate a PDF buffer for a finalised assessment.
