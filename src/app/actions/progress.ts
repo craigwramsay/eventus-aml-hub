@@ -13,7 +13,7 @@ import { canCreateAssessment } from '@/lib/auth/roles';
 import type { UserRole } from '@/lib/auth/roles';
 
 export type ProgressResult =
-  | { success: true; progress: CddItemProgress[] }
+  | { success: true; progress: CddItemProgress[]; userNames: Record<string, string> }
   | { success: false; error: string };
 
 export type ToggleResult =
@@ -71,7 +71,26 @@ export async function getProgressForAssessment(
       return { success: false, error: 'Failed to fetch progress records' };
     }
 
-    return { success: true, progress: (data || []) as CddItemProgress[] };
+    const progressRecords = (data || []) as CddItemProgress[];
+
+    // Resolve user names for completed_by attribution
+    const completedByIds = [...new Set(
+      progressRecords.filter(p => p.completed_by).map(p => p.completed_by!)
+    )];
+    let userNames: Record<string, string> = {};
+    if (completedByIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, full_name')
+        .in('user_id', completedByIds);
+      if (profiles) {
+        userNames = Object.fromEntries(
+          profiles.map((p: { user_id: string; full_name: string | null }) => [p.user_id, p.full_name || 'Unknown'])
+        );
+      }
+    }
+
+    return { success: true, progress: progressRecords, userNames };
   } catch (err) {
     console.error('Error in getProgressForAssessment:', err);
     return { success: false, error: 'An unexpected error occurred' };

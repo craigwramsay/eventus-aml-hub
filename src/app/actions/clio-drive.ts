@@ -9,7 +9,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { ClioDriveSync } from '@/lib/supabase/types';
-import { syncEvidenceToClio, syncFinalisationHtmlToClio, retryFailedSync } from '@/lib/clio/drive-sync';
+import { syncEvidenceToClio, syncFinalisationPdfToClio, retryFailedSync } from '@/lib/clio/drive-sync';
 
 /**
  * Trigger Clio Drive sync for a newly created evidence record.
@@ -77,7 +77,7 @@ export async function triggerClioFinalisationSync(
 
     if (!matter?.clio_matter_id) return;
 
-    await syncFinalisationHtmlToClio(supabase, assessmentId, firmId, matter.clio_matter_id, userId);
+    await syncFinalisationPdfToClio(supabase, assessmentId, firmId, matter.clio_matter_id, userId);
   } catch (err) {
     console.error('Non-blocking Clio finalisation sync error:', err);
   }

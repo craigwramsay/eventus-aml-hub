@@ -1,7 +1,7 @@
 /**
  * Clio Drive Sync Engine
  *
- * Orchestrates syncing evidence files and finalisation HTML from the Hub to Clio Drive.
+ * Orchestrates syncing evidence files and finalisation PDF from the Hub to Clio Drive.
  * All operations are non-blocking — errors are caught and tracked in clio_drive_sync.
  */
 
@@ -14,7 +14,8 @@ import {
   ClioError,
 } from './client';
 import { getClioAccessTokenForFirm } from './token';
-import { generateAssessmentHtml } from './drive-html';
+import { generateAssessmentPdf } from './drive-pdf';
+import type { CddItemSummary } from './drive-pdf';
 import { generateSowHtml, generateSofHtml } from './sow-sof-html';
 
 /** Evidence types that produce files worth syncing to Clio Drive */
@@ -82,7 +83,7 @@ export async function syncEvidenceToClio(
 /**
  * Generate and upload an HTML summary file to Clio Drive on assessment finalisation.
  */
-export async function syncFinalisationHtmlToClio(
+export async function syncFinalisationPdfToClio(
   supabase: SupabaseClient,
   assessmentId: string,
   firmId: string,
@@ -103,7 +104,7 @@ export async function syncFinalisationHtmlToClio(
   // Fetch assessment with related data
   const { data: assessment } = await supabase
     .from('assessments')
-    .select('id, reference, risk_level, score, finalised_at, matter_id')
+    .select('id, reference, risk_level, score, finalised_at, matter_id, output_snapshot')
     .eq('id', assessmentId)
     .single();
 
@@ -144,9 +145,89 @@ export async function syncFinalisationHtmlToClio(
     return;
   }
 
-  // Generate lightweight landing page HTML (redirect to Hub)
+  // Fetch evidence, Amiqus verifications, and completion progress for PDF content
+  const outputSnapshot = assessment.output_snapshot as {
+    mandatoryActions?: Array<{ actionId: string; description: string; category: string }>;
+    eddTriggers?: Array<{ description: string }>;
+    warnings?: Array<{ message: string }>;
+  };
+
+  const [evidenceResult, amiqusResult, progressResult] = await Promise.all([
+    supabase
+      .from('assessment_evidence')
+      .select('action_id, evidence_type, source, label, verified_at')
+      .eq('assessment_id', assessmentId),
+    supabase
+      .from('amiqus_verifications')
+      .select('action_id, amiqus_record_id, status, verified_at')
+      .eq('assessment_id', assessmentId)
+      .eq('status', 'complete'),
+    supabase
+      .from('cdd_item_progress')
+      .select('action_id, completed_at')
+      .eq('assessment_id', assessmentId),
+  ]);
+
+  // Build lookup maps
+  const completedActions = new Set<string>();
+  for (const p of progressResult.data || []) {
+    if (p.completed_at) completedActions.add(p.action_id);
+  }
+
+  const evidenceByAction = new Map<string, Array<{ evidence_type: string; source: string; label: string; verified_at: string | null }>>();
+  for (const e of evidenceResult.data || []) {
+    if (e.action_id) {
+      const list = evidenceByAction.get(e.action_id) || [];
+      list.push(e);
+      evidenceByAction.set(e.action_id, list);
+    }
+  }
+
+  const amiqusByAction = new Map<string, { amiqus_record_id: number | null; verified_at: string | null }>();
+  for (const v of amiqusResult.data || []) {
+    if (v.action_id) amiqusByAction.set(v.action_id, v);
+  }
+
+  // Build CDD item summaries for PDF
+  const cddItems: CddItemSummary[] = (outputSnapshot.mandatoryActions || []).map((action) => {
+    const completed = completedActions.has(action.actionId);
+    const actionEvidence = evidenceByAction.get(action.actionId) || [];
+    const amiqus = amiqusByAction.get(action.actionId);
+
+    // Build evidence summary text
+    let evidenceSummary: string | null = null;
+    let amiqusUrl: string | null = null;
+
+    if (amiqus?.amiqus_record_id) {
+      const dateStr = amiqus.verified_at
+        ? new Date(amiqus.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        : '';
+      evidenceSummary = `Verified via Amiqus #${amiqus.amiqus_record_id}${dateStr ? ` on ${dateStr}` : ''}`;
+      amiqusUrl = `https://id.amiqus.co/records/${amiqus.amiqus_record_id}`;
+    } else if (actionEvidence.length > 0) {
+      const summaries = actionEvidence.map((ev) => {
+        const datePart = ev.verified_at
+          ? ` (${new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})`
+          : '';
+        return `${ev.source || ev.evidence_type}${datePart}`;
+      });
+      evidenceSummary = summaries.join('; ');
+    }
+
+    return {
+      description: action.description,
+      category: action.category,
+      completed,
+      evidenceSummary,
+      amiqusUrl,
+    };
+  });
+
+  const completedCount = cddItems.filter(i => i.completed).length;
+
+  // Generate PDF
   const hubBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eventus-aml-hub.vercel.app';
-  const htmlContent = generateAssessmentHtml({
+  const fileBuffer = await generateAssessmentPdf({
     assessmentId: assessment.id,
     assessmentReference: assessment.reference,
     clientName: client.name,
@@ -155,17 +236,21 @@ export async function syncFinalisationHtmlToClio(
     score: assessment.score,
     finalisedAt: assessment.finalised_at || new Date().toISOString(),
     hubBaseUrl,
+    cddItems,
+    completedCount,
+    totalCount: cddItems.length,
+    eddTriggers: outputSnapshot.eddTriggers,
+    warnings: outputSnapshot.warnings?.map(w => w.message),
   });
 
-  const fileName = `AML-Assessment-${assessment.reference}.html`;
-  const fileBuffer = Buffer.from(htmlContent, 'utf-8');
+  const fileName = `AML-Assessment-${assessment.reference}.pdf`;
 
   await executeDirectUpload(
     supabase,
     syncRecord.id,
     fileName,
     fileBuffer,
-    'text/html',
+    'application/pdf',
     firmId,
     clioMatterId
   );
@@ -209,7 +294,7 @@ export async function retryFailedSync(
   } else if (syncRecord.sync_type === 'finalisation_html') {
     // Delete the failed record and re-run the full flow
     await supabase.from('clio_drive_sync').delete().eq('id', syncId);
-    await syncFinalisationHtmlToClio(
+    await syncFinalisationPdfToClio(
       supabase,
       syncRecord.assessment_id,
       syncRecord.firm_id,

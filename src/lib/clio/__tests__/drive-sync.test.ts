@@ -19,14 +19,14 @@ vi.mock('../token', () => ({
   getClioAccessTokenForFirm: vi.fn(),
 }));
 
-vi.mock('../drive-html', () => ({
-  generateAssessmentHtml: vi.fn(() => '<html><body>Test HTML</body></html>'),
+vi.mock('../drive-pdf', () => ({
+  generateAssessmentPdf: vi.fn(() => Promise.resolve(Buffer.from('fake-pdf-content'))),
 }));
 
-import { syncEvidenceToClio, syncFinalisationHtmlToClio, retryFailedSync } from '../drive-sync';
+import { syncEvidenceToClio, syncFinalisationPdfToClio, retryFailedSync } from '../drive-sync';
 import { ensureComplianceFolder, uploadDocumentToClio, getClioDocumentUrl, ClioError } from '../client';
 import { getClioAccessTokenForFirm } from '../token';
-import { generateAssessmentHtml } from '../drive-html';
+import { generateAssessmentPdf } from '../drive-pdf';
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -345,7 +345,7 @@ describe('syncEvidenceToClio', () => {
   });
 });
 
-describe('syncFinalisationHtmlToClio', () => {
+describe('syncFinalisationPdfToClio', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getClioAccessTokenForFirm).mockResolvedValue({
@@ -369,13 +369,13 @@ describe('syncFinalisationHtmlToClio', () => {
       }),
     } as any);
 
-    await syncFinalisationHtmlToClio(supabase as any, ASSESSMENT_ID, FIRM_ID, CLIO_MATTER_ID, USER_ID);
+    await syncFinalisationPdfToClio(supabase as any, ASSESSMENT_ID, FIRM_ID, CLIO_MATTER_ID, USER_ID);
 
-    expect(generateAssessmentHtml).not.toHaveBeenCalled();
+    expect(generateAssessmentPdf).not.toHaveBeenCalled();
     expect(uploadDocumentToClio).not.toHaveBeenCalled();
   });
 
-  it('generates HTML and uploads to Clio Drive', async () => {
+  it('generates PDF and uploads to Clio Drive', async () => {
     const supabase = createMockSupabase();
     const assessment = {
       id: ASSESSMENT_ID,
@@ -384,6 +384,10 @@ describe('syncFinalisationHtmlToClio', () => {
       score: 6,
       finalised_at: '2026-03-07T14:30:00.000Z',
       matter_id: 'matter-123',
+      output_snapshot: {
+        mandatoryActions: [{ actionId: 'cdd_1', description: 'Verify ID', category: 'cdd' }],
+        eddTriggers: [],
+      },
     };
     const matter = { reference: 'M-00001-2026', client_id: 'client-123' };
     const client = { name: 'Acme Ltd' };
@@ -420,7 +424,7 @@ describe('syncFinalisationHtmlToClio', () => {
         }),
       }),
     } as any);
-    // 6+: Update calls
+    // 6+: Update calls + evidence/amiqus/progress queries (handled by default mockReturnValue)
     const updateMock = vi.fn().mockReturnValue({
       eq: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
@@ -431,19 +435,20 @@ describe('syncFinalisationHtmlToClio', () => {
       single: vi.fn().mockResolvedValue({ data: { retry_count: 0 }, error: null }),
     } as any);
 
-    await syncFinalisationHtmlToClio(supabase as any, ASSESSMENT_ID, FIRM_ID, CLIO_MATTER_ID, USER_ID);
+    await syncFinalisationPdfToClio(supabase as any, ASSESSMENT_ID, FIRM_ID, CLIO_MATTER_ID, USER_ID);
 
-    expect(generateAssessmentHtml).toHaveBeenCalledWith(
+    expect(generateAssessmentPdf).toHaveBeenCalledWith(
       expect.objectContaining({
         assessmentId: ASSESSMENT_ID,
         assessmentReference: 'A-00001-2026',
         clientName: 'Acme Ltd',
         riskLevel: 'MEDIUM',
         score: 6,
+        cddItems: expect.any(Array),
       })
     );
     expect(uploadDocumentToClio).toHaveBeenCalledWith(
-      100, 'AML-Assessment-A-00001-2026.html', expect.any(Buffer), 'text/html', 'tok_valid'
+      100, 'AML-Assessment-A-00001-2026.pdf', expect.any(Buffer), 'application/pdf', 'tok_valid'
     );
   });
 
@@ -460,8 +465,8 @@ describe('syncFinalisationHtmlToClio', () => {
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
     } as any);
 
-    await syncFinalisationHtmlToClio(supabase as any, ASSESSMENT_ID, FIRM_ID, CLIO_MATTER_ID, USER_ID);
-    expect(generateAssessmentHtml).not.toHaveBeenCalled();
+    await syncFinalisationPdfToClio(supabase as any, ASSESSMENT_ID, FIRM_ID, CLIO_MATTER_ID, USER_ID);
+    expect(generateAssessmentPdf).not.toHaveBeenCalled();
   });
 });
 

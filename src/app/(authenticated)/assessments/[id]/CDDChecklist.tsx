@@ -82,6 +82,8 @@ interface CDDChecklistProps {
   priorSowData?: Record<string, string | string[]> | null;
   /** Clio Drive sync records for this assessment */
   syncRecords?: ClioDriveSync[];
+  /** Map of user IDs to display names (for completion attribution) */
+  userNames?: Record<string, string>;
 }
 
 function formatDate(dateStr: string): string {
@@ -177,6 +179,15 @@ function DeclarationCard({ evidence }: { evidence: AssessmentEvidence }) {
   const [expanded, setExpanded] = useState(false);
   const data = evidence.data as Record<string, string | string[]> | null;
 
+  // Build a short summary from the first non-empty field value
+  const summaryText = data ? (() => {
+    for (const value of Object.values(data)) {
+      const text = Array.isArray(value) ? value.join(', ') : String(value);
+      if (text.trim()) return text.length > 80 ? text.slice(0, 77) + '...' : text;
+    }
+    return null;
+  })() : null;
+
   return (
     <div className={styles.evidenceCard}>
       <button
@@ -188,8 +199,13 @@ function DeclarationCard({ evidence }: { evidence: AssessmentEvidence }) {
         <span className={styles.evidenceBadgeManual}>Declaration</span>
         <span className={styles.evidenceLabel}>{evidence.label}</span>
         <span className={styles.evidenceMeta}>{formatDate(evidence.created_at)}</span>
-        <span className={styles.expandIcon}>{expanded ? '\u25B2' : '\u25BC'}</span>
+        <span className={styles.expandToggleText}>
+          {expanded ? 'Hide details' : 'Show details'}
+        </span>
       </button>
+      {!expanded && summaryText && (
+        <div className={styles.declarationSummary}>{summaryText}</div>
+      )}
       {data && (
         <div className={`${styles.evidenceCardBody} ${expanded ? '' : styles.collapsibleContentHidden}`}>
           <div className={styles.chGrid}>
@@ -292,6 +308,7 @@ export function CDDChecklist({
   riskLevel,
   priorSowData,
   syncRecords = [],
+  userNames = {},
 }: CDDChecklistProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -333,6 +350,12 @@ export function CDDChecklist({
       list.push(e);
       evidenceByAction.set(e.action_id, list);
     }
+  }
+
+  // Build progress map: actionId -> progress record (for completion attribution)
+  const progressByAction = new Map<string, CddItemProgress>();
+  for (const p of progress) {
+    progressByAction.set(p.action_id, p);
   }
 
   const handleToggle = useCallback((actionId: string, currentlyCompleted: boolean) => {
@@ -797,38 +820,55 @@ export function CDDChecklist({
                 return <DeclarationCard key={ev.id} evidence={ev} />;
               }
               return (
-                <div key={ev.id} className={styles.cddEvidenceRow}>
-                  <span
-                    className={
-                      ev.evidence_type === 'file_upload'
-                        ? styles.evidenceBadgeFile
-                        : styles.evidenceBadgeManual
-                    }
-                  >
-                    {ev.evidence_type === 'file_upload' ? 'File' : 'Record'}
-                  </span>
-                  <span className={styles.evidenceLabel}>{ev.label}</span>
-                  {ev.verified_at && (
-                    <span className={styles.verifiedBadge}>
-                      Verified: {new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <div key={ev.id}>
+                  <div className={styles.cddEvidenceRow}>
+                    <span
+                      className={
+                        ev.evidence_type === 'file_upload'
+                          ? styles.evidenceBadgeFile
+                          : styles.evidenceBadgeManual
+                      }
+                    >
+                      {ev.evidence_type === 'file_upload' ? 'File' : 'Record'}
                     </span>
-                  )}
-                  {ev.file_size && (
-                    <span className={styles.evidenceFileSize}>
-                      {formatFileSize(ev.file_size)}
+                    <span className={styles.evidenceLabel}>{ev.label}</span>
+                    {ev.verified_at && (
+                      <span className={styles.verifiedBadge}>
+                        Verified: {new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
+                    {ev.file_size && (
+                      <span className={styles.evidenceFileSize}>
+                        {formatFileSize(ev.file_size)}
+                      </span>
+                    )}
+                    <span className={styles.evidenceMeta}>
+                      {formatDate(ev.created_at)}
                     </span>
-                  )}
-                  <span className={styles.evidenceMeta}>
-                    {formatDate(ev.created_at)}
-                  </span>
-                  {syncRecords.length > 0 && (
-                    <ClioDriveSyncBadge evidenceId={ev.id} syncRecords={syncRecords} />
+                    {syncRecords.length > 0 && (
+                      <ClioDriveSyncBadge evidenceId={ev.id} syncRecords={syncRecords} />
+                    )}
+                  </div>
+                  {ev.notes && (
+                    <div className={styles.evidenceNotes}>{ev.notes}</div>
                   )}
                 </div>
               );
             })}
           </div>
         )}
+
+        {/* Completion attribution — shown when completed with no evidence and not an approval action */}
+        {effectiveCompleted && itemEvidence.length === 0 && !showApproval && (() => {
+          const prog = progressByAction.get(action.actionId);
+          if (!prog?.completed_at) return null;
+          const userName = prog.completed_by ? userNames[prog.completed_by] : null;
+          return (
+            <div className={styles.completionAttribution}>
+              Marked complete{userName ? ` by ${userName}` : ''} on {formatDate(prog.completed_at)}
+            </div>
+          );
+        })()}
 
         {/* Action buttons */}
         {!isFinalised && (
@@ -890,11 +930,17 @@ export function CDDChecklist({
                 );
               }
               if (verification?.status === 'pending' || verification?.status === 'in_progress') {
+                const amiqusUrl = verification.amiqus_record_id
+                  ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
+                  : 'https://id.amiqus.co/';
                 return (
                   <div className={styles.amiqusStatusGroup}>
                     <span className={styles.amiqusStatusPending}>
                       {verification.status === 'pending' ? 'Pending' : 'In Progress'}
                     </span>
+                    {verification.amiqus_record_id && (
+                      <span className={styles.amiqusRecordId}>Amiqus #{verification.amiqus_record_id}</span>
+                    )}
                     {verification.perform_url && (
                       <a
                         href={verification.perform_url}
@@ -906,7 +952,7 @@ export function CDDChecklist({
                       </a>
                     )}
                     <a
-                      href="https://id.amiqus.co/"
+                      href={amiqusUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.evidenceActionButton}
@@ -917,13 +963,19 @@ export function CDDChecklist({
                 );
               }
               if (verification?.status === 'complete') {
+                const amiqusUrl = verification.amiqus_record_id
+                  ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
+                  : 'https://id.amiqus.co/';
                 return (
                   <div className={styles.amiqusStatusGroup}>
                     <span className={styles.amiqusStatusComplete}>
                       Verified{verification.verified_at && `: ${new Date(verification.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                     </span>
+                    {verification.amiqus_record_id && (
+                      <span className={styles.amiqusRecordId}>Amiqus #{verification.amiqus_record_id}</span>
+                    )}
                     <a
-                      href="https://id.amiqus.co/"
+                      href={amiqusUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.evidenceActionButton}

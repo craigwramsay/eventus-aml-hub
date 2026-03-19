@@ -15,7 +15,6 @@ import { AssessmentDetail } from './AssessmentDetail';
 import { CDDChecklist } from './CDDChecklist';
 import { CDDStatusBanner } from './CDDStatusBanner';
 import { MonitoringStatement } from './MonitoringStatement';
-import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
 import type { MandatoryAction, AssessmentWarning } from '@/lib/rules-engine/types';
 import type { RiskLevel } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -79,6 +78,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const { assessment, client, matter, outputSnapshot, registeredNumber } = result.data;
   const evidence = evidenceResult.success ? evidenceResult.evidence : [];
   const progress = progressResult.success ? progressResult.progress : [];
+  const userNames = progressResult.success ? progressResult.userNames : {};
   const approval = approvalResult.success ? approvalResult.approval : null;
   const amiqusVerifications = amiqusResult.success ? amiqusResult.verifications : [];
   const amiqusConfigured = !!process.env.AMIQUS_API_KEY;
@@ -128,15 +128,6 @@ export default async function AssessmentViewPage({ params }: PageProps) {
             <span className={isFinalised ? styles.statusFinalised : styles.statusDraft}>
               {isFinalised ? 'Finalised' : 'Draft'}
             </span>
-            {isFinalised && clioDriveSyncRecords.length > 0 && (
-              <>
-                {' '}&middot;{' '}
-                <ClioDriveSyncBadge
-                  syncType="finalisation_html"
-                  syncRecords={clioDriveSyncRecords}
-                />
-              </>
-            )}
           </p>
         </div>
       </header>
@@ -201,6 +192,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         riskLevel={assessment.risk_level}
         priorSowData={priorSowData}
         syncRecords={clioDriveSyncRecords}
+        userNames={userNames}
       />
 
       {/* 4. Monitoring Statement */}
