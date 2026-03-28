@@ -3,11 +3,13 @@
 /**
  * CDD Checklist
  *
- * Interactive checklist for CDD requirements. Each item renders as a card with:
- * - Checkbox to mark as complete (optimistic toggle)
- * - Per-item action buttons (CH lookup, Amiqus placeholder, form placeholder, attach evidence)
- * - Per-item evidence badge and inline evidence list
- * When finalised: all controls disabled, checkboxes display-only.
+ * Outer wrapper for CDD requirements. Handles:
+ * - Category grouping with progress counters
+ * - EDD section with trigger descriptions
+ * - All server action handler callbacks
+ * - State management for optimistic UI
+ *
+ * Individual items delegated to CDDChecklistItem.
  */
 
 import { useState, useEffect, useTransition, useCallback } from 'react';
@@ -18,11 +20,7 @@ import { toggleItemCompletion } from '@/app/actions/progress';
 import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved } from '@/app/actions/evidence';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
 import { initiateAmiqusVerification, linkExistingAmiqusRecord } from '@/app/actions/amiqus';
-import { getSowSofFormConfig } from '@/lib/rules-engine/config-loader';
-import { SOW_INDIVIDUAL_FIELDS, SOW_CORPORATE_FIELDS, SOF_FIELDS } from '@/lib/clio/sow-sof-html';
-import { CompaniesHouseCard } from './CompaniesHouseCard';
-import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
-import { SowSofForm } from './SowSofForm';
+import { CDDChecklistItem } from './CDDChecklistItem';
 import styles from './page.module.css';
 
 /** Category display labels */
@@ -38,23 +36,14 @@ const CATEGORY_ORDER = ['cdd', 'edd', 'sow', 'sof', 'escalation'];
 
 interface CDDChecklistProps {
   assessmentId: string;
-  /** Non-EDD mandatory actions (excludes monitoring) */
   actions: MandatoryAction[];
-  /** EDD actions (separate section) */
   eddActions: MandatoryAction[];
-  /** EDD trigger descriptions */
   eddTriggers: EDDTriggerResult[];
-  /** All evidence records for this assessment */
   evidence: AssessmentEvidence[];
-  /** Progress records for CDD items */
   progress: CddItemProgress[];
-  /** Whether the client is corporate (enables CH lookup) */
   isCorporate: boolean;
-  /** Company number for CH lookups */
   registeredNumber: string | null;
-  /** Whether the assessment is finalised (read-only mode) */
   isFinalised: boolean;
-  /** MLRO approval status for this assessment */
   approvalStatus?: {
     id: string;
     status: 'pending' | 'approved' | 'rejected' | 'withdrawn';
@@ -63,241 +52,18 @@ interface CDDChecklistProps {
     decision_at?: string | null;
     decision_notes?: string | null;
   } | null;
-  /** Current user's role */
   userRole?: string;
-  /** Matter description from input snapshot (for confirm_matter_purpose) */
   matterDescription?: string;
-  /** Amiqus verification records for this assessment */
   amiqusVerifications?: AmiqusVerification[];
-  /** Whether Amiqus API is configured */
   amiqusConfigured?: boolean;
-  /** Client name (for Amiqus initiation) */
   clientName?: string;
-  /** Client email (for Amiqus initiation) */
   clientEmail?: string;
-  /** Client's last CDD verified date (for carry-forward) */
   lastCddVerifiedAt?: string | null;
-  /** Assessment risk level (for carry-forward threshold) */
   riskLevel?: string;
-  /** Prior SoW declaration data from a previous client assessment (for pre-population) */
   priorSowData?: Record<string, string | string[]> | null;
-  /** Clio Drive sync records for this assessment */
   syncRecords?: ClioDriveSync[];
-  /** Map of user IDs to display names (for completion attribution) */
   userNames?: Record<string, string>;
-  /** Client's latest completed Amiqus verification (for carry-forward link) */
   clientAmiqus?: { amiqusRecordId: number; verifiedAt: string | null } | null;
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-/** Check if an action should show a CH lookup button */
-function isCompaniesHouseAction(action: MandatoryAction): boolean {
-  return action.actionId === 'companies_house_search' ||
-    (action.evidenceTypes?.includes('companies_house_report') ?? false);
-}
-
-/** Check if an action is identity verification (Amiqus placeholder) */
-function isIdentityAction(action: MandatoryAction): boolean {
-  return action.actionId.includes('identity_verification') ||
-    action.actionId.includes('verify_identity') ||
-    action.actionId.includes('identify_and_verify') ||
-    (action.evidenceTypes?.includes('identity_verification') ?? false);
-}
-
-/** Check if an action is a form action */
-function isFormAction(action: MandatoryAction): boolean {
-  return action.actionId === 'sow_form' || action.actionId === 'sof_form';
-}
-
-/** Check if an action is a confirmation-only action (no evidence needed) */
-function isConfirmAction(action: MandatoryAction): boolean {
-  return action.actionId === 'confirm_matter_purpose' ||
-    action.actionId === 'verify_consistency' ||
-    action.actionId === 'confirm_transparency' ||
-    action.actionId === 'confirm_bo';
-}
-
-/** Check if an action is a document-confirm action (save to compliance folder) */
-function isDocumentConfirmAction(action: MandatoryAction): boolean {
-  return action.actionId === 'obtain_documents';
-}
-
-/** Check if an action is an MLRO approval action */
-function isApprovalAction(action: MandatoryAction): boolean {
-  return action.actionId === 'senior_management_approval' || action.actionId === 'mlro_approval';
-}
-
-/** CDD staleness thresholds (months) for carry-forward eligibility */
-const CDD_THRESHOLDS: Record<string, number> = { HIGH: 12, MEDIUM: 24, LOW: 24 };
-const CDD_LONGSTOP_MONTHS = 24;
-
-/** Check if a prior CDD verification can be carried forward (within threshold and not longstop breached) */
-function canConfirmStillValid(
-  lastCddVerifiedAt: string | null | undefined,
-  riskLevel: string | undefined
-): boolean {
-  if (!lastCddVerifiedAt) return false;
-  const verified = new Date(lastCddVerifiedAt);
-  const now = new Date();
-
-  // Longstop check first — no carry-forward if breached
-  const longstopDate = new Date(verified);
-  longstopDate.setMonth(longstopDate.getMonth() + CDD_LONGSTOP_MONTHS);
-  if (now >= longstopDate) return false;
-
-  // Risk-based threshold check
-  const normalisedRisk = (riskLevel || 'MEDIUM').toUpperCase();
-  const thresholdMonths = CDD_THRESHOLDS[normalisedRisk] ?? 24;
-  const thresholdDate = new Date(verified);
-  thresholdDate.setMonth(thresholdDate.getMonth() + thresholdMonths);
-  if (now >= thresholdDate) return false;
-
-  return true;
-}
-
-/** Calculate months since a date */
-function monthsSince(dateStr: string): number {
-  const d = new Date(dateStr);
-  const now = new Date();
-  return Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
-}
-
-/** Build a lookup map from field IDs to human-readable labels */
-const DECLARATION_FIELD_LABELS: Record<string, string> = Object.fromEntries(
-  [...SOW_INDIVIDUAL_FIELDS, ...SOW_CORPORATE_FIELDS, ...SOF_FIELDS].map(f => [f.id, f.label])
-);
-
-/** Get a human-readable label for a declaration field ID */
-function getFieldLabel(fieldId: string): string {
-  return DECLARATION_FIELD_LABELS[fieldId] || DECLARATION_FIELD_LABELS[fieldId.toLowerCase()] || fieldId;
-}
-
-/** Renders a saved SoW/SoF declaration as an expandable card */
-function DeclarationCard({ evidence }: { evidence: AssessmentEvidence }) {
-  const [expanded, setExpanded] = useState(false);
-  const data = evidence.data as Record<string, string | string[]> | null;
-
-  // Build a short summary from the first non-empty field value
-  const summaryText = data ? (() => {
-    for (const value of Object.values(data)) {
-      const text = Array.isArray(value) ? value.join(', ') : String(value);
-      if (text.trim()) return text.length > 80 ? text.slice(0, 77) + '...' : text;
-    }
-    return null;
-  })() : null;
-
-  return (
-    <div className={styles.evidenceCard}>
-      <button
-        type="button"
-        className={styles.evidenceCardHeader}
-        onClick={() => setExpanded(!expanded)}
-        aria-expanded={expanded}
-      >
-        <span className={styles.evidenceBadgeManual}>Declaration</span>
-        <span className={styles.evidenceLabel}>{evidence.label}</span>
-        <span className={styles.evidenceMeta}>{formatDate(evidence.created_at)}</span>
-        <span className={styles.expandToggleText}>
-          {expanded ? 'Hide details' : 'Show details'}
-        </span>
-      </button>
-      {!expanded && summaryText && (
-        <div className={styles.declarationSummary}>{summaryText}</div>
-      )}
-      {data && (
-        <div className={`${styles.evidenceCardBody} ${expanded ? '' : styles.collapsibleContentHidden}`}>
-          <div className={styles.chGrid}>
-            {Object.entries(data).map(([key, value]) => (
-              <div key={key} className={styles.chField}>
-                <span className={styles.chFieldLabel}>{getFieldLabel(key)}</span>
-                <span>{Array.isArray(value) ? value.join(', ') : String(value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * Render a verification note with numbered items on separate lines.
- * Splits "Approved verification methods: (1) ... (2) ..." into a heading
- * followed by numbered items on their own lines.
- */
-function renderVerificationNote(note: string): React.ReactNode {
-  // Match pattern: "prefix: (1) item1, or (2) item2. Authority: ..."
-  const match = note.match(/^(.+?):\s*(\(1\).+)$/);
-  if (!match) return note;
-
-  const heading = match[1].trim();
-  let body = match[2];
-
-  // Extract authority FIRST (before splitting) to avoid splitting on e.g. "28(4)"
-  let authority = '';
-  const authMatch = body.match(/\.\s*(Authority:.+)$/);
-  if (authMatch) {
-    authority = authMatch[1];
-    body = body.replace(/\.\s*Authority:.+$/, '.');
-  }
-
-  // Now split on numbered list items: only match (N) preceded by start or ", or "
-  // This avoids splitting on parenthesized numbers within text like "reg. 28(4)"
-  const items: string[] = [];
-  const itemRegex = /\((\d+)\)\s*/g;
-  let lastIndex = 0;
-  let m: RegExpExecArray | null;
-  const starts: number[] = [];
-
-  while ((m = itemRegex.exec(body)) !== null) {
-    // Only treat as a list item if (N) is at the very start or preceded by whitespace/", or "
-    if (m.index === 0 || /[\s,]$/.test(body.slice(0, m.index))) {
-      starts.push(m.index);
-    }
-  }
-
-  for (let i = 0; i < starts.length; i++) {
-    const end = i + 1 < starts.length ? starts[i + 1] : body.length;
-    const segment = body.slice(starts[i], end).trim();
-    // Clean trailing ", or" from item
-    items.push(segment.replace(/,\s*or\s*$/, ''));
-  }
-
-  if (items.length === 0) {
-    // Fallback: couldn't parse items, render as-is
-    return note;
-  }
-
-  return (
-    <>
-      <div>{heading}:</div>
-      {items.map((item, i) => (
-        <div key={i} style={{ marginTop: '0.25rem', paddingLeft: '0.75rem' }}>
-          {item}
-        </div>
-      ))}
-      {authority && (
-        <div style={{ marginTop: '0.375rem', fontSize: '0.75rem', fontStyle: 'italic' }}>
-          {authority}
-        </div>
-      )}
-    </>
-  );
 }
 
 export function CDDChecklist({
@@ -327,13 +93,6 @@ export function CDDChecklist({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  // Track which items have open evidence forms
-  const [openUpload, setOpenUpload] = useState<string | null>(null);
-  const [openManual, setOpenManual] = useState<string | null>(null);
-  const [openForm, setOpenForm] = useState<string | null>(null);
-  const [manualNotes, setManualNotes] = useState('');
-  const [verifiedAt, setVerifiedAt] = useState('');
-  const [approvalNotes, setApprovalNotes] = useState('');
   const [confirmingAction, setConfirmingAction] = useState<string | null>(null);
   const [openLinkAmiqus, setOpenLinkAmiqus] = useState<string | null>(null);
   const [linkRecordId, setLinkRecordId] = useState('');
@@ -347,7 +106,7 @@ export function CDDChecklist({
     return set;
   });
 
-  // Sync optimistic state when server progress changes (e.g. after router.refresh())
+  // Sync optimistic state when server progress changes
   useEffect(() => {
     const serverSet = new Set<string>();
     for (const p of progress) {
@@ -366,38 +125,39 @@ export function CDDChecklist({
     }
   }
 
-  // Build progress map: actionId -> progress record (for completion attribution)
+  // Build progress map: actionId -> progress record
   const progressByAction = new Map<string, CddItemProgress>();
   for (const p of progress) {
     progressByAction.set(p.action_id, p);
   }
 
+  // Build most-recent Amiqus verification per action
+  const amiqusVerificationByAction = new Map<string, AmiqusVerification>();
+  for (const v of amiqusVerifications) {
+    const existing = amiqusVerificationByAction.get(v.action_id);
+    if (!existing || new Date(v.created_at) > new Date(existing.created_at)) {
+      amiqusVerificationByAction.set(v.action_id, v);
+    }
+  }
+
+  // ── Handler callbacks ──
+
   const handleToggle = useCallback((actionId: string, currentlyCompleted: boolean) => {
     if (isFinalised) return;
     setError(null);
-
-    // Optimistic update
     setOptimisticCompleted(prev => {
       const next = new Set(prev);
-      if (currentlyCompleted) {
-        next.delete(actionId);
-      } else {
-        next.add(actionId);
-      }
+      if (currentlyCompleted) next.delete(actionId);
+      else next.add(actionId);
       return next;
     });
-
     startTransition(async () => {
       const result = await toggleItemCompletion(assessmentId, actionId, !currentlyCompleted);
       if (!result.success) {
-        // Revert optimistic update
         setOptimisticCompleted(prev => {
           const next = new Set(prev);
-          if (currentlyCompleted) {
-            next.add(actionId);
-          } else {
-            next.delete(actionId);
-          }
+          if (currentlyCompleted) next.add(actionId);
+          else next.delete(actionId);
           return next;
         });
         setError(result.error);
@@ -408,18 +168,12 @@ export function CDDChecklist({
   const handleCHLookup = useCallback((actionId: string) => {
     if (!registeredNumber) return;
     setError(null);
-
     startTransition(async () => {
       const result = await lookupCompaniesHouse(assessmentId, registeredNumber, actionId);
       if (!result.success) {
         setError(result.error);
       } else {
-        // Server already marked as complete — update optimistic state
-        setOptimisticCompleted(prev => {
-          const next = new Set(prev);
-          next.add(actionId);
-          return next;
-        });
+        setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
         router.refresh();
       }
     });
@@ -428,29 +182,83 @@ export function CDDChecklist({
   const handleFileUpload = useCallback((actionId: string, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
       const result = await uploadEvidence(assessmentId, formData, actionId);
+      if (!result.success) setError(result.error);
+      else router.refresh();
+    });
+  }, [assessmentId, router, startTransition]);
+
+  const handleManualRecord = useCallback((actionId: string, notes: string, verifiedAt: string | null) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await addManualRecord(assessmentId, 'File note', notes, actionId, verifiedAt);
+      if (!result.success) setError(result.error);
+      else router.refresh();
+    });
+  }, [assessmentId, router, startTransition]);
+
+  const handleConfirmStillValid = useCallback((actionId: string) => {
+    setError(null);
+    setConfirmingAction(actionId);
+    startTransition(async () => {
+      const result = await confirmIdentityStillValid(assessmentId, actionId, lastCddVerifiedAt!, riskLevel || 'MEDIUM');
+      setConfirmingAction(null);
       if (!result.success) {
         setError(result.error);
       } else {
-        setOpenUpload(null);
-        setVerifiedAt('');
+        setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
         router.refresh();
       }
     });
   }, [assessmentId, router, startTransition]);
 
+  const handleDocumentConfirm = useCallback((actionId: string) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await confirmDocumentSaved(assessmentId, actionId);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
+        router.refresh();
+      }
+    });
+  }, [assessmentId, router, startTransition]);
+
+  const handleInitiateAmiqus = useCallback((actionId: string) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await initiateAmiqusVerification(assessmentId, actionId, clientName, clientEmail);
+      if (!result.success) setError(result.error);
+      else router.refresh();
+    });
+  }, [assessmentId, clientName, clientEmail, router, startTransition]);
+
+  const handleLinkAmiqus = useCallback((actionId: string, e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!linkRecordId) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await linkExistingAmiqusRecord(assessmentId, actionId, parseInt(linkRecordId, 10));
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setOpenLinkAmiqus(null);
+        setLinkRecordId('');
+        setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
+        router.refresh();
+      }
+    });
+  }, [assessmentId, linkRecordId, router, startTransition]);
+
   const handleRequestApproval = useCallback(() => {
     setError(null);
     startTransition(async () => {
       const result = await requestMLROApproval(assessmentId);
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        router.refresh();
-      }
+      if (!result.success) setError(result.error);
+      else router.refresh();
     });
   }, [assessmentId, router, startTransition]);
 
@@ -459,124 +267,23 @@ export function CDDChecklist({
     setError(null);
     startTransition(async () => {
       const result = await withdrawApproval(approvalStatus.id);
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        router.refresh();
-      }
+      if (!result.success) setError(result.error);
+      else router.refresh();
     });
-  }, [approvalStatus, router, startTransition]);
+  }, [approvalStatus?.id, router, startTransition]);
 
-  const handleDecideApproval = useCallback((decision: 'approved' | 'rejected') => {
+  const handleDecideApproval = useCallback((decision: 'approved' | 'rejected', notes: string) => {
     if (!approvalStatus?.id) return;
     setError(null);
     startTransition(async () => {
-      const result = await decideApproval(approvalStatus.id, decision, approvalNotes);
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        setApprovalNotes('');
-        router.refresh();
-      }
+      const result = await decideApproval(approvalStatus.id, decision, notes || undefined);
+      if (!result.success) setError(result.error);
+      else router.refresh();
     });
-  }, [approvalStatus, approvalNotes, router, startTransition]);
+  }, [approvalStatus?.id, router, startTransition]);
 
-  // Build amiqus verification map: actionId -> verification
-  const amiqusVerificationByAction = new Map<string, AmiqusVerification>();
-  for (const v of amiqusVerifications) {
-    // Keep the most recent verification per action
-    if (!amiqusVerificationByAction.has(v.action_id) ||
-        v.created_at > amiqusVerificationByAction.get(v.action_id)!.created_at) {
-      amiqusVerificationByAction.set(v.action_id, v);
-    }
-  }
+  // ── Category grouping ──
 
-  const handleInitiateAmiqus = useCallback((actionId: string) => {
-    if (!clientName || !clientEmail) return;
-    setError(null);
-
-    startTransition(async () => {
-      const result = await initiateAmiqusVerification(
-        assessmentId, actionId, clientName, clientEmail
-      );
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        router.refresh();
-      }
-    });
-  }, [assessmentId, clientName, clientEmail, router, startTransition]);
-
-  const handleLinkAmiqus = useCallback((actionId: string, e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    const recordId = parseInt(linkRecordId, 10);
-    if (isNaN(recordId) || recordId <= 0) {
-      setError('Please enter a valid Amiqus record ID');
-      return;
-    }
-
-    startTransition(async () => {
-      const result = await linkExistingAmiqusRecord(assessmentId, actionId, recordId);
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        setOpenLinkAmiqus(null);
-        setLinkRecordId('');
-        setOptimisticCompleted(prev => {
-          const next = new Set(prev);
-          next.add(actionId);
-          return next;
-        });
-        router.refresh();
-      }
-    });
-  }, [assessmentId, linkRecordId, router, startTransition]);
-
-  const handleConfirmStillValid = useCallback((actionId: string) => {
-    if (!lastCddVerifiedAt || !riskLevel) return;
-    setError(null);
-    setConfirmingAction(actionId);
-
-    startTransition(async () => {
-      const result = await confirmIdentityStillValid(
-        assessmentId, actionId, lastCddVerifiedAt, riskLevel
-      );
-      setConfirmingAction(null);
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        // Optimistic: mark as completed
-        setOptimisticCompleted(prev => {
-          const next = new Set(prev);
-          next.add(actionId);
-          return next;
-        });
-        router.refresh();
-      }
-    });
-  }, [assessmentId, lastCddVerifiedAt, riskLevel, router, startTransition]);
-
-  const handleDocumentConfirm = useCallback((actionId: string) => {
-    setError(null);
-
-    startTransition(async () => {
-      const result = await confirmDocumentSaved(assessmentId, actionId);
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        // Optimistic: mark as completed
-        setOptimisticCompleted(prev => {
-          const next = new Set(prev);
-          next.add(actionId);
-          return next;
-        });
-        router.refresh();
-      }
-    });
-  }, [assessmentId, router, startTransition]);
-
-  // Group non-EDD actions by category (excluding monitoring)
   const groupedActions: Record<string, MandatoryAction[]> = {};
   for (const action of actions) {
     const cat = action.category || 'cdd';
@@ -590,695 +297,66 @@ export function CDDChecklist({
     return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
   });
 
-  function renderApprovalWidget() {
-    const isMLRO = userRole === 'mlro' || userRole === 'platform_admin';
+  // Helper to count completed items in a list of actions
+  const countCompleted = (acts: MandatoryAction[]): number => {
+    return acts.filter(a => {
+      const isApproval = a.actionId === 'senior_management_approval' || a.actionId === 'mlro_approval';
+      const approvalDone = isApproval && approvalStatus?.status === 'approved';
+      return optimisticCompleted.has(a.actionId) || approvalDone;
+    }).length;
+  };
 
-    if (!approvalStatus || approvalStatus.status === 'withdrawn') {
-      return (
-        <div className={styles.cddItemActions}>
-          <button
-            type="button"
-            className={styles.chLookupButton}
-            onClick={handleRequestApproval}
-            disabled={isPending || isFinalised}
-          >
-            {isPending ? 'Requesting...' : 'Request MLRO Approval'}
-          </button>
-        </div>
-      );
-    }
+  // ── Shared item props builder ──
 
-    if (approvalStatus.status === 'pending') {
-      return (
-        <div className={styles.cddItemEvidence}>
-          <div className={styles.cddEvidenceRow} style={{ background: '#fef3c7', borderRadius: '0.375rem', padding: '0.5rem 0.75rem' }}>
-            <span style={{ color: '#92400e', fontWeight: 600, fontSize: '0.875rem' }}>
-              Awaiting MLRO approval
-            </span>
-            <span className={styles.evidenceMeta}>
-              Requested {formatDate(approvalStatus.requested_at)}
-            </span>
-          </div>
-          {isMLRO && !isFinalised && (
-            <div style={{ marginTop: '0.5rem' }}>
-              <div className={styles.formField}>
-                <label className={styles.formLabel}>Decision notes (optional)</label>
-                <textarea
-                  value={approvalNotes}
-                  onChange={(e) => setApprovalNotes(e.target.value)}
-                  rows={2}
-                  className={styles.formTextarea}
-                  placeholder="Add notes about your decision..."
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  type="button"
-                  className={styles.formSubmit}
-                  onClick={() => handleDecideApproval('approved')}
-                  disabled={isPending}
-                  style={{ background: '#16a34a' }}
-                >
-                  {isPending ? 'Processing...' : 'Approve'}
-                </button>
-                <button
-                  type="button"
-                  className={styles.formSubmit}
-                  onClick={() => handleDecideApproval('rejected')}
-                  disabled={isPending}
-                  style={{ background: '#dc2626' }}
-                >
-                  {isPending ? 'Processing...' : 'Reject'}
-                </button>
-              </div>
-            </div>
-          )}
-          {!isMLRO && !isFinalised && (
-            <div style={{ marginTop: '0.5rem' }}>
-              <button
-                type="button"
-                className={styles.evidenceActionButton}
-                onClick={handleWithdrawApproval}
-                disabled={isPending}
-              >
-                Withdraw Request
-              </button>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    if (approvalStatus.status === 'approved') {
-      return (
-        <div className={styles.cddItemEvidence}>
-          <div className={styles.cddEvidenceRow} style={{ background: '#dcfce7', borderRadius: '0.375rem', padding: '0.5rem 0.75rem' }}>
-            <span style={{ color: '#166534', fontWeight: 600, fontSize: '0.875rem' }}>
-              Approved by {approvalStatus.decision_by_name || 'MLRO'}
-            </span>
-            {approvalStatus.decision_at && (
-              <span className={styles.evidenceMeta}>{formatDate(approvalStatus.decision_at)}</span>
-            )}
-          </div>
-          {approvalStatus.decision_notes && (
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem', paddingLeft: '0.75rem' }}>
-              {approvalStatus.decision_notes}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    if (approvalStatus.status === 'rejected') {
-      return (
-        <div className={styles.cddItemEvidence}>
-          <div className={styles.cddEvidenceRow} style={{ background: '#fee2e2', borderRadius: '0.375rem', padding: '0.5rem 0.75rem' }}>
-            <span style={{ color: '#991b1b', fontWeight: 600, fontSize: '0.875rem' }}>
-              Rejected by {approvalStatus.decision_by_name || 'MLRO'}
-            </span>
-            {approvalStatus.decision_at && (
-              <span className={styles.evidenceMeta}>{formatDate(approvalStatus.decision_at)}</span>
-            )}
-          </div>
-          {approvalStatus.decision_notes && (
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem', paddingLeft: '0.75rem' }}>
-              {approvalStatus.decision_notes}
-            </div>
-          )}
-          {!isFinalised && (
-            <div style={{ marginTop: '0.5rem' }}>
-              <button
-                type="button"
-                className={styles.chLookupButton}
-                onClick={handleRequestApproval}
-                disabled={isPending}
-              >
-                Request Again
-              </button>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return null;
-  }
-
-  function renderActionItem(action: MandatoryAction, num: number) {
-    const isCompleted = optimisticCompleted.has(action.actionId);
-    const itemEvidence = evidenceByAction.get(action.actionId) || [];
-    const showCH = isCompaniesHouseAction(action) && isCorporate && registeredNumber;
-    const showAmiqus = isIdentityAction(action);
-    const showForm = isFormAction(action);
-    const showApproval = isApprovalAction(action);
-    const showConfirm = isConfirmAction(action);
-    const showDocumentConfirm = isDocumentConfirmAction(action);
-
-    // For approval actions, auto-mark as completed if approved
-    const approvalCompleted = showApproval && approvalStatus?.status === 'approved';
-    const effectiveCompleted = isCompleted || approvalCompleted;
-
-    // Build completion date for status column
-    const progressRecord = progressByAction.get(action.actionId);
-    const completionDate = progressRecord?.completed_at
-      ? new Date(progressRecord.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-      : null;
+  const renderItem = (action: MandatoryAction, num: number) => {
+    const isApproval = action.actionId === 'senior_management_approval' || action.actionId === 'mlro_approval';
+    const approvalDone = isApproval && approvalStatus?.status === 'approved';
 
     return (
-      <div
+      <CDDChecklistItem
         key={action.actionId}
-        className={`${styles.cddItemCard} ${effectiveCompleted ? styles.cddItemCompleted : ''}`}
-      >
-        {/* Column 1: Requirement description */}
-        <div className={styles.cddItemCol1}>
-          <div className={styles.cddItemHeader}>
-            <label className={styles.cddItemCheckbox}>
-              <input
-                type="checkbox"
-                checked={effectiveCompleted}
-                onChange={() => !showApproval && handleToggle(action.actionId, isCompleted)}
-                disabled={isFinalised || isPending || showApproval}
-                className={styles.cddCheckboxInput}
-              />
-              <span className={styles.cddItemNumber}>{num}.</span>
-              <span className={`${styles.cddItemText} ${effectiveCompleted ? styles.cddItemTextDone : ''}`}>
-                {action.displayText || action.description}
-              </span>
-            </label>
-          </div>
-          {action.priority === 'recommended' && (
-            <span className={styles.recommendedBadge} style={{ marginTop: '0.25rem', display: 'inline-block' }}>[Recommended]</span>
-          )}
-          {action.verificationNote && (
-            <div className={styles.verificationNote}>
-              {renderVerificationNote(action.verificationNote)}
-            </div>
-          )}
-          {action.actionId === 'confirm_matter_purpose' && matterDescription && (
-            <div className={styles.matterDescriptionQuote}>
-              {matterDescription}
-            </div>
-          )}
-          {showApproval && renderApprovalWidget()}
-        </div>
-
-        {/* Column 2: Evidence / what satisfied it */}
-        <div className={styles.cddItemCol2}>
-          {itemEvidence.length > 0 && (
-            <div className={styles.cddItemEvidence}>
-              {itemEvidence.map((ev) => {
-                if (ev.evidence_type === 'companies_house') {
-                  const isCarriedForward = ev.source === 'Carried forward';
-                  return (
-                    <div key={ev.id}>
-                      {isCarriedForward && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-                          <span style={{
-                            display: 'inline-block',
-                            background: '#dbeafe',
-                            color: '#1e40af',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            padding: '0.125rem 0.5rem',
-                            borderRadius: '0.25rem',
-                          }}>
-                            Carried forward
-                          </span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                            Original lookup: {formatDate(ev.created_at)}
-                          </span>
-                        </div>
-                      )}
-                      <CompaniesHouseCard evidence={ev} />
-                      {syncRecords.length > 0 && (
-                        <ClioDriveSyncBadge evidenceId={ev.id} syncRecords={syncRecords} />
-                      )}
-                      {isCarriedForward && !isFinalised && showCH && (
-                        <button
-                          type="button"
-                          className={styles.evidenceActionButton}
-                          onClick={() => handleCHLookup(action.actionId)}
-                          disabled={isPending}
-                          style={{ marginTop: '0.375rem' }}
-                        >
-                          {isPending ? 'Looking up...' : 'Refresh Lookup'}
-                        </button>
-                      )}
-                    </div>
-                  );
-                }
-                if (ev.evidence_type === 'sow_declaration' || ev.evidence_type === 'sof_declaration') {
-                  return <DeclarationCard key={ev.id} evidence={ev} />;
-                }
-                return (
-                  <div key={ev.id}>
-                    <div className={styles.cddEvidenceRow}>
-                      <span
-                        className={
-                          ev.evidence_type === 'file_upload'
-                            ? styles.evidenceBadgeFile
-                            : styles.evidenceBadgeManual
-                        }
-                      >
-                        {ev.evidence_type === 'file_upload' ? 'File' : 'Record'}
-                      </span>
-                      <span className={styles.evidenceLabel}>{ev.label}</span>
-                      {ev.verified_at && (
-                        <span className={styles.verifiedBadge}>
-                          Verified: {new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                    {ev.notes && (
-                      <div className={styles.evidenceNotes}>{ev.notes}</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {effectiveCompleted && itemEvidence.length === 0 && !showApproval && (() => {
-            const prog = progressByAction.get(action.actionId);
-            if (!prog?.completed_at) return null;
-            const userName = prog.completed_by ? userNames[prog.completed_by] : null;
-            return (
-              <div className={styles.completionAttribution}>
-                Marked complete{userName ? ` by ${userName}` : ''} on {formatDate(prog.completed_at)}
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Column 3: Status */}
-        <div className={styles.cddItemCol3}>
-          <span className={`${styles.cddStatusBadge} ${effectiveCompleted ? styles.cddStatusComplete : styles.cddStatusIncomplete}`}>
-            {effectiveCompleted ? '✓ Complete' : '✗ Pending'}
-          </span>
-          {completionDate && (
-            <span className={styles.cddStatusDate}>{completionDate}</span>
-          )}
-        </div>
-
-        {/* Amiqus verification status — always visible (below columns, full width) */}
-        {showAmiqus && (() => {
-          const verification = amiqusVerificationByAction.get(action.actionId);
-          if (verification?.status === 'complete') {
-            const amiqusUrl = verification.amiqus_record_id
-              ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
-              : 'https://id.amiqus.co/';
-            return (
-              <div className={`${styles.amiqusStatusGroup} ${styles.cddItemFullWidth}`}>
-                <span className={styles.amiqusStatusComplete}>
-                  Verified{verification.verified_at && `: ${new Date(verification.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
-                </span>
-                {verification.amiqus_record_id && (
-                  <span className={styles.amiqusRecordId}>Amiqus #{verification.amiqus_record_id}</span>
-                )}
-                <a
-                  href={amiqusUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.evidenceActionButton}
-                >
-                  View in Amiqus
-                </a>
-              </div>
-            );
-          }
-          if (verification?.status === 'pending' || verification?.status === 'in_progress') {
-            const amiqusUrl = verification.amiqus_record_id
-              ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
-              : 'https://id.amiqus.co/';
-            return (
-              <div className={`${styles.amiqusStatusGroup} ${styles.cddItemFullWidth}`}>
-                <span className={styles.amiqusStatusPending}>
-                  {verification.status === 'pending' ? 'Pending' : 'In Progress'}
-                </span>
-                {verification.amiqus_record_id && (
-                  <span className={styles.amiqusRecordId}>Amiqus #{verification.amiqus_record_id}</span>
-                )}
-                <a
-                  href={amiqusUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.evidenceActionButton}
-                >
-                  View in Amiqus
-                </a>
-              </div>
-            );
-          }
-          if (verification?.status === 'failed' || verification?.status === 'expired') {
-            return (
-              <div className={`${styles.amiqusStatusGroup} ${styles.cddItemFullWidth}`}>
-                <span className={styles.amiqusStatusFailed}>
-                  {verification.status === 'failed' ? 'Failed' : 'Expired'}
-                </span>
-              </div>
-            );
-          }
-          // No Amiqus verification on this assessment — check for carry-forward from prior assessment
-          if (clientAmiqus && effectiveCompleted) {
-            const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
-            return (
-              <div className={`${styles.amiqusStatusGroup} ${styles.cddItemFullWidth}`}>
-                <span className={styles.amiqusStatusComplete}>
-                  Original verification{clientAmiqus.verifiedAt && `: ${new Date(clientAmiqus.verifiedAt + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
-                </span>
-                <span className={styles.amiqusRecordId}>Amiqus #{clientAmiqus.amiqusRecordId}</span>
-                <a
-                  href={amiqusUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.evidenceActionButton}
-                >
-                  View in Amiqus
-                </a>
-              </div>
-            );
-          }
-          return null;
-        })()}
-
-        {/* Action buttons */}
-        {!isFinalised && (
-          <div className={`${styles.cddItemActions} ${styles.cddItemFullWidth}`}>
-            {showCH && (
-              <button
-                type="button"
-                className={styles.chLookupButton}
-                onClick={() => handleCHLookup(action.actionId)}
-                disabled={isPending}
-              >
-                {isPending ? 'Looking up...' : 'Verify at Companies House'}
-              </button>
-            )}
-            {showAmiqus && canConfirmStillValid(lastCddVerifiedAt, riskLevel) && itemEvidence.length === 0 && !effectiveCompleted && (
-              <div className={styles.confirmStillValidBlock}>
-                <p className={styles.confirmStillValidInfo}>
-                  Identity last verified on{' '}
-                  {new Date(lastCddVerifiedAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  {' '}({monthsSince(lastCddVerifiedAt!)} months ago)
-                </p>
-                <button
-                  type="button"
-                  className={styles.confirmStillValidButton}
-                  onClick={() => handleConfirmStillValid(action.actionId)}
-                  disabled={isPending || confirmingAction === action.actionId}
-                >
-                  {confirmingAction === action.actionId ? 'Confirming...' : 'Confirm Still Valid'}
-                </button>
-              </div>
-            )}
-            {showAmiqus && (() => {
-              const verification = amiqusVerificationByAction.get(action.actionId);
-              // Only show action buttons when no verification exists yet, or failed/expired
-              if (!verification && amiqusConfigured) {
-                return (
-                  <div className={styles.amiqusStatusGroup}>
-                    <button
-                      type="button"
-                      className={styles.amiqusLinkButton}
-                      onClick={() => handleInitiateAmiqus(action.actionId)}
-                      disabled={isPending || !clientEmail}
-                    >
-                      {isPending ? 'Initiating...' : 'Initiate Amiqus Verification'}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.evidenceActionButton}
-                      onClick={() => {
-                        setOpenLinkAmiqus(openLinkAmiqus === action.actionId ? null : action.actionId);
-                        setLinkRecordId('');
-                        setOpenUpload(null);
-                        setOpenManual(null);
-                      }}
-                      disabled={isPending}
-                    >
-                      {openLinkAmiqus === action.actionId ? 'Cancel' : 'Link Existing Record'}
-                    </button>
-                  </div>
-                );
-              }
-              if ((verification?.status === 'failed' || verification?.status === 'expired') && amiqusConfigured) {
-                return (
-                  <button
-                    type="button"
-                    className={styles.amiqusLinkButton}
-                    onClick={() => handleInitiateAmiqus(action.actionId)}
-                    disabled={isPending || !clientEmail}
-                  >
-                    Retry Verification
-                  </button>
-                );
-              }
-              if (!verification && !amiqusConfigured) {
-                return (
-                  <a
-                    href="https://id.amiqus.co/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.amiqusLinkButton}
-                  >
-                    Verify via Amiqus
-                  </a>
-                );
-              }
-              // Status already shown above outside {!isFinalised} block
-              return null;
-            })()}
-            {showForm && (
-              <button
-                type="button"
-                className={styles.evidenceActionButton}
-                onClick={() => {
-                  setOpenForm(openForm === action.actionId ? null : action.actionId);
-                  setOpenUpload(null);
-                  setOpenManual(null);
-                }}
-                disabled={isPending}
-              >
-                {openForm === action.actionId ? 'Close Form' : 'Open Form'}
-              </button>
-            )}
-            {showDocumentConfirm ? (
-              <>
-                {isCorporate && registeredNumber && (
-                  <a
-                    href={`https://find-and-update.company-information.service.gov.uk/company/${encodeURIComponent(registeredNumber)}/filing-history`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.evidenceActionButton}
-                  >
-                    View Filing History (Companies House)
-                  </a>
-                )}
-                <button
-                  type="button"
-                  className={effectiveCompleted ? styles.evidenceActionButton : styles.formSubmit}
-                  onClick={() => handleDocumentConfirm(action.actionId)}
-                  disabled={isPending || effectiveCompleted}
-                >
-                  {effectiveCompleted ? 'Saved to compliance folder' : 'Saved to matter compliance folder'}
-                </button>
-              </>
-            ) : showConfirm ? (
-              <button
-                type="button"
-                className={effectiveCompleted ? styles.evidenceActionButton : styles.formSubmit}
-                onClick={() => handleToggle(action.actionId, isCompleted)}
-                disabled={isPending || effectiveCompleted}
-              >
-                {effectiveCompleted ? 'Confirmed' : 'Confirm'}
-              </button>
-            ) : !showApproval && (
-              <>
-                <button
-                  type="button"
-                  className={styles.evidenceActionButton}
-                  onClick={() => {
-                    setOpenUpload(openUpload === action.actionId ? null : action.actionId);
-                    setOpenManual(null);
-                  }}
-                  disabled={isPending}
-                >
-                  Upload Evidence
-                </button>
-                <button
-                  type="button"
-                  className={styles.evidenceActionButton}
-                  onClick={() => {
-                    setOpenManual(openManual === action.actionId ? null : action.actionId);
-                    setOpenUpload(null);
-                  }}
-                  disabled={isPending}
-                >
-                  Add File Note
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Inline upload form */}
-        {openUpload === action.actionId && (
-          <form
-            onSubmit={(e) => handleFileUpload(action.actionId, e)}
-            className={`${styles.evidenceForm} ${styles.cddItemFullWidth}`}
-          >
-            <div className={styles.formField}>
-              <label htmlFor={`file-${action.actionId}`} className={styles.formLabel}>File</label>
-              <input
-                id={`file-${action.actionId}`}
-                type="file"
-                name="file"
-                required
-                className={styles.formInput}
-              />
-            </div>
-            {showAmiqus && (
-              <div className={styles.formField}>
-                <label htmlFor={`verified-at-upload-${action.actionId}`} className={styles.formLabel}>
-                  Date of verification
-                </label>
-                <input
-                  id={`verified-at-upload-${action.actionId}`}
-                  type="date"
-                  name="verified_at"
-                  className={styles.formInput}
-                />
-              </div>
-            )}
-            <div className={styles.formField}>
-              <label htmlFor={`notes-${action.actionId}`} className={styles.formLabel}>
-                Notes (optional)
-              </label>
-              <textarea
-                id={`notes-${action.actionId}`}
-                name="notes"
-                rows={2}
-                className={styles.formTextarea}
-              />
-            </div>
-            <button type="submit" disabled={isPending} className={styles.formSubmit}>
-              {isPending ? 'Uploading...' : 'Upload'}
-            </button>
-          </form>
-        )}
-
-        {/* Inline file note form */}
-        {openManual === action.actionId && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setError(null);
-              startTransition(async () => {
-                const result = await addManualRecord(
-                  assessmentId, 'File note', manualNotes, action.actionId,
-                  showAmiqus ? (verifiedAt || null) : null
-                );
-                if (!result.success) {
-                  setError(result.error);
-                } else {
-                  setOpenManual(null);
-                  setManualNotes('');
-                  setVerifiedAt('');
-                  router.refresh();
-                }
-              });
-            }}
-            className={`${styles.evidenceForm} ${styles.cddItemFullWidth}`}
-          >
-            {showAmiqus && (
-              <div className={styles.formField}>
-                <label htmlFor={`verified-at-manual-${action.actionId}`} className={styles.formLabel}>
-                  Date of verification
-                </label>
-                <input
-                  id={`verified-at-manual-${action.actionId}`}
-                  type="date"
-                  value={verifiedAt}
-                  onChange={(e) => setVerifiedAt(e.target.value)}
-                  className={styles.formInput}
-                />
-              </div>
-            )}
-            <div className={styles.formField}>
-              <label htmlFor={`manual-notes-${action.actionId}`} className={styles.formLabel}>
-                File Note
-              </label>
-              <textarea
-                id={`manual-notes-${action.actionId}`}
-                value={manualNotes}
-                onChange={(e) => setManualNotes(e.target.value)}
-                rows={3}
-                required
-                placeholder="Enter your file note..."
-                className={styles.formTextarea}
-              />
-            </div>
-            <button type="submit" disabled={isPending} className={styles.formSubmit}>
-              {isPending ? 'Saving...' : 'Save File Note'}
-            </button>
-          </form>
-        )}
-
-        {/* Inline Link Existing Amiqus Record form */}
-        {openLinkAmiqus === action.actionId && (
-          <form
-            onSubmit={(e) => handleLinkAmiqus(action.actionId, e)}
-            className={`${styles.evidenceForm} ${styles.cddItemFullWidth}`}
-          >
-            <div className={styles.formField}>
-              <label htmlFor={`amiqus-record-id-${action.actionId}`} className={styles.formLabel}>
-                Amiqus ID
-              </label>
-              <input
-                id={`amiqus-record-id-${action.actionId}`}
-                type="number"
-                value={linkRecordId}
-                onChange={(e) => setLinkRecordId(e.target.value)}
-                required
-                min="1"
-                placeholder="e.g. 45306"
-                className={styles.formInput}
-              />
-              <p className={styles.formHint}>
-                The number from your Amiqus URL (e.g. id.amiqus.co/cases/<strong>45306</strong>). Works with both case and record IDs.
-              </p>
-            </div>
-            <button type="submit" disabled={isPending} className={styles.formSubmit}>
-              {isPending ? 'Linking...' : 'Link Record'}
-            </button>
-          </form>
-        )}
-
-        {/* Inline SoW/SoF declaration form */}
-        {openForm === action.actionId && showForm && (() => {
-          const formType = action.actionId === 'sow_form' ? 'sow' as const : 'sof' as const;
-          const clientType = isCorporate ? 'corporate' as const : 'individual' as const;
-          const formConfig = getSowSofFormConfig(formType, clientType);
-          const existingDeclaration = itemEvidence.find(
-            (ev) => ev.evidence_type === (formType === 'sow' ? 'sow_declaration' : 'sof_declaration')
-          );
-          const existingData = existingDeclaration?.data as Record<string, string | string[]> | null;
-          const priorData = formType === 'sow' && !existingData ? priorSowData : null;
-          return (
-            <div className={styles.cddItemFullWidth}>
-              <SowSofForm
-                formType={formType}
-                formConfig={formConfig}
-                assessmentId={assessmentId}
-                existingData={existingData}
-                priorData={priorData}
-                onClose={() => setOpenForm(null)}
-              />
-            </div>
-          );
-        })()}
-      </div>
+        action={action}
+        num={num}
+        assessmentId={assessmentId}
+        isCompleted={optimisticCompleted.has(action.actionId)}
+        approvalCompleted={approvalDone}
+        itemEvidence={evidenceByAction.get(action.actionId) || []}
+        progressRecord={progressByAction.get(action.actionId)}
+        isPending={isPending}
+        isFinalised={isFinalised}
+        isCorporate={isCorporate}
+        registeredNumber={registeredNumber}
+        amiqusConfigured={amiqusConfigured}
+        clientEmail={clientEmail}
+        lastCddVerifiedAt={lastCddVerifiedAt}
+        riskLevel={riskLevel}
+        matterDescription={matterDescription}
+        verification={amiqusVerificationByAction.get(action.actionId)}
+        clientAmiqus={clientAmiqus}
+        priorSowData={priorSowData}
+        syncRecords={syncRecords}
+        userNames={userNames}
+        approvalStatus={isApproval ? approvalStatus : undefined}
+        userRole={userRole}
+        confirmingAction={confirmingAction}
+        onToggle={handleToggle}
+        onCHLookup={handleCHLookup}
+        onFileUpload={handleFileUpload}
+        onManualRecord={handleManualRecord}
+        onConfirmStillValid={handleConfirmStillValid}
+        onDocumentConfirm={handleDocumentConfirm}
+        onInitiateAmiqus={handleInitiateAmiqus}
+        onLinkAmiqus={handleLinkAmiqus}
+        onRequestApproval={handleRequestApproval}
+        onWithdrawApproval={handleWithdrawApproval}
+        onDecideApproval={handleDecideApproval}
+        linkRecordId={linkRecordId}
+        setLinkRecordId={setLinkRecordId}
+        openLinkAmiqus={openLinkAmiqus}
+        setOpenLinkAmiqus={setOpenLinkAmiqus}
+      />
     );
-  }
+  };
 
   let num = 0;
 
@@ -1289,17 +367,26 @@ export function CDDChecklist({
       {/* Non-EDD action groups */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>CDD Requirements</h2>
-        {sortedCategories.map((category) => (
-          <div key={category} className={styles.cddCategory}>
-            <h3 className={styles.cddCategoryLabel}>
-              {CATEGORY_LABELS[category] || category.toUpperCase()}
-            </h3>
-            {groupedActions[category].map((action) => {
-              num++;
-              return renderActionItem(action, num);
-            })}
-          </div>
-        ))}
+        {sortedCategories.map((category) => {
+          const catActions = groupedActions[category];
+          const completed = countCompleted(catActions);
+          return (
+            <div key={category} className={styles.cddCategory}>
+              <div className={styles.categoryHeader}>
+                <h3 className={styles.cddCategoryLabel}>
+                  {CATEGORY_LABELS[category] || category.toUpperCase()}
+                </h3>
+                <span className={styles.categoryProgress}>
+                  {completed}/{catActions.length} complete
+                </span>
+              </div>
+              {catActions.map((action) => {
+                num++;
+                return renderItem(action, num);
+              })}
+            </div>
+          );
+        })}
       </section>
 
       {/* EDD section */}
@@ -1316,9 +403,15 @@ export function CDDChecklist({
               </ul>
             </div>
           )}
+          <div className={styles.categoryHeader}>
+            <h3 className={styles.cddCategoryLabel}>ENHANCED DUE DILIGENCE</h3>
+            <span className={styles.categoryProgress}>
+              {countCompleted(eddActions)}/{eddActions.length} complete
+            </span>
+          </div>
           {eddActions.map((action) => {
             num++;
-            return renderActionItem(action, num);
+            return renderItem(action, num);
           })}
         </section>
       )}

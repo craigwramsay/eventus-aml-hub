@@ -72,6 +72,10 @@
   --font-sans: 'Segoe UI', ui-sans-serif, system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
+  /* Completion status */
+  --complete-bg: #dcfce7;
+  --complete-text: #166534;
+
   /* Legacy aliases (bridge from old token names used in page CSS) */
   --primary: var(--accent);
   --primary-hover: var(--accent-hover);
@@ -112,6 +116,9 @@
     --status-high-bg: #450a0a;
     --status-high-text: #fca5a5;
     --status-high-border: #7f1d1d;
+
+    --complete-bg: rgba(22, 163, 74, 0.15);
+    --complete-text: #4ade80;
 
     --primary: var(--accent);
     --primary-hover: var(--accent-hover);
