@@ -86,7 +86,6 @@ export function EvidencePanel({
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
               <span className={styles.evidenceLineLabel}>
                 Identity verified electronically
-                {verification.amiqus_record_id && ` (Amiqus record ${verification.amiqus_record_id})`}
               </span>
               {verification.verified_at && (
                 <span className={styles.evidenceLineDate}>
@@ -110,7 +109,6 @@ export function EvidencePanel({
               </span>
               <span className={styles.evidenceLineLabel}>
                 Electronic identity verification
-                {verification.amiqus_record_id && ` (Amiqus record ${verification.amiqus_record_id})`}
               </span>
               <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
                 View in Amiqus
@@ -135,7 +133,7 @@ export function EvidencePanel({
             <div className={styles.evidenceLine}>
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
               <span className={styles.evidenceLineLabel}>
-                Identity verified electronically (Amiqus record {clientAmiqus.amiqusRecordId}) — confirmed still valid
+                Identity verified electronically — confirmed still valid
               </span>
               {clientAmiqus.verifiedAt && (
                 <span className={styles.evidenceLineDate}>
