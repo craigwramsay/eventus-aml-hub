@@ -154,8 +154,10 @@ export function EvidencePanel({
         return null;
       })()}
 
-      {/* Evidence items — filter out carry-forward note when Amiqus already tells the story */}
+      {/* Evidence items */}
       {evidence.filter(ev => {
+        // When Amiqus line is showing, hide the carry-forward manual record
+        // (the "Existing verification confirmed still valid" note replaces it)
         if (hasAmiqus && ev.label === 'Prior identity verification confirmed still valid') return false;
         return true;
       }).map((ev) => {
@@ -234,6 +236,28 @@ export function EvidencePanel({
                   </div>
                 </div>
               )}
+            </div>
+          );
+        }
+
+        // Carry-forward confirmation (when no Amiqus lookup available) — clean single line
+        if (ev.label === 'Prior identity verification confirmed still valid') {
+          return (
+            <div key={ev.id}>
+              <div className={styles.evidenceLine}>
+                <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeRecord}`}>Verified</span>
+                <span className={styles.evidenceLineLabel}>
+                  Identity verified electronically
+                </span>
+                {ev.verified_at && (
+                  <span className={styles.evidenceLineDate}>
+                    Verified {formatDateShort(ev.verified_at + 'T00:00:00')}
+                  </span>
+                )}
+              </div>
+              <div className={styles.evidenceLineNotes}>
+                Existing verification confirmed still valid for this assessment
+              </div>
             </div>
           );
         }
