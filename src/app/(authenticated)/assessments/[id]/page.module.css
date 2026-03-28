@@ -942,28 +942,57 @@ button.evidenceCardHeader:hover {
   background-color: rgba(16, 185, 129, 0.03);
 }
 
-/* Primary row: checkbox + description + status pill */
-.itemPrimaryRow {
+/* Zone 1: Requirement description */
+.itemRequirement {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
 }
 
-.cddItemCheckbox {
+.cddItemNumber {
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  margin-top: 0.125rem;
+}
+
+.cddItemText {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* Zone 3: Status bar */
+.itemStatusBar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border-light);
+  font-size: 0.8125rem;
+}
+
+.itemStatusComplete {
+  background-color: var(--complete-bg);
+  color: var(--complete-text);
+  font-weight: 500;
+}
+
+.itemStatusPending {
+  color: var(--text-muted);
+}
+
+.statusCheckLabel {
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
   cursor: pointer;
-  flex: 1;
-  min-width: 0;
 }
 
 .cddCheckboxInput {
-  margin-top: 0.25rem;
   flex-shrink: 0;
-  width: 1rem;
-  height: 1rem;
+  width: 0.875rem;
+  height: 0.875rem;
   accent-color: var(--status-low);
   cursor: pointer;
 }
@@ -972,43 +1001,9 @@ button.evidenceCardHeader:hover {
   cursor: default;
 }
 
-.cddItemNumber {
-  font-weight: 600;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  font-size: 0.875rem;
-  margin-top: 0.0625rem;
-}
-
-.cddItemText {
-  font-size: 0.9375rem;
-  line-height: 1.5;
-}
-
-.cddItemTextDone {
-  color: var(--text-secondary);
-}
-
-/* Status pill (right side of primary row) */
-.statusPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.1875rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-  background-color: var(--complete-bg);
-  color: var(--complete-text);
-}
-
-.statusPillDate {
+.statusByLine {
   font-weight: 400;
-  opacity: 0.85;
-  margin-left: 0.125rem;
+  opacity: 0.8;
 }
 
 /* Item meta: verification note, matter description, approval widget */

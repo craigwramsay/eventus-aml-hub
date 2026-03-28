@@ -70,9 +70,8 @@ export function EvidencePanel({
 
   // Determine if there's Amiqus info to show
   const hasAmiqus = verification || (clientAmiqus && isCompleted);
-  const hasContent = evidence.length > 0 || hasAmiqus || (isCompleted && !isApprovalAction);
 
-  if (!hasContent) return null;
+  if (evidence.length === 0 && !hasAmiqus) return null;
 
   return (
     <div className={styles.evidenceSection}>
@@ -261,14 +260,7 @@ export function EvidencePanel({
         );
       })}
 
-      {/* Completion attribution when no evidence and no amiqus */}
-      {isCompleted && evidence.length === 0 && !hasAmiqus && !isApprovalAction && progressRecord?.completed_at && (
-        <div className={styles.completionAttribution}>
-          Marked complete{progressRecord.completed_by && userNames[progressRecord.completed_by]
-            ? ` by ${userNames[progressRecord.completed_by]}`
-            : ''} on {formatDate(progressRecord.completed_at)}
-        </div>
-      )}
+      {/* Completion attribution moved to status bar in CDDChecklistItem */}
     </div>
   );
 }
