@@ -1064,6 +1064,21 @@ button.evidenceCardHeader:hover {
   color: #3730a3;
 }
 
+.evidenceTypeBadgeAmiqus {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.evidenceTypeBadgePending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.evidenceTypeBadgeFailed {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
 .evidenceLineLabel {
   flex: 1;
   min-width: 0;

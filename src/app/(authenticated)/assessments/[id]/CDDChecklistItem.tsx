@@ -240,10 +240,7 @@ export function CDDChecklistItem({
     : null;
 
   const hasEvidence = itemEvidence.length > 0;
-  const hasAmiqusStatus = showAmiqus && (
-    verification ||
-    (clientAmiqus && effectiveCompleted)
-  );
+  const hasAmiqusInfo = showAmiqus && (verification || (clientAmiqus && effectiveCompleted));
 
   return (
     <div className={`${styles.cddItemCard} ${effectiveCompleted ? styles.cddItemCompleted : ''}`}>
@@ -270,10 +267,10 @@ export function CDDChecklistItem({
         )}
       </div>
 
-      {/* Item meta: verification note, matter description, approval widget */}
-      {(action.verificationNote || (action.actionId === 'confirm_matter_purpose' && matterDescription) || showApproval) && (
+      {/* Item meta: verification note (collapsed when complete), matter description, approval widget */}
+      {((!effectiveCompleted && action.verificationNote) || (action.actionId === 'confirm_matter_purpose' && matterDescription) || showApproval) && (
         <div className={styles.itemMeta}>
-          {action.verificationNote && (
+          {!effectiveCompleted && action.verificationNote && (
             <div className={styles.verificationNote}>
               {renderVerificationNote(action.verificationNote)}
             </div>
@@ -287,8 +284,8 @@ export function CDDChecklistItem({
         </div>
       )}
 
-      {/* Evidence section */}
-      {(hasEvidence || (effectiveCompleted && !showApproval)) && (
+      {/* Evidence section (includes Amiqus as a line item) */}
+      {(hasEvidence || hasAmiqusInfo || (effectiveCompleted && !showApproval)) && (
         <EvidencePanel
           evidence={itemEvidence}
           progressRecord={progressRecord}
@@ -296,76 +293,9 @@ export function CDDChecklistItem({
           isApprovalAction={showApproval}
           syncRecords={syncRecords}
           userNames={userNames}
+          verification={showAmiqus ? verification : undefined}
+          clientAmiqus={showAmiqus ? clientAmiqus : undefined}
         />
-      )}
-
-      {/* Amiqus status row */}
-      {hasAmiqusStatus && (
-        <div className={styles.evidenceSection}>
-          {(() => {
-            if (verification?.status === 'complete') {
-              const amiqusUrl = verification.amiqus_record_id
-                ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
-                : 'https://id.amiqus.co/';
-              return (
-                <div className={styles.amiqusRow}>
-                  <span className={styles.amiqusStatusComplete}>
-                    Verified{verification.verified_at && `: ${formatDateShort(verification.verified_at + 'T00:00:00')}`}
-                  </span>
-                  {verification.amiqus_record_id && (
-                    <span className={styles.amiqusRecordId}>Amiqus #{verification.amiqus_record_id}</span>
-                  )}
-                  <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
-                    View in Amiqus
-                  </a>
-                </div>
-              );
-            }
-            if (verification?.status === 'pending' || verification?.status === 'in_progress') {
-              const amiqusUrl = verification.amiqus_record_id
-                ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
-                : 'https://id.amiqus.co/';
-              return (
-                <div className={styles.amiqusRow}>
-                  <span className={styles.amiqusStatusPending}>
-                    {verification.status === 'pending' ? 'Pending' : 'In Progress'}
-                  </span>
-                  {verification.amiqus_record_id && (
-                    <span className={styles.amiqusRecordId}>Amiqus #{verification.amiqus_record_id}</span>
-                  )}
-                  <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
-                    View in Amiqus
-                  </a>
-                </div>
-              );
-            }
-            if (verification?.status === 'failed' || verification?.status === 'expired') {
-              return (
-                <div className={styles.amiqusRow}>
-                  <span className={styles.amiqusStatusFailed}>
-                    {verification.status === 'failed' ? 'Failed' : 'Expired'}
-                  </span>
-                </div>
-              );
-            }
-            // Carry-forward from prior assessment
-            if (!verification && clientAmiqus && effectiveCompleted) {
-              const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
-              return (
-                <div className={styles.amiqusRow}>
-                  <span className={styles.amiqusStatusComplete}>
-                    Original verification{clientAmiqus.verifiedAt && `: ${formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}`}
-                  </span>
-                  <span className={styles.amiqusRecordId}>Amiqus #{clientAmiqus.amiqusRecordId}</span>
-                  <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
-                    View in Amiqus
-                  </a>
-                </div>
-              );
-            }
-            return null;
-          })()}
-        </div>
       )}
 
       {/* Confirm Still Valid (carry-forward) */}

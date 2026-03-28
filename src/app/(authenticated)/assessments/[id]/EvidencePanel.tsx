@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { AssessmentEvidence, CddItemProgress, ClioDriveSync } from '@/lib/supabase/types';
+import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
 import { SOW_INDIVIDUAL_FIELDS, SOW_CORPORATE_FIELDS, SOF_FIELDS } from '@/lib/clio/sow-sof-html';
 import { CompaniesHouseCard } from './CompaniesHouseCard';
 import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
@@ -41,6 +41,10 @@ interface EvidencePanelProps {
   isApprovalAction: boolean;
   syncRecords: ClioDriveSync[];
   userNames: Record<string, string>;
+  /** Amiqus verification for this action (merged into evidence list) */
+  verification?: AmiqusVerification;
+  /** Client's latest Amiqus verification from a prior assessment (carry-forward) */
+  clientAmiqus?: { amiqusRecordId: number; verifiedAt: string | null } | null;
 }
 
 export function EvidencePanel({
@@ -50,6 +54,8 @@ export function EvidencePanel({
   isApprovalAction,
   syncRecords,
   userNames,
+  verification,
+  clientAmiqus,
 }: EvidencePanelProps) {
   const [expandedEvidence, setExpandedEvidence] = useState<Set<string>>(new Set());
 
@@ -62,11 +68,91 @@ export function EvidencePanel({
     });
   };
 
-  if (evidence.length === 0 && !isCompleted) return null;
-  if (evidence.length === 0 && isCompleted && isApprovalAction) return null;
+  // Determine if there's Amiqus info to show
+  const hasAmiqus = verification || (clientAmiqus && isCompleted);
+  const hasContent = evidence.length > 0 || hasAmiqus || (isCompleted && !isApprovalAction);
+
+  if (!hasContent) return null;
 
   return (
     <div className={styles.evidenceSection}>
+      {/* Amiqus verification — shown as first evidence line */}
+      {hasAmiqus && (() => {
+        if (verification?.status === 'complete') {
+          const amiqusUrl = verification.amiqus_record_id
+            ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
+            : 'https://id.amiqus.co/';
+          return (
+            <div className={styles.evidenceLine}>
+              <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
+              <span className={styles.evidenceLineLabel}>
+                ID&V verified
+                {verification.amiqus_record_id && ` (#${verification.amiqus_record_id})`}
+              </span>
+              {verification.verified_at && (
+                <span className={styles.evidenceLineVerified}>
+                  {formatDateShort(verification.verified_at + 'T00:00:00')}
+                </span>
+              )}
+              <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
+                View in Amiqus
+              </a>
+            </div>
+          );
+        }
+        if (verification?.status === 'pending' || verification?.status === 'in_progress') {
+          const amiqusUrl = verification.amiqus_record_id
+            ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
+            : 'https://id.amiqus.co/';
+          return (
+            <div className={styles.evidenceLine}>
+              <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgePending}`}>
+                {verification.status === 'pending' ? 'Pending' : 'In Progress'}
+              </span>
+              <span className={styles.evidenceLineLabel}>
+                Amiqus verification
+                {verification.amiqus_record_id && ` (#${verification.amiqus_record_id})`}
+              </span>
+              <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
+                View in Amiqus
+              </a>
+            </div>
+          );
+        }
+        if (verification?.status === 'failed' || verification?.status === 'expired') {
+          return (
+            <div className={styles.evidenceLine}>
+              <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeFailed}`}>
+                {verification.status === 'failed' ? 'Failed' : 'Expired'}
+              </span>
+              <span className={styles.evidenceLineLabel}>Amiqus verification</span>
+            </div>
+          );
+        }
+        // Carry-forward from prior assessment
+        if (!verification && clientAmiqus && isCompleted) {
+          const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
+          return (
+            <div className={styles.evidenceLine}>
+              <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
+              <span className={styles.evidenceLineLabel}>
+                Original verification (#{clientAmiqus.amiqusRecordId})
+              </span>
+              {clientAmiqus.verifiedAt && (
+                <span className={styles.evidenceLineVerified}>
+                  {formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}
+                </span>
+              )}
+              <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
+                View in Amiqus
+              </a>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
+      {/* Evidence items */}
       {evidence.map((ev) => {
         const isExpanded = expandedEvidence.has(ev.id);
 
@@ -147,11 +233,11 @@ export function EvidencePanel({
           );
         }
 
-        // File uploads and manual records
+        // File uploads and manual records — compact single line
         const badgeClass = ev.evidence_type === 'file_upload'
           ? styles.evidenceTypeBadgeFile
           : styles.evidenceTypeBadgeRecord;
-        const badgeLabel = ev.evidence_type === 'file_upload' ? 'File' : 'Record';
+        const badgeLabel = ev.evidence_type === 'file_upload' ? 'File' : 'Note';
 
         return (
           <div key={ev.id}>
@@ -175,8 +261,8 @@ export function EvidencePanel({
         );
       })}
 
-      {/* Completion attribution when no evidence */}
-      {isCompleted && evidence.length === 0 && !isApprovalAction && progressRecord?.completed_at && (
+      {/* Completion attribution when no evidence and no amiqus */}
+      {isCompleted && evidence.length === 0 && !hasAmiqus && !isApprovalAction && progressRecord?.completed_at && (
         <div className={styles.completionAttribution}>
           Marked complete{progressRecord.completed_by && userNames[progressRecord.completed_by]
             ? ` by ${userNames[progressRecord.completed_by]}`
