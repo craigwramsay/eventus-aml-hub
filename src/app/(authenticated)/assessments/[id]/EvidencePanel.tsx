@@ -130,19 +130,24 @@ export function EvidencePanel({
         if (!verification && clientAmiqus && isCompleted) {
           const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
           return (
-            <div className={styles.evidenceLine}>
-              <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
-              <span className={styles.evidenceLineLabel}>
-                Identity verified electronically — confirmed still valid
-              </span>
-              {clientAmiqus.verifiedAt && (
-                <span className={styles.evidenceLineDate}>
-                  Verified {formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}
+            <div>
+              <div className={styles.evidenceLine}>
+                <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
+                <span className={styles.evidenceLineLabel}>
+                  Identity verified electronically
                 </span>
-              )}
-              <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
-                View in Amiqus
-              </a>
+                {clientAmiqus.verifiedAt && (
+                  <span className={styles.evidenceLineDate}>
+                    Verified {formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}
+                  </span>
+                )}
+                <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
+                  View in Amiqus
+                </a>
+              </div>
+              <div className={styles.evidenceLineNotes}>
+                Existing verification confirmed still valid for this assessment
+              </div>
             </div>
           );
         }
