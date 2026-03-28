@@ -30,9 +30,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   sow: 'SOURCE OF WEALTH',
   sof: 'SOURCE OF FUNDS',
   escalation: 'ESCALATION',
+  monitoring: 'ONGOING MONITORING',
 };
 
-const CATEGORY_ORDER = ['cdd', 'edd', 'sow', 'sof', 'escalation'];
+const CATEGORY_ORDER = ['cdd', 'edd', 'sow', 'sof', 'escalation', 'monitoring'];
 
 interface CDDChecklistProps {
   assessmentId: string;

@@ -113,9 +113,9 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const inputSnapshot = assessment.input_snapshot as { clientType: string; formAnswers: Record<string, string | string[]> };
   const matterDescription = (inputSnapshot.formAnswers?.['23'] || inputSnapshot.formAnswers?.['41'] || '') as string;
 
-  // Separate actions: non-EDD (excluding monitoring), EDD, and monitoring
+  // Separate actions: non-EDD (includes monitoring for acknowledgement), EDD
   const nonEddNonMonitoringActions = outputSnapshot.mandatoryActions.filter(
-    (a: MandatoryAction) => a.category !== 'edd' && a.category !== 'monitoring'
+    (a: MandatoryAction) => a.category !== 'edd'
   );
   const eddActions = outputSnapshot.mandatoryActions.filter(
     (a: MandatoryAction) => a.category === 'edd'

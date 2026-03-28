@@ -26,11 +26,13 @@ function isFormAction(action: MandatoryAction): boolean {
   return action.actionId === 'sow_form' || action.actionId === 'sof_form';
 }
 
-/** Check if an action is a confirmation-only action */
+/** Check if an action is a confirmation-only action (tick to acknowledge) */
 function isConfirmAction(action: MandatoryAction): boolean {
   return action.actionId === 'confirm_matter_purpose' ||
     action.actionId === 'verify_consistency' ||
     action.actionId === 'confirm_transparency' ||
+    action.actionId === 'ongoing_monitoring' ||
+    action.actionId === 'enhanced_monitoring' ||
     action.actionId === 'confirm_bo';
 }
 
