@@ -254,7 +254,9 @@ export function EvidencePanel({
               )}
             </div>
             {ev.notes && (
-              <div className={styles.evidenceLineNotes}>{ev.notes}</div>
+              <div className={styles.evidenceLineNotes}>
+                {ev.notes.length > 80 ? ev.notes.slice(0, 77) + '...' : ev.notes}
+              </div>
             )}
           </div>
         );

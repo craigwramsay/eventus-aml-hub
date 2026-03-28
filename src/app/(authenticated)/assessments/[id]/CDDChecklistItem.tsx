@@ -242,8 +242,17 @@ export function CDDChecklistItem({
   const hasEvidence = itemEvidence.length > 0;
   const hasAmiqusInfo = showAmiqus && (verification || (clientAmiqus && effectiveCompleted));
 
+  // Confirmation-only items (tick = the evidence) — don't show "No evidence recorded"
+  const isTickOnly = showConfirm || showDocumentConfirm ||
+    action.actionId === 'ongoing_monitoring' || action.actionId === 'enhanced_monitoring';
+
   // Build completion attribution text
   const completedByName = progressRecord?.completed_by ? userNames[progressRecord.completed_by] : null;
+
+  // Empty evidence column message
+  const emptyEvidenceText = isTickOnly
+    ? (effectiveCompleted ? 'Confirmed by user' : 'Awaiting confirmation')
+    : (effectiveCompleted ? 'No evidence recorded' : 'No evidence yet');
 
   return (
     <div className={`${styles.cddItemCard} ${effectiveCompleted ? styles.cddItemCompleted : ''}`}>
@@ -271,7 +280,7 @@ export function CDDChecklistItem({
         </div>
       ) : (
         <div className={styles.itemEvidenceEmpty}>
-          {effectiveCompleted ? 'No evidence recorded' : 'No evidence yet'}
+          {emptyEvidenceText}
         </div>
       )}
 
@@ -307,8 +316,8 @@ export function CDDChecklistItem({
         </div>
       )}
 
-      {/* Matter description (always shown for confirm_matter_purpose) */}
-      {action.actionId === 'confirm_matter_purpose' && matterDescription && (
+      {/* Matter description (only shown when NOT yet completed — useful during assessment, noise after) */}
+      {!effectiveCompleted && action.actionId === 'confirm_matter_purpose' && matterDescription && (
         <div className={`${styles.itemMeta} ${styles.itemFullRow}`}>
           <div className={styles.matterDescriptionQuote}>
             {matterDescription}
