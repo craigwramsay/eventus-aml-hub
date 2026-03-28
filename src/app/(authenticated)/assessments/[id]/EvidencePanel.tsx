@@ -85,12 +85,12 @@ export function EvidencePanel({
             <div className={styles.evidenceLine}>
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
               <span className={styles.evidenceLineLabel}>
-                ID&V verified
-                {verification.amiqus_record_id && ` (#${verification.amiqus_record_id})`}
+                Identity verified electronically
+                {verification.amiqus_record_id && ` (Amiqus record ${verification.amiqus_record_id})`}
               </span>
               {verification.verified_at && (
-                <span className={styles.evidenceLineVerified}>
-                  {formatDateShort(verification.verified_at + 'T00:00:00')}
+                <span className={styles.evidenceLineDate}>
+                  Verified {formatDateShort(verification.verified_at + 'T00:00:00')}
                 </span>
               )}
               <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
@@ -109,8 +109,8 @@ export function EvidencePanel({
                 {verification.status === 'pending' ? 'Pending' : 'In Progress'}
               </span>
               <span className={styles.evidenceLineLabel}>
-                Amiqus verification
-                {verification.amiqus_record_id && ` (#${verification.amiqus_record_id})`}
+                Electronic identity verification
+                {verification.amiqus_record_id && ` (Amiqus record ${verification.amiqus_record_id})`}
               </span>
               <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
                 View in Amiqus
@@ -124,22 +124,22 @@ export function EvidencePanel({
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeFailed}`}>
                 {verification.status === 'failed' ? 'Failed' : 'Expired'}
               </span>
-              <span className={styles.evidenceLineLabel}>Amiqus verification</span>
+              <span className={styles.evidenceLineLabel}>Electronic identity verification</span>
             </div>
           );
         }
-        // Carry-forward from prior assessment — single line telling the whole story
+        // Carry-forward from prior assessment
         if (!verification && clientAmiqus && isCompleted) {
           const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
           return (
             <div className={styles.evidenceLine}>
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
               <span className={styles.evidenceLineLabel}>
-                Verified via Amiqus (#{clientAmiqus.amiqusRecordId}) — confirmed still valid
+                Identity verified electronically (Amiqus record {clientAmiqus.amiqusRecordId}) — confirmed still valid
               </span>
               {clientAmiqus.verifiedAt && (
                 <span className={styles.evidenceLineDate}>
-                  {formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}
+                  Verified {formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}
                 </span>
               )}
               <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
