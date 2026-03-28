@@ -481,6 +481,7 @@ button.evidenceCardHeader:hover {
 /* ── Evidence Forms ── */
 
 .evidenceForm {
+  grid-column: 1 / -1;
   margin-top: var(--space-4);
   padding: var(--space-4);
   background-color: var(--surface-secondary);
@@ -931,6 +932,9 @@ button.evidenceCardHeader:hover {
   transition: border-color 0.15s, box-shadow 0.15s;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  grid-template-rows: auto auto;
 }
 
 .cddItemCard:last-child {
@@ -939,15 +943,17 @@ button.evidenceCardHeader:hover {
 
 .cddItemCompleted {
   border-left: 3px solid var(--status-low);
-  background-color: rgba(16, 185, 129, 0.03);
 }
 
-/* Zone 1: Requirement description */
+/* ── Zone 1: WHAT (requirement) ── */
 .itemRequirement {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
+  border-right: 1px solid var(--border-light);
 }
 
 .cddItemNumber {
@@ -963,23 +969,47 @@ button.evidenceCardHeader:hover {
   line-height: 1.5;
 }
 
-/* Zone 3: Status bar */
-.itemStatusBar {
+/* ── Zone 2: HOW (evidence) ── */
+.itemEvidenceCol {
+  grid-column: 2;
+  grid-row: 1;
+  border-right: 1px solid var(--border-light);
+  min-width: 0;
+}
+
+.itemEvidenceEmpty {
+  grid-column: 2;
+  grid-row: 1;
+  border-right: 1px solid var(--border-light);
+  padding: var(--space-3) var(--space-3);
   display: flex;
   align-items: center;
-  padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--border-light);
+  color: var(--text-muted);
   font-size: 0.8125rem;
+  font-style: italic;
+}
+
+/* ── Zone 3: STATUS ── */
+.itemStatusCol {
+  grid-column: 3;
+  grid-row: 1;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 10rem;
 }
 
 .itemStatusComplete {
   background-color: var(--complete-bg);
   color: var(--complete-text);
-  font-weight: 500;
 }
 
 .itemStatusPending {
   color: var(--text-muted);
+  background-color: var(--surface-secondary);
 }
 
 .statusCheckLabel {
@@ -987,6 +1017,8 @@ button.evidenceCardHeader:hover {
   align-items: center;
   gap: var(--space-2);
   cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 .cddCheckboxInput {
@@ -1001,9 +1033,43 @@ button.evidenceCardHeader:hover {
   cursor: default;
 }
 
-.statusByLine {
+.statusDate {
+  font-size: 0.6875rem;
+  opacity: 0.85;
   font-weight: 400;
-  opacity: 0.8;
+  text-align: center;
+}
+
+/* Full-width row spanning all columns (action bar, forms, verification notes) */
+.itemFullRow {
+  grid-column: 1 / -1;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 768px) {
+  .cddItemCard {
+    grid-template-columns: 1fr;
+  }
+  .itemRequirement,
+  .itemEvidenceCol,
+  .itemEvidenceEmpty,
+  .itemStatusCol {
+    grid-column: 1;
+    grid-row: auto;
+    border-right: none;
+  }
+  .itemRequirement {
+    border-bottom: 1px solid var(--border-light);
+  }
+  .itemEvidenceCol,
+  .itemEvidenceEmpty {
+    border-bottom: 1px solid var(--border-light);
+  }
+  .itemStatusCol {
+    flex-direction: row;
+    justify-content: flex-start;
+    min-width: 0;
+  }
 }
 
 /* Item meta: verification note, matter description, approval widget */
@@ -1011,10 +1077,9 @@ button.evidenceCardHeader:hover {
   padding: 0 var(--space-4) 0 2.75rem;
 }
 
-/* Evidence section (between primary row and actions) */
+/* Evidence section (inside middle column) */
 .evidenceSection {
-  padding: var(--space-2) var(--space-4) var(--space-2) 2.75rem;
-  border-top: 1px solid var(--border-light);
+  padding: var(--space-3) var(--space-3);
 }
 
 .evidenceLine {
@@ -1153,8 +1218,9 @@ button.evidenceCardHeader:hover {
   font-weight: 400;
 }
 
-/* Action bar (card footer) */
+/* Action bar (card footer, spans all columns) */
 .itemActionsBar {
+  grid-column: 1 / -1;
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;

@@ -255,47 +255,28 @@ export function CDDChecklistItem({
         </span>
       </div>
 
-      {/* Verification note (only shown when NOT yet completed) */}
-      {!effectiveCompleted && action.verificationNote && (
-        <div className={styles.itemMeta}>
-          <div className={styles.verificationNote}>
-            {renderVerificationNote(action.verificationNote)}
-          </div>
-        </div>
-      )}
-
-      {/* Matter description (always shown for confirm_matter_purpose) */}
-      {action.actionId === 'confirm_matter_purpose' && matterDescription && (
-        <div className={styles.itemMeta}>
-          <div className={styles.matterDescriptionQuote}>
-            {matterDescription}
-          </div>
-        </div>
-      )}
-
-      {/* Approval widget */}
-      {showApproval && (
-        <div className={styles.itemMeta}>
-          {renderApprovalWidget(approvalStatus, userRole, isFinalised, isPending, onRequestApproval, onWithdrawApproval, onDecideApproval)}
-        </div>
-      )}
-
       {/* ── ZONE 2: HOW — what satisfied it ── */}
-      {(hasEvidence || hasAmiqusInfo) && (
-        <EvidencePanel
-          evidence={itemEvidence}
-          progressRecord={progressRecord}
-          isCompleted={effectiveCompleted}
-          isApprovalAction={showApproval}
-          syncRecords={syncRecords}
-          userNames={userNames}
-          verification={showAmiqus ? verification : undefined}
-          clientAmiqus={showAmiqus ? clientAmiqus : undefined}
-        />
+      {(hasEvidence || hasAmiqusInfo) ? (
+        <div className={styles.itemEvidenceCol}>
+          <EvidencePanel
+            evidence={itemEvidence}
+            progressRecord={progressRecord}
+            isCompleted={effectiveCompleted}
+            isApprovalAction={showApproval}
+            syncRecords={syncRecords}
+            userNames={userNames}
+            verification={showAmiqus ? verification : undefined}
+            clientAmiqus={showAmiqus ? clientAmiqus : undefined}
+          />
+        </div>
+      ) : (
+        <div className={styles.itemEvidenceEmpty}>
+          {effectiveCompleted ? 'No evidence recorded' : 'No evidence yet'}
+        </div>
       )}
 
-      {/* ── ZONE 3: STATUS — done or pending ── */}
-      <div className={`${styles.itemStatusBar} ${effectiveCompleted ? styles.itemStatusComplete : styles.itemStatusPending}`}>
+      {/* ── ZONE 3: STATUS ── */}
+      <div className={`${styles.itemStatusCol} ${effectiveCompleted ? styles.itemStatusComplete : styles.itemStatusPending}`}>
         <label className={styles.statusCheckLabel}>
           <input
             type="checkbox"
@@ -304,20 +285,47 @@ export function CDDChecklistItem({
             disabled={isFinalised || isPending || showApproval}
             className={styles.cddCheckboxInput}
           />
-          {effectiveCompleted ? (
-            <span>
-              Completed{completionDate && ` ${completionDate}`}
-              {completedByName && <span className={styles.statusByLine}> by {completedByName}</span>}
-            </span>
-          ) : (
-            <span>Not yet completed</span>
-          )}
+          {effectiveCompleted ? 'Complete' : 'Pending'}
         </label>
+        {effectiveCompleted && completionDate && (
+          <span className={styles.statusDate}>
+            {completionDate}
+            {completedByName && <br />}
+            {completedByName && completedByName}
+          </span>
+        )}
       </div>
+
+      {/* Full-width rows below the 3 columns */}
+
+      {/* Verification note (only shown when NOT yet completed) */}
+      {!effectiveCompleted && action.verificationNote && (
+        <div className={`${styles.itemMeta} ${styles.itemFullRow}`}>
+          <div className={styles.verificationNote}>
+            {renderVerificationNote(action.verificationNote)}
+          </div>
+        </div>
+      )}
+
+      {/* Matter description (always shown for confirm_matter_purpose) */}
+      {action.actionId === 'confirm_matter_purpose' && matterDescription && (
+        <div className={`${styles.itemMeta} ${styles.itemFullRow}`}>
+          <div className={styles.matterDescriptionQuote}>
+            {matterDescription}
+          </div>
+        </div>
+      )}
+
+      {/* Approval widget */}
+      {showApproval && (
+        <div className={`${styles.itemMeta} ${styles.itemFullRow}`}>
+          {renderApprovalWidget(approvalStatus, userRole, isFinalised, isPending, onRequestApproval, onWithdrawApproval, onDecideApproval)}
+        </div>
+      )}
 
       {/* Confirm Still Valid (carry-forward) */}
       {showAmiqus && !isFinalised && canConfirmStillValid(lastCddVerifiedAt, riskLevel) && itemEvidence.length === 0 && !effectiveCompleted && (
-        <div className={styles.confirmStillValidBlock}>
+        <div className={`${styles.confirmStillValidBlock} ${styles.itemFullRow}`}>
           <p className={styles.confirmStillValidInfo}>
             Identity last verified on{' '}
             {new Date(lastCddVerifiedAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
