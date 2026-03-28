@@ -128,17 +128,17 @@ export function EvidencePanel({
             </div>
           );
         }
-        // Carry-forward from prior assessment
+        // Carry-forward from prior assessment — single line telling the whole story
         if (!verification && clientAmiqus && isCompleted) {
           const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
           return (
             <div className={styles.evidenceLine}>
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
               <span className={styles.evidenceLineLabel}>
-                Original verification (#{clientAmiqus.amiqusRecordId})
+                Verified via Amiqus (#{clientAmiqus.amiqusRecordId}) — confirmed still valid
               </span>
               {clientAmiqus.verifiedAt && (
-                <span className={styles.evidenceLineVerified}>
+                <span className={styles.evidenceLineDate}>
                   {formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}
                 </span>
               )}
@@ -151,8 +151,11 @@ export function EvidencePanel({
         return null;
       })()}
 
-      {/* Evidence items */}
-      {evidence.map((ev) => {
+      {/* Evidence items — filter out carry-forward note when Amiqus already tells the story */}
+      {evidence.filter(ev => {
+        if (hasAmiqus && ev.label === 'Prior identity verification confirmed still valid') return false;
+        return true;
+      }).map((ev) => {
         const isExpanded = expandedEvidence.has(ev.id);
 
         if (ev.evidence_type === 'companies_house') {
@@ -254,9 +257,7 @@ export function EvidencePanel({
               )}
             </div>
             {ev.notes && (
-              <div className={styles.evidenceLineNotes}>
-                {ev.notes.length > 80 ? ev.notes.slice(0, 77) + '...' : ev.notes}
-              </div>
+              <div className={styles.evidenceLineNotes}>{ev.notes}</div>
             )}
           </div>
         );
