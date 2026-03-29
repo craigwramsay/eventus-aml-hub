@@ -197,21 +197,22 @@ const s = StyleSheet.create({
   cddTableRow: {
     flexDirection: 'row',
   },
+  cddRowSeparator: {
+    height: 0,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
+  },
   cddColRequirement: {
     flex: 3,
     padding: 6,
     borderRightWidth: 0.5,
     borderRightColor: '#cbd5e1',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#cbd5e1',
   },
   cddColEvidence: {
     flex: 5,
     padding: 6,
     borderRightWidth: 0.5,
     borderRightColor: '#cbd5e1',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#cbd5e1',
     backgroundColor: '#f8fafc',
   },
   cddColStatus: {
@@ -219,8 +220,6 @@ const s = StyleSheet.create({
     padding: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#cbd5e1',
   },
   cddColStatusComplete: {
     backgroundColor: '#dcfce7',
@@ -665,8 +664,10 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                 <View style={[s.cddColEvidence, { backgroundColor: '#f1f5f9' }]}><Text style={s.cddHeaderText}>Evidence / Response</Text></View>
                 <View style={[s.cddColStatus, { backgroundColor: '#f1f5f9' }]}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
               </View>
+              <View style={s.cddRowSeparator} />
               {items.map((item, idx) => (
-                <View key={`${category}-${idx}`} style={s.cddTableRow}>
+                <React.Fragment key={`${category}-${idx}`}>
+                <View style={s.cddTableRow}>
                   {/* Column 1: Requirement */}
                   <View style={s.cddColRequirement}>
                     <Text style={s.cddDescriptionText}>{capitaliseFirst(item.description)}</Text>
@@ -707,6 +708,8 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                     {item.completedBy && <Text style={s.cddStatusDate}>{item.completedBy}</Text>}
                   </View>
                 </View>
+                {idx < items.length - 1 && <View style={s.cddRowSeparator} />}
+                </React.Fragment>
               ))}
               </View>
             </View>
