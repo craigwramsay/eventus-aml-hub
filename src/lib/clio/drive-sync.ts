@@ -104,7 +104,7 @@ export async function syncFinalisationPdfToClio(
   // Fetch assessment with related data
   const { data: assessment } = await supabase
     .from('assessments')
-    .select('id, reference, risk_level, score, finalised_at, matter_id, output_snapshot')
+    .select('id, reference, risk_level, score, finalised_at, matter_id, output_snapshot, input_snapshot, created_by, finalised_by')
     .eq('id', assessmentId)
     .single();
 
@@ -238,6 +238,72 @@ export async function syncFinalisationPdfToClio(
 
   const completedCount = cddItems.filter(i => i.completed).length;
 
+  // Build form questions from input snapshot
+  const inputSnapshot = assessment.output_snapshot ? (assessment as Record<string, unknown>).input_snapshot as {
+    clientType?: string;
+    formAnswers?: Record<string, string | string[]>;
+  } : null;
+  let formQuestions: Array<{ type: 'section' | 'question'; label: string; answer?: string; score?: number }> = [];
+  if (inputSnapshot?.formAnswers) {
+    // Import form config dynamically
+    const isIndividual = inputSnapshot.clientType === 'individual';
+    const formConfig = isIndividual
+      ? (await import('@/config/eventus/forms/CMLRA_individual.json')).default
+      : (await import('@/config/eventus/forms/CMLRA_corporate.json')).default;
+
+    const riskFactorByField = new Map<string, { score: number }>();
+    for (const rf of (outputSnapshot.riskFactors || []) as unknown as Array<{ formFieldId: string; score: number }>) {
+      if (rf.formFieldId) riskFactorByField.set(rf.formFieldId, rf);
+    }
+
+    const fieldMap = new Map<string, Record<string, unknown>>();
+    for (const f of formConfig.fields) {
+      fieldMap.set(f.id, f);
+    }
+
+    function walkFields(fieldIds: string[]) {
+      for (const fid of fieldIds) {
+        const field = fieldMap.get(fid);
+        if (!field) continue;
+        if (field.type === 'section') {
+          if (field.label) formQuestions.push({ type: 'section', label: field.label as string });
+          if (field.fields) walkFields(field.fields as string[]);
+        } else if (field.type !== 'rich_text') {
+          const label = typeof field.label === 'object' && field.label !== null
+            ? (field.label as { value: string }).value
+            : field.label as string;
+          if (!label) continue;
+          const answer = inputSnapshot?.formAnswers?.[fid];
+          const rf = riskFactorByField.get(fid);
+          formQuestions.push({
+            type: 'question',
+            label,
+            answer: answer ? (Array.isArray(answer) ? answer.join(', ') : answer) : undefined,
+            score: rf?.score,
+          });
+        }
+      }
+    }
+
+    const rootSection = formConfig.fields.find((f: Record<string, unknown>) => f.type === 'section' && f.id === '1');
+    if (rootSection?.fields) walkFields(rootSection.fields as string[]);
+  }
+
+  // Look up user names for created_by / finalised_by
+  let createdByName: string | null = null;
+  let finalisedByName: string | null = null;
+  const assessmentRecord = assessment as Record<string, unknown>;
+  const userIds = [assessmentRecord.created_by, assessmentRecord.finalised_by].filter(Boolean) as string[];
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase.from('user_profiles').select('user_id, full_name').in('user_id', userIds);
+    if (profiles) {
+      for (const p of profiles) {
+        if (p.full_name && p.user_id === assessmentRecord.created_by) createdByName = p.full_name;
+        if (p.full_name && p.user_id === assessmentRecord.finalised_by) finalisedByName = p.full_name;
+      }
+    }
+  }
+
   // Generate PDF
   const hubBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eventus-aml-hub.vercel.app';
   const fileBuffer = await generateAssessmentPdf({
@@ -257,6 +323,9 @@ export async function syncFinalisationPdfToClio(
     declarations,
     riskFactors: (outputSnapshot.riskFactors || []) as RiskFactorSummary[],
     rationale: outputSnapshot.rationale || [],
+    formQuestions,
+    createdByName,
+    finalisedByName,
   });
 
   const fileName = `AML-Assessment-${assessment.reference}.pdf`;

@@ -58,6 +58,12 @@ interface AssessmentPdfParams {
   riskFactors?: RiskFactorSummary[];
   /** Human-readable rationale strings */
   rationale?: string[];
+  /** Form questions and answers */
+  formQuestions?: Array<{ type: 'section' | 'question'; label: string; answer?: string; score?: number }>;
+  /** Name of user who created the assessment */
+  createdByName?: string | null;
+  /** Name of user who finalised the assessment */
+  finalisedByName?: string | null;
 }
 
 // ── Field label lookup ─────────────────────────────────────────────────
@@ -332,6 +338,46 @@ const s = StyleSheet.create({
     marginBottom: 3,
     paddingLeft: 10,
   },
+  // Questions & Answers
+  qaSection: {
+    fontSize: 9,
+  },
+  qaSectionHeader: {
+    backgroundColor: '#f1f5f9',
+    padding: '4 8',
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    marginTop: 4,
+  },
+  qaRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+  },
+  qaRowScored: {
+    backgroundColor: '#fffbeb',
+  },
+  qaLabel: {
+    flex: 4,
+    fontSize: 8.5,
+    color: '#64748b',
+  },
+  qaAnswer: {
+    flex: 4,
+    fontSize: 8.5,
+    color: '#333',
+  },
+  qaScore: {
+    width: 30,
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: '#b45309',
+    textAlign: 'right',
+  },
   // Footer
   footer: {
     position: 'absolute',
@@ -395,6 +441,9 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
     declarations = [],
     riskFactors = [],
     rationale = [],
+    formQuestions = [],
+    createdByName,
+    finalisedByName,
   } = params;
 
   const riskColour = RISK_COLOURS[riskLevel] || RISK_COLOURS.MEDIUM;
@@ -446,6 +495,18 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
             <Text style={s.detailsLabel}>Finalised</Text>
             <Text style={s.detailsValue}>{formatDate(finalisedAt)}</Text>
           </View>
+          {createdByName && (
+            <View style={s.detailsRow}>
+              <Text style={s.detailsLabel}>Assessment by</Text>
+              <Text style={s.detailsValue}>{createdByName}</Text>
+            </View>
+          )}
+          {finalisedByName && (
+            <View style={s.detailsRow}>
+              <Text style={s.detailsLabel}>Finalised by</Text>
+              <Text style={s.detailsValue}>{finalisedByName}</Text>
+            </View>
+          )}
         </View>
 
         {/* ── SECTION 1: CDD Requirements ── */}
@@ -568,6 +629,26 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
               <Text style={s.scoringAnswer} />
               <Text style={s.scoringScore}>{score}</Text>
             </View>
+          </View>
+        )}
+
+        {/* ── SECTION 4: Questions & Answers ── */}
+        {formQuestions.length > 0 && (
+          <View style={s.qaSection} break>
+            <Text style={s.sectionTitle}>Risk Assessment Questions and Answers</Text>
+            {formQuestions.map((q, i) => {
+              if (q.type === 'section') {
+                return <Text key={i} style={s.qaSectionHeader}>{q.label}</Text>;
+              }
+              const hasScore = q.score && q.score > 0;
+              return (
+                <View key={i} style={[s.qaRow, hasScore ? s.qaRowScored : {}]}>
+                  <Text style={s.qaLabel}>{q.label}</Text>
+                  <Text style={s.qaAnswer}>{q.answer || '—'}</Text>
+                  <Text style={s.qaScore}>{hasScore ? `+${q.score}` : ''}</Text>
+                </View>
+              );
+            })}
           </View>
         )}
 

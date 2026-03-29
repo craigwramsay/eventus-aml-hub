@@ -1541,76 +1541,7 @@ button.evidenceCardHeader:hover {
   background-color: var(--border);
 }
 
-/* ── Print Styles ── */
-
-@media print {
-  @page { margin: 1.5cm; }
-
-  /* Force color printing for completed items */
-  .cddItemCompleted,
-  .riskHero,
-  .riskHeroLow,
-  .riskHeroMedium,
-  .riskHeroHigh,
-  .eddSection,
-  .warningSection,
-  .warningItem,
-  .verifiedBadge,
-  .evidenceBadgeCH,
-  .evidenceBadgeFile,
-  .evidenceBadgeManual,
-  .cddCheckboxInput,
-  .cddStatusBanner,
-  .cddStatusRecent,
-  .cddStatusStale,
-  .cddStatusLongstop {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Hide interactive elements */
-  .actionButtons,
-  .dangerSection,
-  .cddItemActions,
-  .evidenceForm,
-  .evidenceActionButton,
-  .formSubmit,
-  .chLookupButton,
-  .amiqusLinkButton,
-  .confirmStillValidBlock,
-  .exportPdfButton,
-  .finaliseButton,
-  .rerunButton,
-  .determinationButton { display: none !important; }
-
-  /* Keep completed item styling */
-  .cddItemCompleted {
-    border-color: var(--status-low) !important;
-    background-color: rgba(16, 185, 129, 0.08) !important;
-  }
-
-  /* Force expand collapsible content */
-  .collapsibleContent { display: block !important; }
-  .collapsibleContentHidden { display: block !important; }
-  .evidenceCardBody { display: block !important; }
-
-  /* Page break control — allow sections to span pages, keep individual cards intact */
-  .cddItemCard { break-inside: avoid; }
-  .riskHero { break-inside: avoid; }
-
-  /* Hide expand/collapse icons and toggle text */
-  .expandIcon { display: none !important; }
-  .expandToggleText { display: none !important; }
-  .declarationSummary { display: none !important; }
-  .collapsibleHeader { cursor: default !important; }
-
-  /* Show notes and attribution in print */
-  .evidenceNotes { color: #333 !important; }
-  .completionAttribution { color: #333 !important; background: #f5f5f5 !important; }
-
-  /* Hide Clio sync badges in print */
-  .clioSyncBadge { display: none !important; }
-}
+/* Print styles removed — PDF generation is now server-side via @react-pdf/renderer */
 
 /* ── Clio Drive Sync Badges ── */
 

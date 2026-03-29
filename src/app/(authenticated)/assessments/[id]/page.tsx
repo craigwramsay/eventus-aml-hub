@@ -256,7 +256,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
 
       {/* 8. Action buttons */}
       <div className={styles.actionButtons}>
-        <ExportPdfButton />
+        <ExportPdfButton assessmentId={assessment.id} />
         <Link
           href={`/assessments/${assessment.id}/determination`}
           className={styles.determinationButton}
