@@ -203,13 +203,13 @@ const s = StyleSheet.create({
     borderBottomColor: '#cbd5e1',
   },
   cddColRequirement: {
-    flex: 3,
+    flex: 4,
     padding: 6,
     borderRightWidth: 0.5,
     borderRightColor: '#cbd5e1',
   },
   cddColEvidence: {
-    flex: 5,
+    flex: 4,
     padding: 6,
     borderRightWidth: 0.5,
     borderRightColor: '#cbd5e1',
@@ -239,8 +239,9 @@ const s = StyleSheet.create({
     padding: 4,
   },
   cddDescriptionText: {
-    fontSize: 9,
+    fontSize: 8.5,
     color: '#333',
+    lineHeight: 1.4,
   },
   cddEvidenceType: {
     fontSize: 7,
@@ -652,7 +653,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
             {completedCount} of {totalCount} requirements completed
           </Text>
 
-          {Array.from(itemsByCategory.entries()).map(([category, items]) => (
+          {(() => { let itemNum = 0; return Array.from(itemsByCategory.entries()).map(([category, items]) => (
             <View key={category} wrap={false}>
               <Text style={s.categoryTitle}>
                 {CATEGORY_LABELS[category] || category}
@@ -665,12 +666,14 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                 <View style={[s.cddColStatus, { backgroundColor: '#f1f5f9' }]}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
               </View>
               <View style={s.cddRowSeparator} />
-              {items.map((item, idx) => (
+              {items.map((item, idx) => {
+                itemNum++;
+                return (
                 <React.Fragment key={`${category}-${idx}`}>
                 <View style={s.cddTableRow}>
                   {/* Column 1: Requirement */}
                   <View style={s.cddColRequirement}>
-                    <Text style={s.cddDescriptionText}>{capitaliseFirst(item.description)}</Text>
+                    <Text style={s.cddDescriptionText}>{itemNum}. {capitaliseFirst(item.description)}</Text>
                   </View>
                   {/* Column 2: Evidence */}
                   <View style={s.cddColEvidence}>
@@ -710,10 +713,11 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                 </View>
                 {idx < items.length - 1 && <View style={s.cddRowSeparator} />}
                 </React.Fragment>
-              ))}
+                );
+              })}
               </View>
             </View>
-          ))}
+          )); })()}
         </View>
 
         {/* Declaration details shown expanded after the CDD section */}
