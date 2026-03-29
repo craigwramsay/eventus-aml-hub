@@ -196,20 +196,22 @@ const s = StyleSheet.create({
   // CDD 3-column table — unified 0.5pt borders throughout
   cddTableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#cbd5e1',
   },
   cddColRequirement: {
     flex: 3,
     padding: 6,
     borderRightWidth: 0.5,
     borderRightColor: '#cbd5e1',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
   },
   cddColEvidence: {
     flex: 5,
     padding: 6,
     borderRightWidth: 0.5,
     borderRightColor: '#cbd5e1',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
     backgroundColor: '#f8fafc',
   },
   cddColStatus: {
@@ -217,6 +219,8 @@ const s = StyleSheet.create({
     padding: 4,
     alignItems: 'center',
     justifyContent: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
   },
   cddColStatusComplete: {
     backgroundColor: '#dcfce7',
