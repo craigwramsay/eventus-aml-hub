@@ -382,7 +382,7 @@ export async function linkExistingAmiqusRecord(
         evidence_type: 'amiqus',
         label: 'Amiqus Identity Verification',
         source: 'Amiqus',
-        data: { amiqus_record_id: amiqusRecordId, verified_at: verifiedAt },
+        data: { amiqus_record_id: amiqusRecordId, amiqus_type: amiqusResult.type, verified_at: verifiedAt },
         verified_at: verifiedAt,
         created_by: user.id,
       });

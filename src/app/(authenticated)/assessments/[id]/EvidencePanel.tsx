@@ -79,7 +79,7 @@ export function EvidencePanel({
       {hasAmiqus && (() => {
         if (verification?.status === 'complete') {
           const amiqusUrl = verification.amiqus_record_id
-            ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
+            ? `https://id.amiqus.co/cases/${verification.amiqus_record_id}`
             : 'https://id.amiqus.co/';
           return (
             <div className={styles.evidenceLine}>
@@ -100,7 +100,7 @@ export function EvidencePanel({
         }
         if (verification?.status === 'pending' || verification?.status === 'in_progress') {
           const amiqusUrl = verification.amiqus_record_id
-            ? `https://id.amiqus.co/records/${verification.amiqus_record_id}`
+            ? `https://id.amiqus.co/cases/${verification.amiqus_record_id}`
             : 'https://id.amiqus.co/';
           return (
             <div className={styles.evidenceLine}>
@@ -128,7 +128,7 @@ export function EvidencePanel({
         }
         // Carry-forward from prior assessment
         if (!verification && clientAmiqus && isCompleted) {
-          const amiqusUrl = `https://id.amiqus.co/records/${clientAmiqus.amiqusRecordId}`;
+          const amiqusUrl = `https://id.amiqus.co/cases/${clientAmiqus.amiqusRecordId}`;
           return (
             <div>
               <div className={styles.evidenceLine}>

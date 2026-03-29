@@ -214,7 +214,7 @@ export async function syncFinalisationPdfToClio(
         ? new Date(amiqus.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
         : '';
       evidenceSummary = `Verified via Amiqus #${amiqus.amiqus_record_id}${dateStr ? ` on ${dateStr}` : ''}`;
-      amiqusUrl = `https://id.amiqus.co/records/${amiqus.amiqus_record_id}`;
+      amiqusUrl = `https://id.amiqus.co/cases/${amiqus.amiqus_record_id}`;
     } else if (actionEvidence.length > 0) {
       const summaries = actionEvidence.map((ev) => {
         const datePart = ev.verified_at
