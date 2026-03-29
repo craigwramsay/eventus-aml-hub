@@ -261,7 +261,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
           href={`/assessments/${assessment.id}/determination`}
           className={styles.determinationButton}
         >
-          View Risk Assessment Scoring
+          View Risk Assessment
         </Link>
         {!isFinalised && canFinalise && (
           <FinaliseButton assessmentId={assessment.id} cddLongstopBreached={cddLongstopBreached} />
