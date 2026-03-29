@@ -19,7 +19,7 @@ function getFieldLabel(fieldId: string): string {
 function formatDateShort(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
   });
 }
@@ -72,7 +72,8 @@ export function EvidencePanel({
   const hasAmiqus = verification || (clientAmiqus && isCompleted);
 
   // Check if identity was carried forward (user relied on existing verification)
-  const hasCarryForward = evidence.some(ev => ev.label === 'Prior identity verification confirmed still valid');
+  const carryForwardEvidence = evidence.find(ev => ev.label === 'Prior identity verification confirmed still valid');
+  const hasCarryForward = !!carryForwardEvidence;
 
   if (evidence.length === 0 && !hasAmiqus) return null;
 
@@ -84,27 +85,26 @@ export function EvidencePanel({
           const amiqusUrl = verification.amiqus_client_id
             ? `https://id.amiqus.co/clients/${verification.amiqus_client_id}`
             : 'https://id.amiqus.co/';
+          const verifiedDate = verification.verified_at
+            ? formatDateShort(verification.verified_at + 'T00:00:00')
+            : null;
+          const confirmedDate = carryForwardEvidence?.created_at
+            ? formatDateShort(carryForwardEvidence.created_at)
+            : null;
           return (
             <div>
               <div className={styles.evidenceLine}>
                 <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
                 <span className={styles.evidenceLineLabel}>
-                  Identity verified electronically
+                  {hasCarryForward
+                    ? `Identity verified electronically — existing Amiqus verification dated ${verifiedDate || 'unknown'} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`
+                    : `Identity verified electronically${verifiedDate ? ` on ${verifiedDate}` : ''}`
+                  }
                 </span>
-                {verification.verified_at && (
-                  <span className={styles.evidenceLineDate}>
-                    Verified {formatDateShort(verification.verified_at + 'T00:00:00')}
-                  </span>
-                )}
                 <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
                   View in Amiqus
                 </a>
               </div>
-              {hasCarryForward && (
-                <div className={styles.evidenceLineNotes}>
-                  Existing verification confirmed still valid for this assessment
-                </div>
-              )}
             </div>
           );
         }
@@ -141,24 +141,22 @@ export function EvidencePanel({
           const amiqusUrl = clientAmiqus.amiqusClientId
             ? `https://id.amiqus.co/clients/${clientAmiqus.amiqusClientId}`
             : `https://id.amiqus.co/`;
+          const verifiedDate = clientAmiqus.verifiedAt
+            ? formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')
+            : null;
+          const confirmedDate = carryForwardEvidence?.created_at
+            ? formatDateShort(carryForwardEvidence.created_at)
+            : null;
           return (
             <div>
               <div className={styles.evidenceLine}>
                 <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
                 <span className={styles.evidenceLineLabel}>
-                  Identity verified electronically
+                  Identity verified electronically — existing Amiqus verification dated {verifiedDate || 'unknown'} was confirmed as still valid for this assessment{confirmedDate ? ` on ${confirmedDate}` : ''}
                 </span>
-                {clientAmiqus.verifiedAt && (
-                  <span className={styles.evidenceLineDate}>
-                    Verified {formatDateShort(clientAmiqus.verifiedAt + 'T00:00:00')}
-                  </span>
-                )}
                 <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
                   View in Amiqus
                 </a>
-              </div>
-              <div className={styles.evidenceLineNotes}>
-                Existing verification confirmed still valid for this assessment
               </div>
             </div>
           );

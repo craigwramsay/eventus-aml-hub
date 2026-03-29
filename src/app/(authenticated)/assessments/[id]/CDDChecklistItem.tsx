@@ -77,7 +77,7 @@ function monthsSince(dateStr: string): number {
 function formatDateShort(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
   });
 }
@@ -335,8 +335,8 @@ export function CDDChecklistItem({
         </div>
       )}
 
-      {/* Approval widget */}
-      {showApproval && (
+      {/* Approval widget — hide on finalised when already approved (evidence column shows it) */}
+      {showApproval && !(isFinalised && approvalCompleted) && (
         <div className={`${styles.itemMeta} ${styles.itemFullRow}`}>
           {renderApprovalWidget(approvalStatus, userRole, isFinalised, isPending, onRequestApproval, onWithdrawApproval, onDecideApproval)}
         </div>
