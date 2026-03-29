@@ -85,7 +85,7 @@ export async function getProgressForAssessment(
         .in('user_id', completedByIds);
       if (profiles) {
         userNames = Object.fromEntries(
-          profiles.map((p: { user_id: string; full_name: string | null }) => [p.user_id, p.full_name || 'Unknown'])
+          profiles.filter((p: { user_id: string; full_name: string | null }) => p.full_name).map((p: { user_id: string; full_name: string | null }) => [p.user_id, p.full_name!])
         );
       }
     }
