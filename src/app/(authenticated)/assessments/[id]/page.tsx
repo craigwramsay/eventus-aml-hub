@@ -5,7 +5,7 @@ import { getProgressForAssessment } from '@/app/actions/progress';
 import { getApprovalForAssessment } from '@/app/actions/approvals';
 import { getAmiqusVerifications, getClientLatestAmiqusVerification } from '@/app/actions/amiqus';
 import { getClioDriveSyncForAssessment } from '@/app/actions/clio-drive';
-import { getUserProfile } from '@/lib/supabase/server';
+import { getUserProfile, createClient } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
 import { ExportPdfButton } from './ExportPdfButton';
@@ -94,6 +94,24 @@ export default async function AssessmentViewPage({ params }: PageProps) {
     ? null  // Already have Amiqus on this assessment, no need for cross-assessment lookup
     : await getClientLatestAmiqusVerification(client.id);
 
+  // Look up names of who created and finalised the assessment
+  const supabase = await createClient();
+  const userIdsToLookup = [assessment.created_by, assessment.finalised_by].filter(Boolean) as string[];
+  let assessmentUserNames: Record<string, string> = {};
+  if (userIdsToLookup.length > 0) {
+    const { data: profiles } = await supabase
+      .from('user_profiles')
+      .select('user_id, full_name')
+      .in('user_id', userIdsToLookup);
+    if (profiles) {
+      assessmentUserNames = Object.fromEntries(
+        profiles.filter(p => p.full_name).map(p => [p.user_id, p.full_name!])
+      );
+    }
+  }
+  const createdByName = assessmentUserNames[assessment.created_by] || null;
+  const finalisedByName = assessment.finalised_by ? assessmentUserNames[assessment.finalised_by] || null : null;
+
   const profile = await getUserProfile();
   const canFinalise = profile ? canFinaliseAssessment(profile.role) : false;
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
@@ -134,6 +152,11 @@ export default async function AssessmentViewPage({ params }: PageProps) {
             <span className={isFinalised ? styles.statusFinalised : styles.statusDraft}>
               {isFinalised ? 'Finalised' : 'Draft'}
             </span>
+          </p>
+          <p className={styles.subtitleSecondary}>
+            {createdByName && <>Assessment by: <strong>{createdByName}</strong></>}
+            {createdByName && finalisedByName && <> &middot; </>}
+            {finalisedByName && <>Finalised by: <strong>{finalisedByName}</strong></>}
           </p>
         </div>
       </header>
