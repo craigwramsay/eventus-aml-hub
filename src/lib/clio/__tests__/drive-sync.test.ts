@@ -5,6 +5,7 @@ vi.mock('../client', () => ({
   ensureComplianceFolder: vi.fn(),
   uploadDocumentToClio: vi.fn(),
   getClioDocumentUrl: vi.fn(),
+  getClioBaseUrl: vi.fn(() => 'https://app.clio.com'),
   ClioError: class ClioError extends Error {
     statusCode?: number;
     constructor(message: string, statusCode?: number) {

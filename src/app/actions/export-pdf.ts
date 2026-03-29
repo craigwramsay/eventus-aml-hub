@@ -8,6 +8,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { generateAssessmentPdf } from '@/lib/clio/drive-pdf';
 import type { CddItemSummary, DeclarationData, RiskFactorSummary } from '@/lib/clio/drive-pdf';
+import { getClioBaseUrl } from '@/lib/clio/client';
 
 export async function exportAssessmentPdf(
   assessmentId: string
@@ -26,7 +27,7 @@ export async function exportAssessmentPdf(
 
     const { data: matter } = await supabase
       .from('matters')
-      .select('reference, client_id')
+      .select('reference, client_id, clio_matter_id')
       .eq('id', assessment.matter_id)
       .single();
 
@@ -204,6 +205,9 @@ export async function exportAssessmentPdf(
       formQuestions,
       createdByName,
       finalisedByName,
+      clioComplianceFolderUrl: matter.clio_matter_id
+        ? `${getClioBaseUrl()}/nc/#/matters/${matter.clio_matter_id}/documents`
+        : null,
     });
 
     return {

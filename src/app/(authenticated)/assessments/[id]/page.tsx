@@ -8,6 +8,7 @@ import { getClioDriveSyncForAssessment } from '@/app/actions/clio-drive';
 import { getUserProfile, createClient } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
+import { getClioBaseUrl } from '@/lib/clio/client';
 import { ExportPdfButton } from './ExportPdfButton';
 import { FinaliseButton } from './FinaliseButton';
 import { DeleteAssessmentButton } from './DeleteAssessmentButton';
@@ -89,6 +90,12 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const isFinalised = assessment.finalised_at !== null;
   const isCorporate = client.client_type !== 'individual';
 
+  // Build Clio compliance folder link (if matter is linked to Clio)
+  const clioMatterId = matter.clio_matter_id;
+  const clioComplianceFolderUrl = clioMatterId
+    ? `${getClioBaseUrl()}/nc/#/matters/${clioMatterId}/documents`
+    : null;
+
   // Look up client's latest Amiqus verification (for carry-forward identity link)
   const clientAmiqus = amiqusVerifications.some(v => v.status === 'complete')
     ? null  // Already have Amiqus on this assessment, no need for cross-assessment lookup
@@ -158,6 +165,16 @@ export default async function AssessmentViewPage({ params }: PageProps) {
             {createdByName && finalisedByName && <> &middot; </>}
             {finalisedByName && <>Finalised by: <strong>{finalisedByName}</strong></>}
           </p>
+          {isFinalised && clioComplianceFolderUrl && (
+            <a
+              href={clioComplianceFolderUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.clioFolderLink}
+            >
+              View Compliance Folder in Clio
+            </a>
+          )}
         </div>
       </header>
 

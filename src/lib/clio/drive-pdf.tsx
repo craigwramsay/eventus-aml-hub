@@ -64,6 +64,8 @@ interface AssessmentPdfParams {
   createdByName?: string | null;
   /** Name of user who finalised the assessment */
   finalisedByName?: string | null;
+  /** URL to the Clio compliance folder */
+  clioComplianceFolderUrl?: string | null;
 }
 
 // ── Field label lookup ─────────────────────────────────────────────────
@@ -444,6 +446,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
     formQuestions = [],
     createdByName,
     finalisedByName,
+    clioComplianceFolderUrl,
   } = params;
 
   const riskColour = RISK_COLOURS[riskLevel] || RISK_COLOURS.MEDIUM;
@@ -505,6 +508,14 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
             <View style={s.detailsRow}>
               <Text style={s.detailsLabel}>Finalised by</Text>
               <Text style={s.detailsValue}>{finalisedByName}</Text>
+            </View>
+          )}
+          {clioComplianceFolderUrl && (
+            <View style={[s.detailsRow, { marginTop: 4 }]}>
+              <Text style={s.detailsLabel}>Clio</Text>
+              <Link src={clioComplianceFolderUrl} style={s.hubLink}>
+                View Compliance Folder in Clio
+              </Link>
             </View>
           )}
         </View>

@@ -11,6 +11,7 @@ import {
   ensureComplianceFolder,
   uploadDocumentToClio,
   getClioDocumentUrl,
+  getClioBaseUrl,
   ClioError,
 } from './client';
 import { getClioAccessTokenForFirm } from './token';
@@ -335,6 +336,7 @@ export async function syncFinalisationPdfToClio(
     formQuestions,
     createdByName,
     finalisedByName,
+    clioComplianceFolderUrl: `${getClioBaseUrl()}/nc/#/matters/${clioMatterId}/documents`,
   });
 
   const fileName = `AML-Assessment-${assessment.reference}.pdf`;
