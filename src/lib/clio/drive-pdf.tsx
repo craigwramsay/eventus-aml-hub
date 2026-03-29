@@ -58,8 +58,8 @@ interface AssessmentPdfParams {
   riskFactors?: RiskFactorSummary[];
   /** Human-readable rationale strings */
   rationale?: string[];
-  /** Form questions and answers */
-  formQuestions?: Array<{ type: 'section' | 'question'; label: string; answer?: string; score?: number }>;
+  /** Form questions and answers with scoring and EDD indicators */
+  formQuestions?: Array<{ type: 'section' | 'question'; label: string; answer?: string; score?: number; eddTrigger?: boolean }>;
   /** Name of user who created the assessment */
   createdByName?: string | null;
   /** Name of user who finalised the assessment */
@@ -363,6 +363,9 @@ const s = StyleSheet.create({
   qaRowScored: {
     backgroundColor: '#fffbeb',
   },
+  qaRowEdd: {
+    backgroundColor: '#fef2f2',
+  },
   qaLabel: {
     flex: 4,
     fontSize: 8.5,
@@ -607,59 +610,62 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
           </View>
         )}
 
-        {/* ── SECTION 2: Assessment Detail (Rationale) ── */}
-        {rationale.length > 0 && (
-          <View>
-            <Text style={s.sectionTitle}>Assessment Detail</Text>
-            {rationale.map((r, i) => (
-              <Text key={i} style={s.rationaleItem}>• {r}</Text>
-            ))}
-          </View>
-        )}
-
-        {/* ── SECTION 3: Risk Assessment Scoring ── */}
-        {riskFactors.length > 0 && (
-          <View>
-            <Text style={s.sectionTitle}>Risk Assessment Scoring</Text>
-            <View style={s.scoringHeaderRow}>
-              <Text style={[s.scoringFactor, s.scoringHeaderText]}>Factor</Text>
-              <Text style={[s.scoringAnswer, s.scoringHeaderText]}>Answer</Text>
-              <Text style={[s.scoringScore, s.scoringHeaderText]}>Score</Text>
-            </View>
-            {riskFactors.map((rf, i) => (
-              <View key={i} style={s.scoringRow}>
-                <Text style={s.scoringFactor}>{rf.factorLabel}</Text>
-                <Text style={s.scoringAnswer}>
-                  {Array.isArray(rf.selectedAnswer) ? rf.selectedAnswer.join(', ') : rf.selectedAnswer}
-                </Text>
-                <Text style={s.scoringScore}>{rf.score > 0 ? `+${rf.score}` : String(rf.score)}</Text>
-              </View>
-            ))}
-            <View style={s.scoringRow}>
-              <Text style={[s.scoringFactor, { fontFamily: 'Helvetica-Bold' }]}>Total</Text>
-              <Text style={s.scoringAnswer} />
-              <Text style={s.scoringScore}>{score}</Text>
-            </View>
-          </View>
-        )}
-
-        {/* ── SECTION 4: Questions & Answers ── */}
+        {/* ── SECTION 2: Risk Assessment Scoring (questions + factors + EDD) ── */}
         {formQuestions.length > 0 && (
           <View style={s.qaSection} break>
-            <Text style={s.sectionTitle}>Risk Assessment Questions and Answers</Text>
+            <Text style={s.sectionTitle}>Risk Assessment Scoring</Text>
+
+            {/* Risk summary */}
+            <View style={{ flexDirection: 'row', marginBottom: 10, alignItems: 'center', gap: 8 }}>
+              <Text style={[s.riskBadge, { backgroundColor: riskColour.bg, color: riskColour.text, fontSize: 10, paddingVertical: 4, paddingHorizontal: 12 }]}>
+                {riskLevel} RISK
+              </Text>
+              <Text style={{ fontSize: 9, color: '#666' }}>Score: {score}</Text>
+            </View>
+
+            {/* All questions and answers */}
             {formQuestions.map((q, i) => {
               if (q.type === 'section') {
                 return <Text key={i} style={s.qaSectionHeader}>{q.label}</Text>;
               }
               const hasScore = q.score && q.score > 0;
+              const hasEdd = q.eddTrigger;
               return (
-                <View key={i} style={[s.qaRow, hasScore ? s.qaRowScored : {}]}>
+                <View key={i} style={[s.qaRow, hasScore ? s.qaRowScored : {}, hasEdd ? s.qaRowEdd : {}]}>
                   <Text style={s.qaLabel}>{q.label}</Text>
                   <Text style={s.qaAnswer}>{q.answer || '—'}</Text>
-                  <Text style={s.qaScore}>{hasScore ? `+${q.score}` : ''}</Text>
+                  <Text style={s.qaScore}>
+                    {hasScore ? `+${q.score}` : ''}{hasEdd ? (hasScore ? ' EDD' : 'EDD') : ''}
+                  </Text>
                 </View>
               );
             })}
+
+            {/* Risk factors summary */}
+            {riskFactors.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#333', marginBottom: 6 }}>Risk Factors Triggered</Text>
+                <View style={s.scoringHeaderRow}>
+                  <Text style={[s.scoringFactor, s.scoringHeaderText]}>Factor</Text>
+                  <Text style={[s.scoringAnswer, s.scoringHeaderText]}>Answer</Text>
+                  <Text style={[s.scoringScore, s.scoringHeaderText]}>Score</Text>
+                </View>
+                {riskFactors.filter(rf => rf.score > 0).map((rf, i) => (
+                  <View key={i} style={s.scoringRow}>
+                    <Text style={s.scoringFactor}>{rf.factorLabel}</Text>
+                    <Text style={s.scoringAnswer}>
+                      {Array.isArray(rf.selectedAnswer) ? rf.selectedAnswer.join(', ') : rf.selectedAnswer}
+                    </Text>
+                    <Text style={s.scoringScore}>+{rf.score}</Text>
+                  </View>
+                ))}
+                <View style={[s.scoringRow, { borderTopWidth: 2, borderTopColor: '#333' }]}>
+                  <Text style={[s.scoringFactor, { fontFamily: 'Helvetica-Bold' }]}>Total</Text>
+                  <Text style={s.scoringAnswer} />
+                  <Text style={s.scoringScore}>{score}</Text>
+                </View>
+              </View>
+            )}
           </View>
         )}
 

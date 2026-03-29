@@ -51,7 +51,7 @@ export async function exportAssessmentPdf(
 
     // Fetch evidence, Amiqus, and progress
     const [evidenceResult, amiqusResult, progressResult] = await Promise.all([
-      supabase.from('assessment_evidence').select('action_id, evidence_type, source, label, verified_at, data').eq('assessment_id', assessmentId),
+      supabase.from('assessment_evidence').select('action_id, evidence_type, source, label, verified_at, data, notes').eq('assessment_id', assessmentId),
       supabase.from('amiqus_verifications').select('action_id, amiqus_record_id, amiqus_client_id, status, verified_at').eq('assessment_id', assessmentId).eq('status', 'complete'),
       supabase.from('cdd_item_progress').select('action_id, completed_at').eq('assessment_id', assessmentId),
     ]);
@@ -61,7 +61,7 @@ export async function exportAssessmentPdf(
       if (p.completed_at) completedActions.add(p.action_id);
     }
 
-    type EvidenceRow = { evidence_type: string; source: string; label: string; verified_at: string | null; data: unknown };
+    type EvidenceRow = { evidence_type: string; source: string; label: string; verified_at: string | null; data: unknown; notes: string | null };
     const evidenceByAction = new Map<string, EvidenceRow[]>();
     const declarations: DeclarationData[] = [];
     for (const e of evidenceResult.data || []) {
@@ -108,9 +108,11 @@ export async function exportAssessmentPdf(
       } else if (actionEvidence.length > 0) {
         const summaries = actionEvidence.map((ev) => {
           const datePart = ev.verified_at
-            ? ` (verified ${new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})`
+            ? ` (verified ${new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })})`
             : '';
-          return `${ev.label || ev.source || ev.evidence_type}${datePart}`;
+          const label = ev.label || ev.source || ev.evidence_type;
+          const notesPart = ev.notes ? `\n${ev.notes}` : '';
+          return `${label}${datePart}${notesPart}`;
         });
         evidenceSummary = summaries.join('; ');
       } else if (completed) {
@@ -125,21 +127,50 @@ export async function exportAssessmentPdf(
       clientType?: string;
       formAnswers?: Record<string, string | string[]>;
     };
-    let formQuestions: Array<{ type: 'section' | 'question'; label: string; answer?: string; score?: number }> = [];
+    let formQuestions: Array<{ type: 'section' | 'question'; label: string; answer?: string; score?: number; eddTrigger?: boolean }> = [];
     if (inputSnapshot?.formAnswers) {
       const isIndividual = inputSnapshot.clientType === 'individual';
       const formConfig = isIndividual
         ? (await import('@/config/eventus/forms/CMLRA_individual.json')).default
         : (await import('@/config/eventus/forms/CMLRA_corporate.json')).default;
+      const scoringConfig = (await import('@/config/eventus/risk_scoring_v3_8.json')).default;
 
       const riskFactorByField = new Map<string, { score: number }>();
       for (const rf of (outputSnapshot.riskFactors || []) as unknown as Array<{ formFieldId: string; score: number }>) {
         if (rf.formFieldId) riskFactorByField.set(rf.formFieldId, rf);
       }
 
+      const clientTypeKey = isIndividual ? 'individual' : 'corporate';
+      const eddTriggerFields = new Set<string>();
+      const eddTriggersArr = ((outputSnapshot as unknown as { eddTriggers?: Array<{ triggerId?: string }> }).eddTriggers || []);
+      const firedTriggerIds = new Set<string>(eddTriggersArr.map(t => t.triggerId || '').filter(Boolean));
+      for (const trigger of (scoringConfig.eddTriggers || [])) {
+        const fieldId = (trigger.fieldMapping as Record<string, string>)?.[clientTypeKey];
+        if (fieldId && firedTriggerIds.has(trigger.id)) {
+          eddTriggerFields.add(fieldId);
+        }
+      }
+
       const fieldMap = new Map<string, Record<string, unknown>>();
       for (const f of formConfig.fields) {
         fieldMap.set(f.id, f);
+      }
+
+      function isFieldVisible(field: Record<string, unknown>): boolean {
+        const showIf = field.show_if as Record<string, string | string[]> | undefined;
+        if (!showIf) return true;
+        for (const [depId, requiredValue] of Object.entries(showIf)) {
+          const actual = inputSnapshot.formAnswers?.[depId];
+          if (!actual) return false;
+          if (Array.isArray(requiredValue)) {
+            const actualStr = Array.isArray(actual) ? actual[0] : actual;
+            if (!requiredValue.includes(actualStr)) return false;
+          } else {
+            const actualStr = Array.isArray(actual) ? actual[0] : actual;
+            if (actualStr !== requiredValue) return false;
+          }
+        }
+        return true;
       }
 
       function walkFields(fieldIds: string[]) {
@@ -150,6 +181,7 @@ export async function exportAssessmentPdf(
             if (field.label) formQuestions.push({ type: 'section', label: field.label as string });
             if (field.fields) walkFields(field.fields as string[]);
           } else if (field.type !== 'rich_text') {
+            if (!isFieldVisible(field)) continue;
             const label = typeof field.label === 'object' && field.label !== null
               ? (field.label as { value: string }).value
               : field.label as string;
@@ -161,6 +193,7 @@ export async function exportAssessmentPdf(
               label,
               answer: answer ? (Array.isArray(answer) ? answer.join(', ') : answer) : undefined,
               score: rf?.score,
+              eddTrigger: eddTriggerFields.has(fid),
             });
           }
         }
