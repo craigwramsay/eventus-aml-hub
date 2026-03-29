@@ -200,21 +200,21 @@ const s = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   cddColRequirement: {
-    flex: 4,
+    flex: 3,
     padding: 6,
     borderRightWidth: 1,
     borderRightColor: '#e2e8f0',
   },
   cddColEvidence: {
-    flex: 4,
+    flex: 5,
     padding: 6,
     borderRightWidth: 1,
     borderRightColor: '#e2e8f0',
     backgroundColor: '#f8fafc',
   },
   cddColStatus: {
-    width: 80,
-    padding: 6,
+    width: 70,
+    padding: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -249,7 +249,8 @@ const s = StyleSheet.create({
     paddingVertical: 1,
     paddingHorizontal: 4,
     borderRadius: 2,
-    marginRight: 4,
+    marginBottom: 2,
+    alignSelf: 'flex-start',
   },
   cddEvidenceTypeAmiqus: {
     color: '#166534',
@@ -474,15 +475,22 @@ const s = StyleSheet.create({
   qaRowEdd: {
     backgroundColor: '#fef2f2',
   },
+  qaLabelWrap: {
+    flex: 5,
+    paddingRight: 6,
+  },
   qaLabel: {
-    flex: 4,
     fontSize: 8.5,
     color: '#64748b',
   },
-  qaAnswer: {
+  qaAnswerWrap: {
     flex: 4,
+    paddingRight: 4,
+  },
+  qaAnswer: {
     fontSize: 8.5,
     color: '#333',
+    fontFamily: 'Helvetica-Bold',
   },
   qaScore: {
     width: 30,
@@ -524,6 +532,10 @@ function formatDate(isoDate: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function capitaliseFirst(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function formatShortDate(isoDate: string): string {
@@ -639,7 +651,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
           </Text>
 
           {Array.from(itemsByCategory.entries()).map(([category, items]) => (
-            <View key={category}>
+            <View key={category} wrap={false}>
               <Text style={s.categoryTitle}>
                 {CATEGORY_LABELS[category] || category}
               </Text>
@@ -647,30 +659,30 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
               <View style={s.cddHeaderRow}>
                 <View style={s.cddColRequirement}><Text style={s.cddHeaderText}>Requirement</Text></View>
                 <View style={s.cddColEvidence}><Text style={s.cddHeaderText}>Evidence / Response</Text></View>
-                <View style={{ width: 80, padding: 4 }}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
+                <View style={{ width: 70, padding: 4 }}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
               </View>
               {items.map((item, idx) => (
-                <View key={`${category}-${idx}`} style={s.cddTableRow} wrap={false}>
+                <View key={`${category}-${idx}`} style={s.cddTableRow}>
                   {/* Column 1: Requirement */}
                   <View style={s.cddColRequirement}>
-                    <Text style={s.cddDescriptionText}>{item.description}</Text>
+                    <Text style={s.cddDescriptionText}>{capitaliseFirst(item.description)}</Text>
                   </View>
                   {/* Column 2: Evidence */}
                   <View style={s.cddColEvidence}>
                     {item.evidenceItems.length > 0 ? (
                       item.evidenceItems.map((ev, evIdx) => (
                         <View key={evIdx} style={{ marginBottom: evIdx < item.evidenceItems.length - 1 ? 4 : 0 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          {ev.type !== 'confirmed' && (
                             <Text style={[
                               s.cddEvidenceType,
                               ev.type === 'amiqus' ? s.cddEvidenceTypeAmiqus : {},
                               ev.type === 'ch' ? s.cddEvidenceTypeCH : {},
                               ev.type === 'declaration' ? s.cddEvidenceTypeDecl : {},
                             ]}>
-                              {ev.type === 'amiqus' ? 'Amiqus' : ev.type === 'ch' ? 'CH' : ev.type === 'declaration' ? 'Declaration' : ev.type === 'file' ? 'File' : ev.type === 'confirmed' ? '' : 'Note'}
+                              {ev.type === 'amiqus' ? 'Amiqus' : ev.type === 'ch' ? 'CH' : ev.type === 'declaration' ? 'Declaration' : ev.type === 'file' ? 'File' : 'Note'}
                             </Text>
-                            <Text style={s.cddEvidenceLabel}>{ev.label}</Text>
-                          </View>
+                          )}
+                          <Text style={s.cddEvidenceLabel}>{ev.label}</Text>
                           {ev.date && <Text style={s.cddEvidenceDate}>{ev.date}</Text>}
                           {ev.notes && <Text style={s.cddEvidenceNotes}>{ev.notes}</Text>}
                           {ev.url && <Link src={ev.url} style={s.amiqusLink}>View in Amiqus</Link>}
@@ -755,8 +767,8 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
               const hasEdd = q.eddTrigger;
               return (
                 <View key={i} style={[s.qaRow, hasScore ? s.qaRowScored : {}, hasEdd ? s.qaRowEdd : {}]}>
-                  <Text style={s.qaLabel}>{q.label}</Text>
-                  <Text style={s.qaAnswer}>{q.answer || '—'}</Text>
+                  <View style={s.qaLabelWrap}><Text style={s.qaLabel}>{q.label}</Text></View>
+                  <View style={s.qaAnswerWrap}><Text style={s.qaAnswer}>{q.answer || '—'}</Text></View>
                   <Text style={s.qaScore}>
                     {hasScore ? `+${q.score}` : ''}{hasEdd ? (hasScore ? ' EDD' : 'EDD') : ''}
                   </Text>
