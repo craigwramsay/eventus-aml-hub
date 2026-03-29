@@ -44,7 +44,7 @@ export default async function DashboardPage() {
   }
 
   const role = profile.role as UserRole;
-  const userName = profile.full_name || profile.email || 'User';
+  const firstName = profile.full_name ? profile.full_name.split(' ')[0] : (profile.email || 'User');
   const userId = user!.id;
   const firmId = profile.firm_id;
 
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
     const staleWarnings = await getAssessmentStaleWarnings(firmId, userId);
     return (
       <SolicitorDashboard
-        userName={userName}
+        userName={firstName}
         data={data}
         activity={activity}
         assessmentStaleWarnings={staleWarnings}
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
 
     return (
       <MlroDashboard
-        userName={userName}
+        userName={firstName}
         data={data}
         activity={activity}
         approvals={approvals}
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
   // Admin layout
   return (
     <AdminDashboard
-      userName={userName}
+      userName={firstName}
       data={data}
       activity={activity}
     />
