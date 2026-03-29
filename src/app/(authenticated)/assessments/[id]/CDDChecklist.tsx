@@ -64,7 +64,7 @@ interface CDDChecklistProps {
   priorSowData?: Record<string, string | string[]> | null;
   syncRecords?: ClioDriveSync[];
   userNames?: Record<string, string>;
-  clientAmiqus?: { amiqusRecordId: number; verifiedAt: string | null } | null;
+  clientAmiqus?: { amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null;
 }
 
 export function CDDChecklist({

@@ -44,7 +44,7 @@ interface EvidencePanelProps {
   /** Amiqus verification for this action (merged into evidence list) */
   verification?: AmiqusVerification;
   /** Client's latest Amiqus verification from a prior assessment (carry-forward) */
-  clientAmiqus?: { amiqusRecordId: number; verifiedAt: string | null } | null;
+  clientAmiqus?: { amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null;
 }
 
 export function EvidencePanel({
@@ -81,8 +81,8 @@ export function EvidencePanel({
       {/* Amiqus verification — shown as first evidence line */}
       {hasAmiqus && (() => {
         if (verification?.status === 'complete') {
-          const amiqusUrl = verification.amiqus_record_id
-            ? `https://id.amiqus.co/cases/${verification.amiqus_record_id}`
+          const amiqusUrl = verification.amiqus_client_id
+            ? `https://id.amiqus.co/clients/${verification.amiqus_client_id}`
             : 'https://id.amiqus.co/';
           return (
             <div>
@@ -109,8 +109,8 @@ export function EvidencePanel({
           );
         }
         if (verification?.status === 'pending' || verification?.status === 'in_progress') {
-          const amiqusUrl = verification.amiqus_record_id
-            ? `https://id.amiqus.co/cases/${verification.amiqus_record_id}`
+          const amiqusUrl = verification.amiqus_client_id
+            ? `https://id.amiqus.co/clients/${verification.amiqus_client_id}`
             : 'https://id.amiqus.co/';
           return (
             <div className={styles.evidenceLine}>
@@ -138,7 +138,9 @@ export function EvidencePanel({
         }
         // Carry-forward from prior assessment
         if (!verification && clientAmiqus && isCompleted) {
-          const amiqusUrl = `https://id.amiqus.co/cases/${clientAmiqus.amiqusRecordId}`;
+          const amiqusUrl = clientAmiqus.amiqusClientId
+            ? `https://id.amiqus.co/clients/${clientAmiqus.amiqusClientId}`
+            : `https://id.amiqus.co/`;
           return (
             <div>
               <div className={styles.evidenceLine}>

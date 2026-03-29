@@ -226,7 +226,7 @@ export async function getAmiqusVerifications(
  */
 export async function getClientLatestAmiqusVerification(
   clientId: string
-): Promise<{ amiqusRecordId: number; verifiedAt: string | null } | null> {
+): Promise<{ amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null> {
   try {
     const { supabase, error } = await getUserAndProfile();
     if (error) return null;
@@ -252,7 +252,7 @@ export async function getClientLatestAmiqusVerification(
 
     const { data: verification } = await supabase
       .from('amiqus_verifications')
-      .select('amiqus_record_id, verified_at')
+      .select('amiqus_record_id, amiqus_client_id, verified_at')
       .in('assessment_id', assessmentIds)
       .eq('status', 'complete')
       .not('amiqus_record_id', 'is', null)
@@ -264,6 +264,7 @@ export async function getClientLatestAmiqusVerification(
 
     return {
       amiqusRecordId: verification.amiqus_record_id,
+      amiqusClientId: verification.amiqus_client_id ?? null,
       verifiedAt: verification.verified_at,
     };
   } catch {

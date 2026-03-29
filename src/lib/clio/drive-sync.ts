@@ -161,7 +161,7 @@ export async function syncFinalisationPdfToClio(
       .eq('assessment_id', assessmentId),
     supabase
       .from('amiqus_verifications')
-      .select('action_id, amiqus_record_id, status, verified_at')
+      .select('action_id, amiqus_record_id, amiqus_client_id, status, verified_at')
       .eq('assessment_id', assessmentId)
       .eq('status', 'complete'),
     supabase
@@ -194,7 +194,7 @@ export async function syncFinalisationPdfToClio(
     }
   }
 
-  const amiqusByAction = new Map<string, { amiqus_record_id: number | null; verified_at: string | null }>();
+  const amiqusByAction = new Map<string, { amiqus_record_id: number | null; amiqus_client_id: number | null; verified_at: string | null }>();
   for (const v of amiqusResult.data || []) {
     if (v.action_id) amiqusByAction.set(v.action_id, v);
   }
@@ -214,7 +214,9 @@ export async function syncFinalisationPdfToClio(
         ? new Date(amiqus.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
         : '';
       evidenceSummary = `Verified via Amiqus #${amiqus.amiqus_record_id}${dateStr ? ` on ${dateStr}` : ''}`;
-      amiqusUrl = `https://id.amiqus.co/cases/${amiqus.amiqus_record_id}`;
+      amiqusUrl = amiqus.amiqus_client_id
+        ? `https://id.amiqus.co/clients/${amiqus.amiqus_client_id}`
+        : `https://id.amiqus.co/`;
     } else if (actionEvidence.length > 0) {
       const summaries = actionEvidence.map((ev) => {
         const datePart = ev.verified_at

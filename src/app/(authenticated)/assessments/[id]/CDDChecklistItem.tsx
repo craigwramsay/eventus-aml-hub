@@ -153,7 +153,7 @@ interface CDDChecklistItemProps {
   riskLevel?: string;
   matterDescription?: string;
   verification?: AmiqusVerification;
-  clientAmiqus?: { amiqusRecordId: number; verifiedAt: string | null } | null;
+  clientAmiqus?: { amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null;
   priorSowData?: Record<string, string | string[]> | null;
   syncRecords: ClioDriveSync[];
   userNames: Record<string, string>;
