@@ -401,6 +401,11 @@ export function CDDChecklist({
                   {completed}/{catActions.length} complete
                 </span>
               </div>
+              <div className={styles.columnHeaders}>
+                <span>Requirement</span>
+                <span>Evidence / Response</span>
+                <span>Status</span>
+              </div>
               {catActions.map((action) => {
                 num++;
                 return renderItem(action, num);
@@ -429,6 +434,11 @@ export function CDDChecklist({
             <span className={styles.categoryProgress}>
               {countCompleted(eddActions)}/{eddActions.length} complete
             </span>
+          </div>
+          <div className={styles.columnHeaders}>
+            <span>Requirement</span>
+            <span>Evidence / Response</span>
+            <span>Status</span>
           </div>
           {eddActions.map((action) => {
             num++;

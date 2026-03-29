@@ -213,18 +213,27 @@ export async function syncFinalisationPdfToClio(
       const dateStr = amiqus.verified_at
         ? new Date(amiqus.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
         : '';
-      evidenceSummary = `Verified via Amiqus #${amiqus.amiqus_record_id}${dateStr ? ` on ${dateStr}` : ''}`;
+      evidenceSummary = `Identity verified electronically${dateStr ? ` on ${dateStr}` : ''}`;
       amiqusUrl = amiqus.amiqus_client_id
         ? `https://id.amiqus.co/clients/${amiqus.amiqus_client_id}`
         : `https://id.amiqus.co/`;
+      // Check for carry-forward
+      const hasCarryForward = actionEvidence.some(ev => ev.label === 'Prior identity verification confirmed still valid');
+      if (hasCarryForward) {
+        evidenceSummary += ' — existing verification confirmed still valid';
+      }
     } else if (actionEvidence.length > 0) {
       const summaries = actionEvidence.map((ev) => {
         const datePart = ev.verified_at
-          ? ` (${new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})`
+          ? ` (verified ${new Date(ev.verified_at + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})`
           : '';
-        return `${ev.source || ev.evidence_type}${datePart}`;
+        // Use label for meaningful description, fall back to evidence type
+        return `${ev.label || ev.source || ev.evidence_type}${datePart}`;
       });
       evidenceSummary = summaries.join('; ');
+    } else if (completed) {
+      // Completed with no evidence — check if it's a confirmation/approval action
+      evidenceSummary = 'Confirmed by user';
     }
 
     return {

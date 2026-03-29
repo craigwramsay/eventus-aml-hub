@@ -250,8 +250,8 @@ export function CDDChecklistItem({
   const hasEvidence = itemEvidence.length > 0;
   const hasAmiqusInfo = showAmiqus && (verification || (clientAmiqus && effectiveCompleted));
 
-  // Confirmation-only items (tick = the evidence) — don't show "No evidence recorded"
-  const isTickOnly = showConfirm || showDocumentConfirm ||
+  // Items where the action itself is the evidence (no separate evidence record needed)
+  const isTickOnly = showConfirm || showDocumentConfirm || showApproval ||
     action.actionId === 'ongoing_monitoring' || action.actionId === 'enhanced_monitoring';
 
   // Build completion attribution text
@@ -259,7 +259,9 @@ export function CDDChecklistItem({
 
   // Empty evidence column message
   const emptyEvidenceText = isTickOnly
-    ? (effectiveCompleted ? 'Confirmed by user' : 'Awaiting confirmation')
+    ? (showApproval && approvalCompleted
+      ? `Approved by ${approvalStatus?.decision_by_name || 'MLRO'}${approvalStatus?.decision_at ? ` on ${formatDateShort(approvalStatus.decision_at)}` : ''}`
+      : effectiveCompleted ? 'Confirmed by user' : 'Awaiting confirmation')
     : (effectiveCompleted ? 'No evidence recorded' : 'No evidence yet');
 
   return (
