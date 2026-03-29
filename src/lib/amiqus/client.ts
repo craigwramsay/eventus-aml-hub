@@ -129,19 +129,19 @@ export async function getAmiqusRecordOrCase(
   id: number,
   apiKey: string
 ): Promise<{ type: 'record' | 'case'; data: { id: number; status: string; client_id: number; completed_at: string | null } }> {
-  // Try records first
+  // Try cases first (preferred — case IDs match the Amiqus dashboard URL format)
   try {
-    const record = await getAmiqusRecord(id, apiKey);
-    return { type: 'record', data: record };
+    const caseData = await getAmiqusCase(id, apiKey);
+    return { type: 'case', data: caseData };
   } catch (err) {
     if (!(err instanceof AmiqusError) || err.statusCode !== 404) {
       throw err; // Re-throw non-404 errors
     }
   }
 
-  // Fall back to cases
-  const caseData = await getAmiqusCase(id, apiKey);
-  return { type: 'case', data: caseData };
+  // Fall back to records
+  const record = await getAmiqusRecord(id, apiKey);
+  return { type: 'record', data: record };
 }
 
 /**

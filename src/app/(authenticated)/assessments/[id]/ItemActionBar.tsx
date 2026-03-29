@@ -322,7 +322,7 @@ export function ItemActionBar({
               className={styles.formInput}
             />
             <p className={styles.formHint}>
-              The number from your Amiqus URL (e.g. id.amiqus.co/cases/<strong>45306</strong>). Works with both case and record IDs.
+              The case number from your Amiqus URL (e.g. id.amiqus.co/cases/<strong>39229</strong>).
             </p>
           </div>
           <button type="submit" disabled={isPending} className={styles.formSubmit}>
