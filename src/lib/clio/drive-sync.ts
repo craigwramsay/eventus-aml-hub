@@ -148,7 +148,7 @@ export async function syncFinalisationPdfToClio(
 
   // Fetch evidence, Amiqus verifications, and completion progress for PDF content
   const outputSnapshot = assessment.output_snapshot as {
-    mandatoryActions?: Array<{ actionId: string; description: string; category: string }>;
+    mandatoryActions?: Array<{ actionId: string; description: string; displayText?: string; category: string }>;
     eddTriggers?: Array<{ description: string }>;
     warnings?: Array<{ message: string }>;
     riskFactors?: Array<{ factorLabel: string; selectedAnswer: string | string[]; score: number; rationale: string }>;
@@ -267,7 +267,7 @@ export async function syncFinalisationPdfToClio(
     const completedBy = progress?.completed_by ? progressUserNames[progress.completed_by] || null : null;
 
     return {
-      description: action.description,
+      description: action.displayText || action.description,
       category: action.category,
       completed,
       completedDate,

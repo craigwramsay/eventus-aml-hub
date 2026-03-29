@@ -42,7 +42,7 @@ export async function exportAssessmentPdf(
     if (!client) return { success: false, error: 'Client not found' };
 
     const outputSnapshot = assessment.output_snapshot as {
-      mandatoryActions?: Array<{ actionId: string; description: string; category: string }>;
+      mandatoryActions?: Array<{ actionId: string; description: string; displayText?: string; category: string }>;
       eddTriggers?: Array<{ description: string }>;
       warnings?: Array<{ message: string }>;
       riskFactors?: Array<{ factorId: string; factorLabel: string; formFieldId: string; selectedAnswer: string | string[]; score: number; rationale: string }>;
@@ -145,7 +145,7 @@ export async function exportAssessmentPdf(
       const completedBy = progress?.completed_by ? progressUserNames[progress.completed_by] || null : null;
 
       return {
-        description: action.description, category: action.category, completed,
+        description: action.displayText || action.description, category: action.category, completed,
         completedDate, completedBy, evidenceItems,
         evidenceSummary: evidenceItems.length === 0 && completed ? 'Confirmed by user' : null,
         amiqusUrl,
