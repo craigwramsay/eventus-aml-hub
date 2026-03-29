@@ -263,23 +263,22 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         </section>
       )}
 
-      {/* 6. Assessment Detail (collapsible) */}
+      {/* 6. View Risk Assessment Scoring (collapsible) */}
       <AssessmentDetail
         riskFactors={outputSnapshot.riskFactors}
         rationale={outputSnapshot.rationale}
         assessmentId={assessment.id}
         timestamp={outputSnapshot.timestamp}
+        formAnswers={(inputSnapshot.formAnswers || {}) as Record<string, string | string[]>}
+        clientType={inputSnapshot.clientType || (isCorporate ? 'corporate' : 'individual')}
+        riskLevel={assessment.risk_level}
+        score={assessment.score}
+        eddTriggers={outputSnapshot.eddTriggers || []}
       />
 
       {/* 8. Action buttons */}
       <div className={styles.actionButtons}>
         <ExportPdfButton assessmentId={assessment.id} />
-        <Link
-          href={`/assessments/${assessment.id}/determination`}
-          className={styles.determinationButton}
-        >
-          View Risk Assessment
-        </Link>
         {!isFinalised && canFinalise && (
           <FinaliseButton assessmentId={assessment.id} cddLongstopBreached={cddLongstopBreached} />
         )}
