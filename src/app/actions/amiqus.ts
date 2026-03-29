@@ -11,6 +11,8 @@ import { createClient } from '@/lib/supabase/server';
 import type { AmiqusVerification } from '@/lib/supabase/types';
 import type { UserRole } from '@/lib/auth/roles';
 import { canCreateAssessment } from '@/lib/auth/roles';
+import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
+import { toggleItemCompletion } from './progress';
 import {
   getAmiqusApiKey,
   createAmiqusClient,
@@ -269,12 +271,25 @@ export async function getClientLatestAmiqusVerification(
   }
 }
 
+/** Check if an action is identity verification */
+function isIdentityActionId(actionId: string): boolean {
+  return (
+    actionId.includes('identity_verification') ||
+    actionId.includes('verify_identity') ||
+    actionId.includes('identify_and_verify')
+  );
+}
+
 /**
  * Link an existing Amiqus record to an assessment action.
  *
  * Fetches the record from Amiqus to validate it exists and is complete,
  * then creates the same evidence trail as a webhook-completed verification:
  * amiqus_verifications row, assessment_evidence row, and client CDD date update.
+ *
+ * For identity actions: also validates the verification date against the firm's
+ * risk-based CDD thresholds, creates a carry-forward confirmation record, and
+ * auto-completes the checklist item.
  */
 export async function linkExistingAmiqusRecord(
   assessmentId: string,
@@ -352,6 +367,39 @@ export async function linkExistingAmiqusRecord(
       ? amiqusData.completed_at.split('T')[0]
       : new Date().toISOString().split('T')[0];
 
+    // For identity actions: validate the verification date against firm's CDD thresholds
+    const isIdentityAction = isIdentityActionId(actionId);
+    if (isIdentityAction) {
+      const cddConfig = getCddStalenessConfig();
+      const longstopMonths = cddConfig.universalLongstopMonths ?? 24;
+      const verifiedDate = new Date(verifiedAt);
+      const now = new Date();
+
+      // Check universal longstop
+      const longstopDate = new Date(verifiedDate);
+      longstopDate.setMonth(longstopDate.getMonth() + longstopMonths);
+      if (now >= longstopDate) {
+        return { success: false, error: 'This verification is beyond the universal longstop period — a new verification is required' };
+      }
+
+      // Get the assessment's risk level for threshold check
+      const { data: assessmentWithRisk } = await supabase
+        .from('assessments')
+        .select('risk_level')
+        .eq('id', assessmentId)
+        .single();
+
+      const riskLevel = (assessmentWithRisk?.risk_level || 'MEDIUM').toUpperCase();
+      const threshold = cddConfig.thresholds[riskLevel];
+      if (threshold) {
+        const thresholdDate = new Date(verifiedDate);
+        thresholdDate.setMonth(thresholdDate.getMonth() + threshold.months);
+        if (now >= thresholdDate) {
+          return { success: false, error: `This verification exceeds the ${threshold.label} review period for ${riskLevel} risk — a new verification is required` };
+        }
+      }
+    }
+
     // Insert amiqus_verifications row
     const { data: verification, error: insertErr } = await supabase
       .from('amiqus_verifications')
@@ -390,6 +438,36 @@ export async function linkExistingAmiqusRecord(
     if (evidenceErr) {
       console.error('Failed to create evidence for linked Amiqus record:', evidenceErr);
       // Non-fatal — verification row already exists
+    }
+
+    // For identity actions: create carry-forward confirmation record and auto-complete
+    if (isIdentityAction) {
+      const cddConfig = getCddStalenessConfig();
+      const verifiedDate = new Date(verifiedAt);
+      const { data: assessmentWithRisk } = await supabase
+        .from('assessments')
+        .select('risk_level')
+        .eq('id', assessmentId)
+        .single();
+      const riskLevel = (assessmentWithRisk?.risk_level || 'MEDIUM').toUpperCase();
+      const threshold = cddConfig.thresholds[riskLevel];
+      const thresholdLabel = threshold?.label ?? `${cddConfig.universalLongstopMonths ?? 24} months`;
+
+      await supabase
+        .from('assessment_evidence')
+        .insert({
+          assessment_id: assessmentId,
+          action_id: actionId,
+          evidence_type: 'manual_record',
+          label: 'Prior identity verification confirmed still valid',
+          source: 'Manual',
+          notes: `Identity last verified on ${verifiedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}. Confirmed still within ${thresholdLabel} review period for ${riskLevel} risk.`,
+          verified_at: verifiedAt,
+          created_by: user.id,
+        });
+
+      // Auto-complete the checklist item
+      await toggleItemCompletion(assessmentId, actionId, true);
     }
 
     // Update clients.last_cdd_verified_at (assessment -> matter -> client)
