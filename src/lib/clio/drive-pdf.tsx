@@ -193,23 +193,23 @@ const s = StyleSheet.create({
     marginTop: 10,
     marginBottom: 6,
   },
-  // CDD 3-column table
+  // CDD 3-column table — unified 0.5pt borders throughout
   cddTableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
   },
   cddColRequirement: {
     flex: 3,
     padding: 6,
-    borderRightWidth: 1,
-    borderRightColor: '#e2e8f0',
+    borderRightWidth: 0.5,
+    borderRightColor: '#cbd5e1',
   },
   cddColEvidence: {
     flex: 5,
     padding: 6,
-    borderRightWidth: 1,
-    borderRightColor: '#e2e8f0',
+    borderRightWidth: 0.5,
+    borderRightColor: '#cbd5e1',
     backgroundColor: '#f8fafc',
   },
   cddColStatus: {
@@ -226,8 +226,8 @@ const s = StyleSheet.create({
   },
   cddHeaderRow: {
     flexDirection: 'row',
-    borderBottomWidth: 2,
-    borderBottomColor: '#333',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
     backgroundColor: '#f1f5f9',
   },
   cddHeaderText: {
@@ -409,15 +409,16 @@ const s = StyleSheet.create({
   // Risk scoring table
   scoringRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
     paddingVertical: 4,
   },
   scoringHeaderRow: {
     flexDirection: 'row',
-    borderBottomWidth: 2,
-    borderBottomColor: '#333',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
     paddingVertical: 4,
+    backgroundColor: '#f1f5f9',
   },
   scoringFactor: {
     flex: 3,
@@ -464,8 +465,8 @@ const s = StyleSheet.create({
   },
   qaRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
     paddingVertical: 3,
     paddingHorizontal: 8,
   },
@@ -655,6 +656,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
               <Text style={s.categoryTitle}>
                 {CATEGORY_LABELS[category] || category}
               </Text>
+              <View style={{ borderWidth: 0.5, borderColor: '#cbd5e1', borderRadius: 3 }}>
               {/* Column headers */}
               <View style={s.cddHeaderRow}>
                 <View style={s.cddColRequirement}><Text style={s.cddHeaderText}>Requirement</Text></View>
@@ -704,6 +706,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                   </View>
                 </View>
               ))}
+              </View>
             </View>
           ))}
         </View>
@@ -794,7 +797,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                     <Text style={s.scoringScore}>+{rf.score}</Text>
                   </View>
                 ))}
-                <View style={[s.scoringRow, { borderTopWidth: 2, borderTopColor: '#333' }]}>
+                <View style={[s.scoringRow, { borderTopWidth: 0.5, borderTopColor: '#cbd5e1', backgroundColor: '#f1f5f9' }]}>
                   <Text style={[s.scoringFactor, { fontFamily: 'Helvetica-Bold' }]}>Total</Text>
                   <Text style={s.scoringAnswer} />
                   <Text style={s.scoringScore}>{score}</Text>
