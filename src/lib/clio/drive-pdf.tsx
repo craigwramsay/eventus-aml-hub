@@ -230,8 +230,6 @@ const s = StyleSheet.create({
   },
   cddHeaderRow: {
     flexDirection: 'row',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#cbd5e1',
     backgroundColor: '#f1f5f9',
   },
   cddHeaderText: {
@@ -663,9 +661,9 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
               <View style={{ borderWidth: 0.5, borderColor: '#cbd5e1', borderRadius: 3 }}>
               {/* Column headers */}
               <View style={s.cddHeaderRow}>
-                <View style={s.cddColRequirement}><Text style={s.cddHeaderText}>Requirement</Text></View>
-                <View style={s.cddColEvidence}><Text style={s.cddHeaderText}>Evidence / Response</Text></View>
-                <View style={{ width: 70, padding: 4 }}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
+                <View style={[s.cddColRequirement, { backgroundColor: '#f1f5f9' }]}><Text style={s.cddHeaderText}>Requirement</Text></View>
+                <View style={[s.cddColEvidence, { backgroundColor: '#f1f5f9' }]}><Text style={s.cddHeaderText}>Evidence / Response</Text></View>
+                <View style={[s.cddColStatus, { backgroundColor: '#f1f5f9' }]}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
               </View>
               {items.map((item, idx) => (
                 <View key={`${category}-${idx}`} style={s.cddTableRow}>
