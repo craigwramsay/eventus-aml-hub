@@ -250,6 +250,30 @@ export function EvidencePanel({
           );
         }
 
+        // Manual identity verification (photo ID + proof of address)
+        if (ev.label?.startsWith('Identity verified:')) {
+          const idvData = ev.data as { photoIdType?: string; proofOfAddressType?: string; proofOfAddressDate?: string; verificationDate?: string } | null;
+          return (
+            <div key={ev.id}>
+              <div className={styles.evidenceLine}>
+                <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>ID&V</span>
+                <span className={styles.evidenceLineLabel}>
+                  Identity verified manually
+                </span>
+                {ev.verified_at && (
+                  <span className={styles.evidenceLineDate}>
+                    Verified {formatDateShort(ev.verified_at + 'T00:00:00')}
+                  </span>
+                )}
+              </div>
+              <div className={styles.evidenceLineNotes}>
+                {idvData?.photoIdType} + {idvData?.proofOfAddressType}
+                {idvData?.proofOfAddressDate && ` (dated ${formatDateShort(idvData.proofOfAddressDate + 'T00:00:00')})`}
+              </div>
+            </div>
+          );
+        }
+
         // Carry-forward confirmation (when no Amiqus lookup available) — clean single line
         if (ev.label === 'Prior identity verification confirmed still valid') {
           return (

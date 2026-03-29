@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import type { MandatoryAction, EDDTriggerResult } from '@/lib/rules-engine/types';
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
 import { toggleItemCompletion } from '@/app/actions/progress';
-import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved } from '@/app/actions/evidence';
+import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved, recordManualIdVerification } from '@/app/actions/evidence';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
 import { initiateAmiqusVerification, linkExistingAmiqusRecord } from '@/app/actions/amiqus';
 import { CDDChecklistItem } from './CDDChecklistItem';
@@ -200,6 +200,25 @@ export function CDDChecklist({
     });
   }, [assessmentId, router, startTransition]);
 
+  const handleManualIdv = useCallback((actionId: string, data: {
+    photoIdType: string;
+    proofOfAddressType: string;
+    proofOfAddressDate: string;
+    verificationDate: string;
+    notes?: string;
+  }) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await recordManualIdVerification(assessmentId, actionId, data);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
+        router.refresh();
+      }
+    });
+  }, [assessmentId, router, startTransition]);
+
   const handleConfirmStillValid = useCallback((actionId: string) => {
     setError(null);
     setConfirmingAction(actionId);
@@ -344,6 +363,7 @@ export function CDDChecklist({
         onCHLookup={handleCHLookup}
         onFileUpload={handleFileUpload}
         onManualRecord={handleManualRecord}
+        onManualIdv={handleManualIdv}
         onConfirmStillValid={handleConfirmStillValid}
         onDocumentConfirm={handleDocumentConfirm}
         onInitiateAmiqus={handleInitiateAmiqus}

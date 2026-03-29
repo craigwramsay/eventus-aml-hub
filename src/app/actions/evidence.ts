@@ -291,6 +291,110 @@ export async function addManualRecord(
 }
 
 /**
+ * Record manual identity verification (photo ID + proof of address).
+ * Creates a structured evidence record, marks the checklist item complete,
+ * and updates the client CDD date.
+ */
+export async function recordManualIdVerification(
+  assessmentId: string,
+  actionId: string,
+  idvData: {
+    photoIdType: string;
+    proofOfAddressType: string;
+    proofOfAddressDate: string;
+    verificationDate: string;
+    notes?: string;
+  }
+): Promise<SingleEvidenceResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit adding evidence' };
+    }
+
+    const access = await validateAssessmentAccess(assessmentId, profile.firm_id);
+    if (!access.valid) {
+      return { success: false, error: access.error };
+    }
+
+    if (!isIdentityActionId(actionId)) {
+      return { success: false, error: 'Action is not an identity verification action' };
+    }
+
+    // Validate proof of address is within 3 months
+    const poaDate = new Date(idvData.proofOfAddressDate);
+    const now = new Date();
+    const threeMonthsAgo = new Date(now);
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    if (poaDate < threeMonthsAgo) {
+      return { success: false, error: 'Proof of address must be dated within the last 3 months' };
+    }
+
+    const label = `Identity verified: ${idvData.photoIdType} + ${idvData.proofOfAddressType}`;
+    const notesLines = [
+      `Photo ID: ${idvData.photoIdType}`,
+      `Proof of address: ${idvData.proofOfAddressType} (dated ${new Date(idvData.proofOfAddressDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })})`,
+      `Documents verified on: ${new Date(idvData.verificationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+    ];
+    if (idvData.notes?.trim()) {
+      notesLines.push(`Notes: ${idvData.notes.trim()}`);
+    }
+
+    const { data, error: insertErr } = await supabase
+      .from('assessment_evidence')
+      .insert({
+        firm_id: profile.firm_id,
+        assessment_id: assessmentId,
+        action_id: actionId,
+        evidence_type: 'manual_record',
+        label,
+        source: 'Manual',
+        notes: notesLines.join('\n'),
+        data: idvData,
+        verified_at: idvData.verificationDate,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (insertErr || !data) {
+      console.error('Failed to create manual ID verification record:', insertErr);
+      return { success: false, error: 'Failed to create evidence record' };
+    }
+
+    // Mark the checklist item as complete
+    await toggleItemCompletion(assessmentId, actionId, true);
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'assessment_evidence',
+      entity_id: data.id,
+      action: 'manual_idv_recorded',
+      metadata: {
+        assessment_id: assessmentId,
+        action_id: actionId,
+        photo_id_type: idvData.photoIdType,
+        proof_of_address_type: idvData.proofOfAddressType,
+      },
+      created_by: user.id,
+    });
+
+    // Update client CDD date
+    await updateClientCddDate(supabase, assessmentId, idvData.verificationDate);
+
+    return { success: true, evidence: data as AssessmentEvidence };
+  } catch (err) {
+    console.error('Error in recordManualIdVerification:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
  * Save a SoW or SoF form declaration.
  * Upserts: if a declaration of the same type already exists for this assessment, replaces it.
  */

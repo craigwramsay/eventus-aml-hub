@@ -34,6 +34,13 @@ interface ItemActionBarProps {
   onLinkAmiqus: (actionId: string, e: React.FormEvent<HTMLFormElement>) => void;
   onFileUpload: (actionId: string, e: React.FormEvent<HTMLFormElement>) => void;
   onManualRecord: (actionId: string, notes: string, verifiedAt: string | null) => void;
+  onManualIdv: (actionId: string, data: {
+    photoIdType: string;
+    proofOfAddressType: string;
+    proofOfAddressDate: string;
+    verificationDate: string;
+    notes?: string;
+  }) => void;
   // State for link Amiqus form
   linkRecordId: string;
   setLinkRecordId: (v: string) => void;
@@ -67,6 +74,7 @@ export function ItemActionBar({
   onLinkAmiqus,
   onFileUpload,
   onManualRecord,
+  onManualIdv,
   linkRecordId,
   setLinkRecordId,
   openLinkAmiqus,
@@ -75,8 +83,14 @@ export function ItemActionBar({
   const [openUpload, setOpenUpload] = useState(false);
   const [openManual, setOpenManual] = useState(false);
   const [openFormState, setOpenFormState] = useState(false);
+  const [openIdvForm, setOpenIdvForm] = useState(false);
   const [manualNotes, setManualNotes] = useState('');
   const [verifiedAt, setVerifiedAt] = useState('');
+  const [idvPhotoIdType, setIdvPhotoIdType] = useState('');
+  const [idvPoaType, setIdvPoaType] = useState('');
+  const [idvPoaDate, setIdvPoaDate] = useState('');
+  const [idvVerificationDate, setIdvVerificationDate] = useState('');
+  const [idvNotes, setIdvNotes] = useState('');
 
   if (isFinalised) return null;
 
@@ -197,12 +211,27 @@ export function ItemActionBar({
           </button>
         ) : !showApproval && (
           <>
+            {showAmiqus && (
+              <button
+                type="button"
+                className={styles.chLookupButton}
+                onClick={() => {
+                  setOpenIdvForm(!openIdvForm);
+                  setOpenUpload(false);
+                  setOpenManual(false);
+                }}
+                disabled={isPending}
+              >
+                {openIdvForm ? 'Cancel' : 'Record Manual Verification'}
+              </button>
+            )}
             <button
               type="button"
               className={styles.evidenceActionButton}
               onClick={() => {
                 setOpenUpload(!openUpload);
                 setOpenManual(false);
+                setOpenIdvForm(false);
               }}
               disabled={isPending}
             >
@@ -214,6 +243,7 @@ export function ItemActionBar({
               onClick={() => {
                 setOpenManual(!openManual);
                 setOpenUpload(false);
+                setOpenIdvForm(false);
               }}
               disabled={isPending}
             >
@@ -327,6 +357,114 @@ export function ItemActionBar({
           </div>
           <button type="submit" disabled={isPending} className={styles.formSubmit}>
             {isPending ? 'Linking...' : 'Link Record'}
+          </button>
+        </form>
+      )}
+
+      {/* Inline manual identity verification form */}
+      {openIdvForm && showAmiqus && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onManualIdv(action.actionId, {
+              photoIdType: idvPhotoIdType,
+              proofOfAddressType: idvPoaType,
+              proofOfAddressDate: idvPoaDate,
+              verificationDate: idvVerificationDate,
+              notes: idvNotes || undefined,
+            });
+            setOpenIdvForm(false);
+            setIdvPhotoIdType('');
+            setIdvPoaType('');
+            setIdvPoaDate('');
+            setIdvVerificationDate('');
+            setIdvNotes('');
+          }}
+          className={styles.evidenceForm}
+        >
+          <div className={styles.formField}>
+            <label className={styles.formLabel}>Photo ID type</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', marginTop: '0.25rem' }}>
+              {['Valid passport', 'UK Photocard driving licence'].map((opt) => (
+                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name={`idv-photo-id-${action.actionId}`}
+                    value={opt}
+                    checked={idvPhotoIdType === opt}
+                    onChange={(e) => setIdvPhotoIdType(e.target.value)}
+                    required
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.formField}>
+            <label className={styles.formLabel}>Proof of address type</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', marginTop: '0.25rem' }}>
+              {['Utility bill', 'Bank statement', 'Building society statement', 'Council tax statement'].map((opt) => (
+                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name={`idv-poa-type-${action.actionId}`}
+                    value={opt}
+                    checked={idvPoaType === opt}
+                    onChange={(e) => setIdvPoaType(e.target.value)}
+                    required
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.formField}>
+            <label htmlFor={`idv-poa-date-${action.actionId}`} className={styles.formLabel}>
+              Date on proof of address document
+            </label>
+            <input
+              id={`idv-poa-date-${action.actionId}`}
+              type="date"
+              value={idvPoaDate}
+              onChange={(e) => setIdvPoaDate(e.target.value)}
+              required
+              className={styles.formInput}
+            />
+            <p className={styles.formHint}>Must be dated within the last 3 months.</p>
+          </div>
+
+          <div className={styles.formField}>
+            <label htmlFor={`idv-verification-date-${action.actionId}`} className={styles.formLabel}>
+              Date you verified the documents
+            </label>
+            <input
+              id={`idv-verification-date-${action.actionId}`}
+              type="date"
+              value={idvVerificationDate}
+              onChange={(e) => setIdvVerificationDate(e.target.value)}
+              required
+              className={styles.formInput}
+            />
+          </div>
+
+          <div className={styles.formField}>
+            <label htmlFor={`idv-notes-${action.actionId}`} className={styles.formLabel}>
+              Notes (optional)
+            </label>
+            <textarea
+              id={`idv-notes-${action.actionId}`}
+              value={idvNotes}
+              onChange={(e) => setIdvNotes(e.target.value)}
+              rows={2}
+              placeholder="Any additional notes about the verification..."
+              className={styles.formTextarea}
+            />
+          </div>
+
+          <button type="submit" disabled={isPending} className={styles.formSubmit}>
+            {isPending ? 'Recording...' : 'Record Verification'}
           </button>
         </form>
       )}

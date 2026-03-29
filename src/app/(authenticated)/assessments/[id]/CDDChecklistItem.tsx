@@ -172,6 +172,13 @@ interface CDDChecklistItemProps {
   onCHLookup: (actionId: string) => void;
   onFileUpload: (actionId: string, e: React.FormEvent<HTMLFormElement>) => void;
   onManualRecord: (actionId: string, notes: string, verifiedAt: string | null) => void;
+  onManualIdv: (actionId: string, data: {
+    photoIdType: string;
+    proofOfAddressType: string;
+    proofOfAddressDate: string;
+    verificationDate: string;
+    notes?: string;
+  }) => void;
   onConfirmStillValid: (actionId: string) => void;
   onDocumentConfirm: (actionId: string) => void;
   onInitiateAmiqus: (actionId: string) => void;
@@ -215,6 +222,7 @@ export function CDDChecklistItem({
   onCHLookup,
   onFileUpload,
   onManualRecord,
+  onManualIdv,
   onConfirmStillValid,
   onDocumentConfirm,
   onInitiateAmiqus,
@@ -378,6 +386,7 @@ export function CDDChecklistItem({
         onLinkAmiqus={onLinkAmiqus}
         onFileUpload={onFileUpload}
         onManualRecord={onManualRecord}
+        onManualIdv={onManualIdv}
         linkRecordId={linkRecordId}
         setLinkRecordId={setLinkRecordId}
         openLinkAmiqus={openLinkAmiqus}
