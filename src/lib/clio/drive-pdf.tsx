@@ -15,11 +15,23 @@ import { SOW_INDIVIDUAL_FIELDS, SOW_CORPORATE_FIELDS, SOF_FIELDS } from './sow-s
 
 // ── Types ──────────────────────────────────────────────────────────────
 
+interface CddEvidenceItem {
+  type: 'amiqus' | 'file' | 'note' | 'declaration' | 'ch' | 'confirmed';
+  label: string;
+  date?: string | null;
+  notes?: string | null;
+  url?: string | null;
+}
+
 interface CddItemSummary {
   description: string;
   category: string;
   completed: boolean;
-  /** Human-readable evidence summary, e.g. "Verified via Amiqus #12345 on 5 Jan 2026" */
+  completedDate?: string | null;
+  completedBy?: string | null;
+  /** Structured evidence items matching the page display */
+  evidenceItems: CddEvidenceItem[];
+  /** Legacy flat summary (fallback) */
   evidenceSummary: string | null;
   /** Clickable Amiqus URL if applicable */
   amiqusUrl: string | null;
@@ -181,7 +193,103 @@ const s = StyleSheet.create({
     marginTop: 10,
     marginBottom: 6,
   },
-  // CDD item
+  // CDD 3-column table
+  cddTableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  cddColRequirement: {
+    flex: 4,
+    padding: 6,
+    borderRightWidth: 1,
+    borderRightColor: '#e2e8f0',
+  },
+  cddColEvidence: {
+    flex: 4,
+    padding: 6,
+    borderRightWidth: 1,
+    borderRightColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+  },
+  cddColStatus: {
+    width: 80,
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cddColStatusComplete: {
+    backgroundColor: '#dcfce7',
+  },
+  cddColStatusPending: {
+    backgroundColor: '#f1f5f9',
+  },
+  cddHeaderRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 2,
+    borderBottomColor: '#333',
+    backgroundColor: '#f1f5f9',
+  },
+  cddHeaderText: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    padding: 4,
+  },
+  cddDescriptionText: {
+    fontSize: 9,
+    color: '#333',
+  },
+  cddEvidenceType: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: '#6b21a8',
+    backgroundColor: '#f3e8ff',
+    paddingVertical: 1,
+    paddingHorizontal: 4,
+    borderRadius: 2,
+    marginRight: 4,
+  },
+  cddEvidenceTypeAmiqus: {
+    color: '#166534',
+    backgroundColor: '#dcfce7',
+  },
+  cddEvidenceTypeCH: {
+    color: '#92400e',
+    backgroundColor: '#fef3c7',
+  },
+  cddEvidenceTypeDecl: {
+    color: '#3730a3',
+    backgroundColor: '#e0e7ff',
+  },
+  cddEvidenceLabel: {
+    fontSize: 8.5,
+    color: '#333',
+  },
+  cddEvidenceDate: {
+    fontSize: 7.5,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  cddEvidenceNotes: {
+    fontSize: 8,
+    color: '#64748b',
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  cddStatusText: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    textAlign: 'center',
+  },
+  cddStatusDate: {
+    fontSize: 7,
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  // Legacy CDD item (kept for compatibility)
   cddItem: {
     flexDirection: 'row',
     marginBottom: 6,
@@ -523,52 +631,67 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
           )}
         </View>
 
-        {/* ── SECTION 1: CDD Requirements ── */}
+        {/* ── SECTION 1: CDD Requirements (3-column table) ── */}
         <View>
-          <Text style={[s.sectionTitle, s.sectionTitleFirst]}>Compliance Requirements</Text>
+          <Text style={[s.sectionTitle, s.sectionTitleFirst]}>CDD Requirements</Text>
           <Text style={s.progressText}>
             {completedCount} of {totalCount} requirements completed
           </Text>
 
           {Array.from(itemsByCategory.entries()).map(([category, items]) => (
-            <View key={category} wrap={false}>
+            <View key={category}>
               <Text style={s.categoryTitle}>
                 {CATEGORY_LABELS[category] || category}
               </Text>
-              {items.map((item, idx) => {
-                // Find declaration data for this item (if SoW/SoF)
-                const decl = item.completed ? declarationByAction.get(
-                  cddItems.find(ci => ci.description === item.description && ci.category === item.category)
-                    ? (cddItems as (CddItemSummary & { actionId?: string })[]).find(
-                        ci => ci.description === item.description
-                      )?.actionId || ''
-                    : ''
-                ) : undefined;
-
-                return (
-                  <View key={`${category}-${idx}`}>
-                    <View style={[
-                      s.cddItem,
-                      item.completed ? s.cddItemCompleted : s.cddItemIncomplete,
-                    ]}>
-                      <Text style={[s.checkmark, item.completed ? s.checkmarkGreen : s.checkmarkGrey]}>
-                        {item.completed ? '✓' : '✗'}
-                      </Text>
-                      <View style={s.cddItemText}>
-                        <Text style={s.cddItemDescription}>{item.description}</Text>
-                        {item.evidenceSummary && (
-                          <Text style={s.cddItemEvidence}>{item.evidenceSummary}</Text>
-                        )}
-                        {item.amiqusUrl && (
-                          <Link src={item.amiqusUrl} style={s.amiqusLink}>
-                            View in Amiqus
-                          </Link>
-                        )}
-                      </View>
-                    </View>
+              {/* Column headers */}
+              <View style={s.cddHeaderRow}>
+                <View style={s.cddColRequirement}><Text style={s.cddHeaderText}>Requirement</Text></View>
+                <View style={s.cddColEvidence}><Text style={s.cddHeaderText}>Evidence / Response</Text></View>
+                <View style={{ width: 80, padding: 4 }}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
+              </View>
+              {items.map((item, idx) => (
+                <View key={`${category}-${idx}`} style={s.cddTableRow} wrap={false}>
+                  {/* Column 1: Requirement */}
+                  <View style={s.cddColRequirement}>
+                    <Text style={s.cddDescriptionText}>{item.description}</Text>
                   </View>
-                );
-              })}
+                  {/* Column 2: Evidence */}
+                  <View style={s.cddColEvidence}>
+                    {item.evidenceItems.length > 0 ? (
+                      item.evidenceItems.map((ev, evIdx) => (
+                        <View key={evIdx} style={{ marginBottom: evIdx < item.evidenceItems.length - 1 ? 4 : 0 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={[
+                              s.cddEvidenceType,
+                              ev.type === 'amiqus' ? s.cddEvidenceTypeAmiqus : {},
+                              ev.type === 'ch' ? s.cddEvidenceTypeCH : {},
+                              ev.type === 'declaration' ? s.cddEvidenceTypeDecl : {},
+                            ]}>
+                              {ev.type === 'amiqus' ? 'Amiqus' : ev.type === 'ch' ? 'CH' : ev.type === 'declaration' ? 'Declaration' : ev.type === 'file' ? 'File' : ev.type === 'confirmed' ? '' : 'Note'}
+                            </Text>
+                            <Text style={s.cddEvidenceLabel}>{ev.label}</Text>
+                          </View>
+                          {ev.date && <Text style={s.cddEvidenceDate}>{ev.date}</Text>}
+                          {ev.notes && <Text style={s.cddEvidenceNotes}>{ev.notes}</Text>}
+                          {ev.url && <Link src={ev.url} style={s.amiqusLink}>View in Amiqus</Link>}
+                        </View>
+                      ))
+                    ) : (
+                      <Text style={[s.cddEvidenceLabel, { fontStyle: 'italic', color: '#94a3b8' }]}>
+                        {item.completed ? (item.evidenceSummary || 'Confirmed by user') : 'No evidence yet'}
+                      </Text>
+                    )}
+                  </View>
+                  {/* Column 3: Status */}
+                  <View style={[s.cddColStatus, item.completed ? s.cddColStatusComplete : s.cddColStatusPending]}>
+                    <Text style={[s.cddStatusText, { color: item.completed ? '#166534' : '#94a3b8' }]}>
+                      {item.completed ? 'Complete' : 'Pending'}
+                    </Text>
+                    {item.completedDate && <Text style={s.cddStatusDate}>{item.completedDate}</Text>}
+                    {item.completedBy && <Text style={s.cddStatusDate}>{item.completedBy}</Text>}
+                  </View>
+                </View>
+              ))}
             </View>
           ))}
         </View>
