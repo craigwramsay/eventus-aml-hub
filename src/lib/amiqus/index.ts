@@ -15,6 +15,7 @@ export {
   getAmiqusCase,
   getAmiqusRecordOrCase,
   registerAmiqusWebhook,
+  deleteAmiqusWebhook,
 } from './client';
 
 export type {

@@ -172,10 +172,25 @@ export default async function IntegrationsSettingsPage({ searchParams }: PagePro
                     </span>
                   </div>
                 )}
+                <div className={styles.infoRow}>
+                  <span className={styles.infoLabel}>Webhook</span>
+                  <span className={styles.infoValue}>
+                    {amiqusIntegration.webhook_id
+                      ? `Registered (ID ${amiqusIntegration.webhook_id})`
+                      : 'Not registered'}
+                  </span>
+                </div>
+                {!amiqusIntegration.webhook_id && (
+                  <div className={styles.webhookWarning}>
+                    Webhook not registered. Click &ldquo;Register Webhook&rdquo; to enable
+                    automatic verification status updates from Amiqus.
+                  </div>
+                )}
               </>
             ) : (
               <p className={styles.notConfigured}>
-                API key is set but not yet connected. Amiqus uses a Personal Access Token (PAT) for authentication.
+                API key is set but webhook not yet registered. Click &ldquo;Register Webhook&rdquo;
+                below to enable automatic verification status updates from Amiqus.
               </p>
             )}
           </div>
@@ -184,6 +199,7 @@ export default async function IntegrationsSettingsPage({ searchParams }: PagePro
             provider="amiqus"
             isConfigured={amiqusConfigured}
             isConnected={!!amiqusIntegration}
+            hasWebhook={!!amiqusIntegration?.webhook_id}
           />
         </div>
       </div>

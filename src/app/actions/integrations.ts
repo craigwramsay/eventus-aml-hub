@@ -12,6 +12,7 @@ import type { FirmIntegration, IntegrationProvider } from '@/lib/supabase/types'
 import type { UserRole } from '@/lib/auth/roles';
 import { canManageIntegrations } from '@/lib/auth/roles';
 import { deleteClioWebhook, registerClioWebhook, refreshClioToken, ClioError } from '@/lib/clio';
+import { getAmiqusApiKey, registerAmiqusWebhook, deleteAmiqusWebhook, AmiqusError } from '@/lib/amiqus';
 
 export type IntegrationStatusResult =
   | { success: true; integrations: FirmIntegration[] }
@@ -118,6 +119,20 @@ export async function disconnectIntegration(
         // Non-fatal — webhook may have already expired
         if (err instanceof ClioError) {
           console.warn('Failed to delete Clio webhook:', err.message);
+        }
+      }
+    }
+
+    if (provider === 'amiqus' && typedIntegration.webhook_id) {
+      const apiKey = getAmiqusApiKey();
+      if (apiKey) {
+        try {
+          await deleteAmiqusWebhook(typedIntegration.webhook_id, apiKey);
+        } catch (err) {
+          // Non-fatal — webhook may have already been deactivated
+          if (err instanceof AmiqusError) {
+            console.warn('Failed to delete Amiqus webhook:', err.message);
+          }
         }
       }
     }
@@ -267,5 +282,127 @@ export async function renewClioWebhook(): Promise<DisconnectResult> {
   } catch (err) {
     console.error('Error renewing Clio webhook:', err);
     return { success: false, error: 'Failed to renew webhook' };
+  }
+}
+
+/**
+ * Register (or re-register) the Amiqus webhook for the current firm.
+ *
+ * If an existing webhook is stored, attempts to delete it from Amiqus first
+ * (ignoring errors — the old webhook may already be deactivated). Then
+ * registers a new webhook and stores the new ID and secret in firm_integrations.
+ *
+ * Also creates a firm_integrations row if one doesn't exist yet.
+ */
+export async function registerAmiqusWebhookForFirm(): Promise<DisconnectResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const apiKey = getAmiqusApiKey();
+    if (!apiKey) {
+      return { success: false, error: 'Amiqus API key not configured' };
+    }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      return { success: false, error: 'NEXT_PUBLIC_APP_URL not configured' };
+    }
+
+    // Get existing integration (if any)
+    const { data: existing } = await supabase
+      .from('firm_integrations')
+      .select('*')
+      .eq('firm_id', profile.firm_id)
+      .eq('provider', 'amiqus')
+      .maybeSingle();
+
+    const existingIntegration = existing as FirmIntegration | null;
+
+    // Delete old webhook (ignore errors)
+    if (existingIntegration?.webhook_id) {
+      try {
+        await deleteAmiqusWebhook(existingIntegration.webhook_id, apiKey);
+      } catch (err) {
+        if (err instanceof AmiqusError) {
+          console.warn('Failed to delete old Amiqus webhook (continuing):', err.message);
+        }
+      }
+    }
+
+    // Register new webhook
+    const webhookUrl = `${appUrl}/api/webhooks/amiqus`;
+    let webhook;
+    try {
+      webhook = await registerAmiqusWebhook(
+        webhookUrl,
+        ['record.finished', 'record.updated'],
+        apiKey
+      );
+    } catch (err) {
+      if (err instanceof AmiqusError) {
+        return { success: false, error: `Failed to register webhook with Amiqus: ${err.message}` };
+      }
+      throw err;
+    }
+
+    // Upsert firm_integrations row
+    const now = new Date().toISOString();
+    if (existingIntegration) {
+      const { error: updateErr } = await supabase
+        .from('firm_integrations')
+        .update({
+          webhook_id: String(webhook.id),
+          webhook_secret: webhook.secret,
+          updated_at: now,
+        })
+        .eq('id', existingIntegration.id);
+
+      if (updateErr) {
+        console.error('Failed to update Amiqus integration:', updateErr);
+        return { success: false, error: 'Webhook registered but failed to save to DB' };
+      }
+    } else {
+      const { error: insertErr } = await supabase
+        .from('firm_integrations')
+        .insert({
+          firm_id: profile.firm_id,
+          provider: 'amiqus' as IntegrationProvider,
+          webhook_id: String(webhook.id),
+          webhook_secret: webhook.secret,
+          connected_at: now,
+          connected_by: user.id,
+          config: {},
+        });
+
+      if (insertErr) {
+        console.error('Failed to create Amiqus integration:', insertErr);
+        return { success: false, error: 'Webhook registered but failed to save to DB' };
+      }
+    }
+
+    // Audit log
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'integration',
+      entity_id: 'amiqus',
+      action: existingIntegration ? 'amiqus_webhook_renewed' : 'amiqus_webhook_registered',
+      metadata: {
+        webhook_id: String(webhook.id),
+        webhook_url: webhookUrl,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error registering Amiqus webhook:', err);
+    return { success: false, error: 'Failed to register webhook' };
   }
 }

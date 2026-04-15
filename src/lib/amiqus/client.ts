@@ -158,3 +158,15 @@ export async function registerAmiqusWebhook(
     body: JSON.stringify({ url, events }),
   });
 }
+
+/**
+ * Delete a webhook from Amiqus.
+ */
+export async function deleteAmiqusWebhook(
+  webhookId: string | number,
+  apiKey: string
+): Promise<void> {
+  await amiqusFetch<unknown>(`/webhooks/${webhookId}`, apiKey, {
+    method: 'DELETE',
+  });
+}
