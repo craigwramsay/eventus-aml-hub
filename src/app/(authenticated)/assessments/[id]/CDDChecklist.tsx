@@ -249,14 +249,14 @@ export function CDDChecklist({
     });
   }, [assessmentId, router, startTransition]);
 
-  const handleInitiateAmiqus = useCallback((actionId: string) => {
+  const handleInitiateAmiqus = useCallback((actionId: string, name: string, email: string) => {
     setError(null);
     startTransition(async () => {
-      const result = await initiateAmiqusVerification(assessmentId, actionId, clientName, clientEmail);
+      const result = await initiateAmiqusVerification(assessmentId, actionId, name, email);
       if (!result.success) setError(result.error);
       else router.refresh();
     });
-  }, [assessmentId, clientName, clientEmail, router, startTransition]);
+  }, [assessmentId, router, startTransition]);
 
   const handleLinkAmiqus = useCallback((actionId: string, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

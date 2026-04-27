@@ -30,7 +30,7 @@ interface ItemActionBarProps {
   onCHLookup: (actionId: string) => void;
   onToggle: (actionId: string, isCompleted: boolean) => void;
   onDocumentConfirm: (actionId: string) => void;
-  onInitiateAmiqus: (actionId: string) => void;
+  onInitiateAmiqus: (actionId: string, name: string, email: string) => void;
   onLinkAmiqus: (actionId: string, e: React.FormEvent<HTMLFormElement>) => void;
   onFileUpload: (actionId: string, e: React.FormEvent<HTMLFormElement>) => void;
   onManualRecord: (actionId: string, notes: string, verifiedAt: string | null) => void;
@@ -84,6 +84,9 @@ export function ItemActionBar({
   const [openManual, setOpenManual] = useState(false);
   const [openFormState, setOpenFormState] = useState(false);
   const [openIdvForm, setOpenIdvForm] = useState(false);
+  const [openInitiateAmiqus, setOpenInitiateAmiqus] = useState(false);
+  const [initiateName, setInitiateName] = useState('');
+  const [initiateEmail, setInitiateEmail] = useState('');
   const [manualNotes, setManualNotes] = useState('');
   const [verifiedAt, setVerifiedAt] = useState('');
   const [idvPhotoIdType, setIdvPhotoIdType] = useState('');
@@ -138,10 +141,15 @@ export function ItemActionBar({
                 <button
                   type="button"
                   className={styles.amiqusLinkButton}
-                  onClick={() => onInitiateAmiqus(action.actionId)}
-                  disabled={isPending || !clientEmail}
+                  onClick={() => {
+                    setOpenInitiateAmiqus(!openInitiateAmiqus);
+                    setOpenLinkAmiqus(null);
+                    setOpenUpload(false);
+                    setOpenManual(false);
+                  }}
+                  disabled={isPending}
                 >
-                  {isPending ? 'Initiating...' : hasFailed ? 'Retry Verification' : 'Initiate Amiqus Verification'}
+                  {openInitiateAmiqus ? 'Cancel' : (hasFailed ? 'Retry Verification' : 'Initiate Amiqus Verification')}
                 </button>
               )}
               {/* Link existing — always available so users can add multiple records */}
@@ -326,6 +334,56 @@ export function ItemActionBar({
           </div>
           <button type="submit" disabled={isPending} className={styles.formSubmit}>
             {isPending ? 'Saving...' : 'Save File Note'}
+          </button>
+        </form>
+      )}
+
+      {/* Initiate new Amiqus verification form (collects person's name + email) */}
+      {openInitiateAmiqus && showAmiqus && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!initiateName.trim() || !initiateEmail.trim()) return;
+            onInitiateAmiqus(action.actionId, initiateName.trim(), initiateEmail.trim());
+            setInitiateName('');
+            setInitiateEmail('');
+            setOpenInitiateAmiqus(false);
+          }}
+          className={styles.evidenceForm}
+        >
+          <div className={styles.formField}>
+            <label htmlFor={`initiate-amiqus-name-${action.actionId}`} className={styles.formLabel}>
+              Full name of person to verify
+            </label>
+            <input
+              id={`initiate-amiqus-name-${action.actionId}`}
+              type="text"
+              value={initiateName}
+              onChange={(e) => setInitiateName(e.target.value)}
+              required
+              placeholder="e.g. John Smith"
+              className={styles.formInput}
+            />
+          </div>
+          <div className={styles.formField}>
+            <label htmlFor={`initiate-amiqus-email-${action.actionId}`} className={styles.formLabel}>
+              Email address
+            </label>
+            <input
+              id={`initiate-amiqus-email-${action.actionId}`}
+              type="email"
+              value={initiateEmail}
+              onChange={(e) => setInitiateEmail(e.target.value)}
+              required
+              placeholder="e.g. john@example.com"
+              className={styles.formInput}
+            />
+            <p className={styles.formHint}>
+              Amiqus will email this person a link to complete identity verification.
+            </p>
+          </div>
+          <button type="submit" disabled={isPending} className={styles.formSubmit}>
+            {isPending ? 'Initiating...' : 'Send Verification Request'}
           </button>
         </form>
       )}

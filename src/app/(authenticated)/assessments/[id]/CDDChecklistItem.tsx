@@ -181,7 +181,7 @@ interface CDDChecklistItemProps {
   }) => void;
   onConfirmStillValid: (actionId: string) => void;
   onDocumentConfirm: (actionId: string) => void;
-  onInitiateAmiqus: (actionId: string) => void;
+  onInitiateAmiqus: (actionId: string, name: string, email: string) => void;
   onLinkAmiqus: (actionId: string, e: React.FormEvent<HTMLFormElement>) => void;
   onRequestApproval: () => void;
   onWithdrawApproval: () => void;
