@@ -121,9 +121,20 @@ export async function getAmiqusCase(
 }
 
 /**
+ * Extract the Amiqus client ID from a response, handling both
+ * top-level `client_id` and nested `client.id` shapes.
+ */
+function extractClientId(data: { client_id?: number; client?: { id: number } }): number {
+  if (typeof data.client_id === 'number') return data.client_id;
+  if (data.client && typeof data.client.id === 'number') return data.client.id;
+  return 0; // fallback (will be stored as null/0)
+}
+
+/**
  * Try to find an Amiqus record or case by ID.
- * Tries /records/{id} first, then /cases/{id} if not found.
- * Returns a normalised shape with the resource type.
+ * Tries /cases/{id} first (preferred — case IDs match dashboard URLs),
+ * then /records/{id} if not found.
+ * Returns a normalised shape with the resource type and client_id.
  */
 export async function getAmiqusRecordOrCase(
   id: number,
@@ -132,7 +143,15 @@ export async function getAmiqusRecordOrCase(
   // Try cases first (preferred — case IDs match the Amiqus dashboard URL format)
   try {
     const caseData = await getAmiqusCase(id, apiKey);
-    return { type: 'case', data: caseData };
+    return {
+      type: 'case',
+      data: {
+        id: caseData.id,
+        status: caseData.status,
+        client_id: extractClientId(caseData),
+        completed_at: caseData.completed_at,
+      },
+    };
   } catch (err) {
     if (!(err instanceof AmiqusError) || err.statusCode !== 404) {
       throw err; // Re-throw non-404 errors
@@ -141,7 +160,15 @@ export async function getAmiqusRecordOrCase(
 
   // Fall back to records
   const record = await getAmiqusRecord(id, apiKey);
-  return { type: 'record', data: record };
+  return {
+    type: 'record',
+    data: {
+      id: record.id,
+      status: record.status,
+      client_id: extractClientId(record),
+      completed_at: record.completed_at,
+    },
+  };
 }
 
 /**

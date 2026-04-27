@@ -409,7 +409,7 @@ export async function linkExistingAmiqusRecord(
         assessment_id: assessmentId,
         action_id: actionId,
         amiqus_record_id: amiqusRecordId,
-        amiqus_client_id: amiqusData.client_id,
+        amiqus_client_id: amiqusData.client_id || null,
         status: 'complete',
         verified_at: verifiedAt,
         created_by: user.id,
