@@ -41,8 +41,8 @@ interface EvidencePanelProps {
   isApprovalAction: boolean;
   syncRecords: ClioDriveSync[];
   userNames: Record<string, string>;
-  /** Amiqus verification for this action (merged into evidence list) */
-  verification?: AmiqusVerification;
+  /** Amiqus verifications for this action (merged into evidence list) */
+  verifications: AmiqusVerification[];
   /** Client's latest Amiqus verification from a prior assessment (carry-forward) */
   clientAmiqus?: { amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null;
 }
@@ -54,7 +54,7 @@ export function EvidencePanel({
   isApprovalAction,
   syncRecords,
   userNames,
-  verification,
+  verifications,
   clientAmiqus,
 }: EvidencePanelProps) {
   const [expandedEvidence, setExpandedEvidence] = useState<Set<string>>(new Set());
@@ -69,7 +69,7 @@ export function EvidencePanel({
   };
 
   // Determine if there's Amiqus info to show
-  const hasAmiqus = verification || (clientAmiqus && isCompleted);
+  const hasAmiqus = verifications.length > 0 || (clientAmiqus && isCompleted);
 
   // Check if identity was carried forward (user relied on existing verification)
   const carryForwardEvidence = evidence.find(ev => ev.label === 'Prior identity verification confirmed still valid');
@@ -79,9 +79,9 @@ export function EvidencePanel({
 
   return (
     <div className={styles.evidenceSection}>
-      {/* Amiqus verification — shown as first evidence line */}
-      {hasAmiqus && (() => {
-        if (verification?.status === 'complete') {
+      {/* Render each Amiqus verification as a separate evidence line */}
+      {verifications.map((verification) => {
+        if (verification.status === 'complete') {
           const amiqusUrl = verification.amiqus_client_id
             ? `https://id.amiqus.co/clients/${verification.amiqus_client_id}`
             : 'https://id.amiqus.co/';
@@ -91,14 +91,17 @@ export function EvidencePanel({
           const confirmedDate = carryForwardEvidence?.created_at
             ? formatDateShort(carryForwardEvidence.created_at)
             : null;
+          // Only show "confirmed still valid" wording when there's exactly one verification
+          // (for multiple verifications, each is a separate Amiqus record for a different person)
+          const showCarryForwardWording = hasCarryForward && verifications.length === 1;
           return (
-            <div>
+            <div key={verification.id}>
               <div className={styles.evidenceLine}>
                 <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
                 <span className={styles.evidenceLineLabel}>
-                  {hasCarryForward
+                  {showCarryForwardWording
                     ? `Identity verified electronically — existing Amiqus verification dated ${verifiedDate || 'unknown'} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`
-                    : `Identity verified electronically${verifiedDate ? ` on ${verifiedDate}` : ''}`
+                    : `Identity verified electronically${verifiedDate ? ` on ${verifiedDate}` : ''}${verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}`
                   }
                 </span>
                 <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
@@ -108,17 +111,17 @@ export function EvidencePanel({
             </div>
           );
         }
-        if (verification?.status === 'pending' || verification?.status === 'in_progress') {
+        if (verification.status === 'pending' || verification.status === 'in_progress') {
           const amiqusUrl = verification.amiqus_client_id
             ? `https://id.amiqus.co/clients/${verification.amiqus_client_id}`
             : 'https://id.amiqus.co/';
           return (
-            <div className={styles.evidenceLine}>
+            <div key={verification.id} className={styles.evidenceLine}>
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgePending}`}>
                 {verification.status === 'pending' ? 'Pending' : 'In Progress'}
               </span>
               <span className={styles.evidenceLineLabel}>
-                Electronic identity verification
+                Electronic identity verification{verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}
               </span>
               <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
                 View in Amiqus
@@ -126,18 +129,22 @@ export function EvidencePanel({
             </div>
           );
         }
-        if (verification?.status === 'failed' || verification?.status === 'expired') {
+        if (verification.status === 'failed' || verification.status === 'expired') {
           return (
-            <div className={styles.evidenceLine}>
+            <div key={verification.id} className={styles.evidenceLine}>
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeFailed}`}>
                 {verification.status === 'failed' ? 'Failed' : 'Expired'}
               </span>
-              <span className={styles.evidenceLineLabel}>Electronic identity verification</span>
+              <span className={styles.evidenceLineLabel}>Electronic identity verification{verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}</span>
             </div>
           );
         }
-        // Carry-forward from prior assessment
-        if (!verification && clientAmiqus && isCompleted) {
+        return null;
+      })}
+
+      {/* Carry-forward Amiqus from prior assessment (when no direct verification on this assessment) */}
+      {(() => {
+        if (verifications.length === 0 && clientAmiqus && isCompleted) {
           const amiqusUrl = clientAmiqus.amiqusClientId
             ? `https://id.amiqus.co/clients/${clientAmiqus.amiqusClientId}`
             : `https://id.amiqus.co/`;

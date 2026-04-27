@@ -324,17 +324,16 @@ export async function linkExistingAmiqusRecord(
       return { success: false, error: 'Assessment not found or access denied' };
     }
 
-    // Check for existing verification for this assessment+action (any status)
-    const { data: existing } = await supabase
+    // Check for duplicate Amiqus record on this action (same record_id already linked)
+    const { data: duplicates } = await supabase
       .from('amiqus_verifications')
-      .select('id, status')
+      .select('id')
       .eq('assessment_id', assessmentId)
       .eq('action_id', actionId)
-      .in('status', ['pending', 'in_progress', 'complete'])
-      .maybeSingle();
+      .eq('amiqus_record_id', amiqusRecordId);
 
-    if (existing) {
-      return { success: false, error: 'A verification already exists for this action' };
+    if (duplicates && duplicates.length > 0) {
+      return { success: false, error: 'This Amiqus record is already linked to this checklist item' };
     }
 
     // Fetch the record or case from Amiqus to validate it exists and is complete.
@@ -426,6 +425,7 @@ export async function linkExistingAmiqusRecord(
     const { error: evidenceErr } = await supabase
       .from('assessment_evidence')
       .insert({
+        firm_id: profile.firm_id,
         assessment_id: assessmentId,
         action_id: actionId,
         evidence_type: 'amiqus',
@@ -457,6 +457,7 @@ export async function linkExistingAmiqusRecord(
       await supabase
         .from('assessment_evidence')
         .insert({
+          firm_id: profile.firm_id,
           assessment_id: assessmentId,
           action_id: actionId,
           evidence_type: 'manual_record',

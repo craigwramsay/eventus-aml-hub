@@ -152,7 +152,7 @@ interface CDDChecklistItemProps {
   lastCddVerifiedAt?: string | null;
   riskLevel?: string;
   matterDescription?: string;
-  verification?: AmiqusVerification;
+  verifications: AmiqusVerification[];
   clientAmiqus?: { amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null;
   priorSowData?: Record<string, string | string[]> | null;
   syncRecords: ClioDriveSync[];
@@ -210,7 +210,7 @@ export function CDDChecklistItem({
   lastCddVerifiedAt,
   riskLevel,
   matterDescription,
-  verification,
+  verifications,
   clientAmiqus,
   priorSowData,
   syncRecords,
@@ -248,7 +248,7 @@ export function CDDChecklistItem({
     : null;
 
   const hasEvidence = itemEvidence.length > 0;
-  const hasAmiqusInfo = showAmiqus && (verification || (clientAmiqus && effectiveCompleted));
+  const hasAmiqusInfo = showAmiqus && (verifications.length > 0 || (clientAmiqus && effectiveCompleted));
 
   // Items where the action itself is the evidence (no separate evidence record needed)
   const isTickOnly = showConfirm || showDocumentConfirm || showApproval ||
@@ -284,7 +284,7 @@ export function CDDChecklistItem({
             isApprovalAction={showApproval}
             syncRecords={syncRecords}
             userNames={userNames}
-            verification={showAmiqus ? verification : undefined}
+            verifications={showAmiqus ? verifications : []}
             clientAmiqus={showAmiqus ? clientAmiqus : undefined}
           />
         </div>
@@ -379,7 +379,7 @@ export function CDDChecklistItem({
         amiqusConfigured={amiqusConfigured}
         clientEmail={clientEmail}
         itemEvidence={itemEvidence}
-        verification={verification}
+        verifications={verifications}
         priorSowData={priorSowData}
         onCHLookup={onCHLookup}
         onToggle={onToggle}

@@ -24,7 +24,7 @@ interface ItemActionBarProps {
   amiqusConfigured: boolean;
   clientEmail: string;
   itemEvidence: AssessmentEvidence[];
-  verification: AmiqusVerification | undefined;
+  verifications: AmiqusVerification[];
   priorSowData?: Record<string, string | string[]> | null;
   // Handlers
   onCHLookup: (actionId: string) => void;
@@ -65,7 +65,7 @@ export function ItemActionBar({
   amiqusConfigured,
   clientEmail,
   itemEvidence,
-  verification,
+  verifications,
   priorSowData,
   onCHLookup,
   onToggle,
@@ -111,45 +111,12 @@ export function ItemActionBar({
         )}
 
         {showAmiqus && (() => {
-          if (!verification && amiqusConfigured) {
-            return (
-              <>
-                <button
-                  type="button"
-                  className={styles.amiqusLinkButton}
-                  onClick={() => onInitiateAmiqus(action.actionId)}
-                  disabled={isPending || !clientEmail}
-                >
-                  {isPending ? 'Initiating...' : 'Initiate Amiqus Verification'}
-                </button>
-                <button
-                  type="button"
-                  className={styles.evidenceActionButton}
-                  onClick={() => {
-                    setOpenLinkAmiqus(showLinkAmiqus ? null : action.actionId);
-                    setOpenUpload(false);
-                    setOpenManual(false);
-                  }}
-                  disabled={isPending}
-                >
-                  {showLinkAmiqus ? 'Cancel' : 'Link Existing Record'}
-                </button>
-              </>
-            );
-          }
-          if ((verification?.status === 'failed' || verification?.status === 'expired') && amiqusConfigured) {
-            return (
-              <button
-                type="button"
-                className={styles.amiqusLinkButton}
-                onClick={() => onInitiateAmiqus(action.actionId)}
-                disabled={isPending || !clientEmail}
-              >
-                Retry Verification
-              </button>
-            );
-          }
-          if (!verification && !amiqusConfigured) {
+          const hasInProgress = verifications.some(v => v.status === 'pending' || v.status === 'in_progress');
+          const hasComplete = verifications.some(v => v.status === 'complete');
+          const hasFailed = verifications.some(v => v.status === 'failed' || v.status === 'expired');
+          const noVerifications = verifications.length === 0;
+
+          if (!amiqusConfigured && noVerifications) {
             return (
               <a
                 href="https://id.amiqus.co/"
@@ -161,7 +128,37 @@ export function ItemActionBar({
               </a>
             );
           }
-          return null;
+
+          if (!amiqusConfigured) return null;
+
+          return (
+            <>
+              {/* Initiate new — only when no verifications exist or all are failed (no in-progress or complete) */}
+              {!hasInProgress && !hasComplete && (
+                <button
+                  type="button"
+                  className={styles.amiqusLinkButton}
+                  onClick={() => onInitiateAmiqus(action.actionId)}
+                  disabled={isPending || !clientEmail}
+                >
+                  {isPending ? 'Initiating...' : hasFailed ? 'Retry Verification' : 'Initiate Amiqus Verification'}
+                </button>
+              )}
+              {/* Link existing — always available so users can add multiple records */}
+              <button
+                type="button"
+                className={styles.evidenceActionButton}
+                onClick={() => {
+                  setOpenLinkAmiqus(showLinkAmiqus ? null : action.actionId);
+                  setOpenUpload(false);
+                  setOpenManual(false);
+                }}
+                disabled={isPending}
+              >
+                {showLinkAmiqus ? 'Cancel' : (hasComplete ? 'Link Another Record' : 'Link Existing Record')}
+              </button>
+            </>
+          );
         })()}
 
         {showForm && (

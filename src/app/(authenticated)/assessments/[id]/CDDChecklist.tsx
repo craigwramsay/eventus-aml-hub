@@ -132,13 +132,15 @@ export function CDDChecklist({
     progressByAction.set(p.action_id, p);
   }
 
-  // Build most-recent Amiqus verification per action
-  const amiqusVerificationByAction = new Map<string, AmiqusVerification>();
-  for (const v of amiqusVerifications) {
-    const existing = amiqusVerificationByAction.get(v.action_id);
-    if (!existing || new Date(v.created_at) > new Date(existing.created_at)) {
-      amiqusVerificationByAction.set(v.action_id, v);
-    }
+  // Build all Amiqus verifications grouped by action (sorted oldest-first by created_at)
+  const amiqusVerificationsByAction = new Map<string, AmiqusVerification[]>();
+  const sorted = [...amiqusVerifications].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+  for (const v of sorted) {
+    const list = amiqusVerificationsByAction.get(v.action_id) || [];
+    list.push(v);
+    amiqusVerificationsByAction.set(v.action_id, list);
   }
 
   // ── Handler callbacks ──
@@ -351,7 +353,7 @@ export function CDDChecklist({
         lastCddVerifiedAt={lastCddVerifiedAt}
         riskLevel={riskLevel}
         matterDescription={matterDescription}
-        verification={amiqusVerificationByAction.get(action.actionId)}
+        verifications={amiqusVerificationsByAction.get(action.actionId) || []}
         clientAmiqus={clientAmiqus}
         priorSowData={priorSowData}
         syncRecords={syncRecords}
