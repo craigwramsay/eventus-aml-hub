@@ -338,13 +338,17 @@ export async function setBeneficialOwnerNames(
       .eq('source', BO_LIST_SOURCE)
       .maybeSingle();
 
-    // Detect post-finalisation amendments so they can be flagged in audit logs
+    // Reject changes to the BO list after the assessment is finalised —
+    // finalised assessments are locked. (For pre-feature assessments that
+    // need a one-off amendment, update the row directly in Supabase.)
     const { data: assessmentRow } = await supabase
       .from('assessments')
       .select('finalised_at')
       .eq('id', assessmentId)
       .single();
-    const postFinalisation = !!assessmentRow?.finalised_at;
+    if (assessmentRow?.finalised_at) {
+      return { success: false, error: 'Assessment is finalised and cannot be amended' };
+    }
 
     let auditAction: 'bo_list_set' | 'bo_list_updated' | 'bo_list_cleared' = 'bo_list_set';
 
@@ -380,9 +384,7 @@ export async function setBeneficialOwnerNames(
       auditAction = 'bo_list_set';
     }
 
-    // Audit log — captures who changed the BO list and whether the assessment
-    // was already finalised (post-finalisation amendments are documentary only,
-    // they don't alter risk decisions).
+    // Audit log
     await supabase.from('audit_events').insert({
       firm_id: profile.firm_id,
       entity_type: 'assessment_evidence',
@@ -392,7 +394,6 @@ export async function setBeneficialOwnerNames(
         assessment_id: assessmentId,
         action_id: BO_LIST_ACTION_ID,
         names: cleaned,
-        post_finalisation: postFinalisation,
       },
       created_by: user.id,
     });
