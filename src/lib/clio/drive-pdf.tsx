@@ -743,8 +743,12 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
           )}
         </View>
 
-        {/* ── SECTION 1: CDD Requirements (3-column table) ── */}
-        <View>
+        {/* ── SECTION 1: CDD Requirements (3-column table) ──
+            Forced onto a new page so page 1 acts as a clean cover sheet.
+            Trying to flow the table onto page 1 either leaves a large gap
+            (when wrap=false) or splits a single row at the bottom (when
+            wrap=true) — neither reads as well as a dedicated cover.        */}
+        <View break>
           <Text style={[s.sectionTitle, s.sectionTitleFirst]}>CDD Requirements</Text>
           <Text style={s.progressText}>
             {completedCount} of {totalCount} requirements completed
@@ -752,21 +756,17 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
 
           {(() => { let itemNum = 0; return Array.from(itemsByCategory.entries()).map(([category, items]) => (
             <View key={category}>
-              {/* Keep the category title and header row together with the first row
-                  to avoid an orphaned heading at the bottom of a page. */}
-              <View wrap={false} minPresenceAhead={80}>
-                <Text style={s.categoryTitle}>
-                  {CATEGORY_LABELS[category] || category}
-                </Text>
-                <View style={{ borderWidth: 0.5, borderBottomWidth: 0, borderColor: '#cbd5e1', borderTopLeftRadius: 3, borderTopRightRadius: 3 }}>
-                  <View style={s.cddHeaderRow}>
-                    <View style={[s.cddColRequirement, { backgroundColor: '#f1f5f9' }]}><Text style={s.cddHeaderText}>Requirement</Text></View>
-                    <View style={[s.cddColEvidence, { backgroundColor: '#f1f5f9' }]}><Text style={s.cddHeaderText}>Evidence / Response</Text></View>
-                    <View style={[s.cddColStatus, { backgroundColor: '#f1f5f9' }]}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
-                  </View>
+              <Text style={s.categoryTitle}>
+                {CATEGORY_LABELS[category] || category}
+              </Text>
+              <View style={{ borderWidth: 0.5, borderColor: '#cbd5e1', borderRadius: 3 }}>
+                {/* Column headers — kept with first row via wrap={false} on the
+                    title-block above + cross-page flow on individual rows below */}
+                <View wrap={false} style={s.cddHeaderRow}>
+                  <View style={[s.cddColRequirement, { backgroundColor: '#f1f5f9' }]}><Text style={s.cddHeaderText}>Requirement</Text></View>
+                  <View style={[s.cddColEvidence, { backgroundColor: '#f1f5f9' }]}><Text style={s.cddHeaderText}>Evidence / Response</Text></View>
+                  <View style={[s.cddColStatus, { backgroundColor: '#f1f5f9' }]}><Text style={[s.cddHeaderText, { textAlign: 'center' }]}>Status</Text></View>
                 </View>
-              </View>
-              <View style={{ borderLeftWidth: 0.5, borderRightWidth: 0.5, borderBottomWidth: 0.5, borderColor: '#cbd5e1', borderBottomLeftRadius: 3, borderBottomRightRadius: 3 }}>
               {items.map((item, idx) => {
                 itemNum++;
                 return (
