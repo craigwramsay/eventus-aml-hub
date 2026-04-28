@@ -3,7 +3,7 @@ import { getAssessmentWithDetails } from '@/app/actions/assessments';
 import { getEvidenceForAssessment, getLatestSowForClient } from '@/app/actions/evidence';
 import { getProgressForAssessment } from '@/app/actions/progress';
 import { getApprovalForAssessment } from '@/app/actions/approvals';
-import { getAmiqusVerifications, getClientLatestAmiqusVerification } from '@/app/actions/amiqus';
+import { getAmiqusVerifications, getClientLatestAmiqusVerification, backfillAmiqusClientIds } from '@/app/actions/amiqus';
 import { getClioDriveSyncForAssessment } from '@/app/actions/clio-drive';
 import { getUserProfile, createClient } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
@@ -57,6 +57,10 @@ function getRiskHeroClass(riskLevel: string): string {
 
 export default async function AssessmentViewPage({ params }: PageProps) {
   const { id } = await params;
+  // Backfill any missing Amiqus client_id / client_name values from the API
+  // before fetching, so the Hub displays which person each verification
+  // relates to. No-op when nothing needs backfilling.
+  await backfillAmiqusClientIds(id);
   const [result, evidenceResult, progressResult, approvalResult, amiqusResult, clioDriveSyncRecords] = await Promise.all([
     getAssessmentWithDetails(id),
     getEvidenceForAssessment(id),
