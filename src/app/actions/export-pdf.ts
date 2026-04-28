@@ -11,7 +11,7 @@ import type { CddItemSummary, CddEvidenceItem, DeclarationData, RiskFactorSummar
 import { getClioBaseUrl } from '@/lib/clio/client';
 import { parseCHReport, getDirectorNames } from '@/lib/clio/ch-report';
 import { isBeneficialOwnerListRow } from '@/lib/evidence/beneficial-owners';
-import { getAmiqusApiKey, getAmiqusRecordOrCase, AmiqusError } from '@/lib/amiqus';
+import { getAmiqusApiKey, getAmiqusRecordOrCase, getAmiqusClient, formatAmiqusClientName, AmiqusError } from '@/lib/amiqus';
 
 export async function exportAssessmentPdf(
   assessmentId: string
@@ -55,29 +55,47 @@ export async function exportAssessmentPdf(
     // Fetch evidence, Amiqus, and progress
     const [evidenceResult, amiqusResult, progressResult] = await Promise.all([
       supabase.from('assessment_evidence').select('action_id, evidence_type, source, label, verified_at, data, notes').eq('assessment_id', assessmentId),
-      supabase.from('amiqus_verifications').select('id, action_id, amiqus_record_id, amiqus_client_id, status, verified_at').eq('assessment_id', assessmentId).eq('status', 'complete'),
+      supabase.from('amiqus_verifications').select('id, action_id, amiqus_record_id, amiqus_client_id, amiqus_client_name, status, verified_at').eq('assessment_id', assessmentId).eq('status', 'complete'),
       supabase.from('cdd_item_progress').select('action_id, completed_at, completed_by').eq('assessment_id', assessmentId),
     ]);
 
-    // Auto-backfill missing amiqus_client_id values so "View in Amiqus" links
-    // resolve to the correct client page rather than the homepage. Older records
-    // (created before the client_id extraction fix) often have null client_id.
+    // Auto-backfill missing amiqus_client_id and amiqus_client_name so the PDF
+    // shows correct "View in Amiqus" URLs and identifies which person each
+    // verification relates to. Non-fatal if the API call fails.
     const apiKey = getAmiqusApiKey();
     if (apiKey && amiqusResult.data) {
-      const missingClientId = amiqusResult.data.filter(v => !v.amiqus_client_id && v.amiqus_record_id);
-      for (const row of missingClientId) {
+      const needsBackfill = amiqusResult.data.filter(v =>
+        v.amiqus_record_id && (!v.amiqus_client_id || !v.amiqus_client_name)
+      );
+      for (const row of needsBackfill) {
         try {
-          const result = await getAmiqusRecordOrCase(row.amiqus_record_id, apiKey);
-          if (result.data.client_id && result.data.client_id > 0) {
-            await supabase
-              .from('amiqus_verifications')
-              .update({ amiqus_client_id: result.data.client_id })
-              .eq('id', row.id);
-            // Mutate in-memory so the rendered PDF uses the right URL
-            row.amiqus_client_id = result.data.client_id;
+          // Fetch client_id if missing
+          if (!row.amiqus_client_id) {
+            const result = await getAmiqusRecordOrCase(row.amiqus_record_id, apiKey);
+            if (result.data.client_id && result.data.client_id > 0) {
+              row.amiqus_client_id = result.data.client_id;
+            }
+          }
+          // Fetch name if missing and we have a client_id
+          if (row.amiqus_client_id && !row.amiqus_client_name) {
+            try {
+              const client = await getAmiqusClient(row.amiqus_client_id, apiKey);
+              const formatted = formatAmiqusClientName(client);
+              if (formatted) row.amiqus_client_name = formatted;
+            } catch (err) {
+              if (!(err instanceof AmiqusError) || err.statusCode !== 404) {
+                console.error('Backfill name error:', err);
+              }
+            }
+          }
+          // Persist whatever we resolved
+          const update: { amiqus_client_id?: number; amiqus_client_name?: string } = {};
+          if (row.amiqus_client_id) update.amiqus_client_id = row.amiqus_client_id;
+          if (row.amiqus_client_name) update.amiqus_client_name = row.amiqus_client_name;
+          if (Object.keys(update).length > 0) {
+            await supabase.from('amiqus_verifications').update(update).eq('id', row.id);
           }
         } catch (err) {
-          // Non-fatal — link will fall back to homepage for this row
           if (!(err instanceof AmiqusError)) console.error('Backfill error:', err);
         }
       }
@@ -135,41 +153,57 @@ export async function exportAssessmentPdf(
     const parsedChReport = parseCHReport(latestChData);
     const directorNames = getDirectorNames(parsedChReport);
 
-    const amiqusByAction = new Map<string, { amiqus_record_id: number | null; amiqus_client_id: number | null; verified_at: string | null }>();
+    // Group all Amiqus verifications per action — corporate matters often have
+    // multiple verifications (one per director / beneficial owner) on the same item.
+    const amiqusByAction = new Map<string, Array<{ amiqus_record_id: number | null; amiqus_client_id: number | null; amiqus_client_name: string | null; verified_at: string | null }>>();
     for (const v of amiqusResult.data || []) {
-      if (v.action_id) amiqusByAction.set(v.action_id, v);
+      if (!v.action_id) continue;
+      const list = amiqusByAction.get(v.action_id) || [];
+      list.push(v);
+      amiqusByAction.set(v.action_id, list);
     }
 
     // Build CDD items with structured evidence
     const cddItems: CddItemSummary[] = (outputSnapshot.mandatoryActions || []).map((action) => {
       const completed = completedActions.has(action.actionId);
       const actionEvidence = evidenceByAction.get(action.actionId) || [];
-      const amiqus = amiqusByAction.get(action.actionId);
+      const amiqusList = amiqusByAction.get(action.actionId) || [];
       const progress = progressByAction.get(action.actionId);
 
       const evidenceItems: CddEvidenceItem[] = [];
       let amiqusUrl: string | null = null;
 
-      if (amiqus?.amiqus_record_id) {
-        const hasCarryForward = actionEvidence.some(ev => ev.label === 'Prior identity verification confirmed still valid');
-        const carryForwardEvidence = actionEvidence.find(ev => ev.label === 'Prior identity verification confirmed still valid');
-        amiqusUrl = amiqus.amiqus_client_id ? `https://id.amiqus.co/clients/${amiqus.amiqus_client_id}` : 'https://id.amiqus.co/';
-        let label = 'Identity verified electronically';
-        if (hasCarryForward) {
+      // Render one evidence line per Amiqus verification, prefixed with the
+      // verified person's name when known.
+      const hasCarryForward = actionEvidence.some(ev => ev.label === 'Prior identity verification confirmed still valid');
+      const carryForwardEvidence = actionEvidence.find(ev => ev.label === 'Prior identity verification confirmed still valid');
+      for (const amiqus of amiqusList) {
+        if (!amiqus.amiqus_record_id) continue;
+        const url = amiqus.amiqus_client_id ? `https://id.amiqus.co/clients/${amiqus.amiqus_client_id}` : 'https://id.amiqus.co/';
+        if (!amiqusUrl) amiqusUrl = url;
+        const namePrefix = amiqus.amiqus_client_name ? `${amiqus.amiqus_client_name} — ` : '';
+        const showCarryForwardWording = hasCarryForward && amiqusList.length === 1;
+        let label: string;
+        if (showCarryForwardWording) {
           const verifiedDate = amiqus.verified_at ? fmtDate(amiqus.verified_at) : 'unknown';
           const confirmedDate = carryForwardEvidence?.verified_at ? fmtDate(carryForwardEvidence.verified_at) : null;
-          label = `Identity verified electronically — existing Amiqus verification dated ${verifiedDate} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`;
+          label = `${namePrefix}Identity verified electronically — existing Amiqus verification dated ${verifiedDate} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`;
+        } else {
+          label = `${namePrefix}Identity verified electronically${amiqus.amiqus_record_id ? ` (case ${amiqus.amiqus_record_id})` : ''}`;
         }
         evidenceItems.push({
-          type: 'amiqus', label,
-          date: !hasCarryForward && amiqus.verified_at ? `Verified ${fmtDate(amiqus.verified_at)}` : undefined,
-          url: amiqusUrl,
+          type: 'amiqus',
+          label,
+          date: !showCarryForwardWording && amiqus.verified_at ? `Verified ${fmtDate(amiqus.verified_at)}` : undefined,
+          url,
         });
       }
 
+      const hasAmiqus = amiqusList.length > 0;
       for (const ev of actionEvidence) {
-        if (amiqus && ev.label === 'Prior identity verification confirmed still valid') continue;
+        if (hasAmiqus && ev.label === 'Prior identity verification confirmed still valid') continue;
         if (isBeneficialOwnerListRow(ev)) continue; // BO list is rendered under requirement, not as evidence
+        if (ev.evidence_type === 'amiqus') continue; // already represented above
         const evType = ev.evidence_type === 'file_upload' ? 'file' as const
           : ev.evidence_type === 'companies_house' ? 'ch' as const
           : (ev.evidence_type === 'sow_declaration' || ev.evidence_type === 'sof_declaration') ? 'declaration' as const

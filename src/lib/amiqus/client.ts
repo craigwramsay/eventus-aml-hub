@@ -101,6 +101,26 @@ export async function createAmiqusRecord(
 }
 
 /**
+ * Get a client from Amiqus by ID. Returns the full client record including name.
+ */
+export async function getAmiqusClient(
+  clientId: number,
+  apiKey: string
+): Promise<AmiqusClient> {
+  return amiqusFetch<AmiqusClient>(`/clients/${clientId}`, apiKey);
+}
+
+/**
+ * Format an Amiqus client name as a single string ("Alice Smith").
+ * Trims and skips empty parts.
+ */
+export function formatAmiqusClientName(client: AmiqusClient): string {
+  const first = (client.name?.first || '').trim();
+  const last = (client.name?.last || '').trim();
+  return [first, last].filter(Boolean).join(' ');
+}
+
+/**
  * Get a verification record from Amiqus by ID.
  */
 export async function getAmiqusRecord(

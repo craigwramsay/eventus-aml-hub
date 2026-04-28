@@ -18,6 +18,8 @@ import {
   createAmiqusClient,
   createAmiqusRecord,
   getAmiqusRecordOrCase,
+  getAmiqusClient,
+  formatAmiqusClientName,
   AmiqusError,
 } from '@/lib/amiqus';
 
@@ -145,6 +147,7 @@ export async function initiateAmiqusVerification(
     }
 
     // Store verification record in our DB
+    const formattedName = clientName.trim() || `${firstName} ${lastName}`.trim();
     const { data: verification, error: insertErr } = await supabase
       .from('amiqus_verifications')
       .insert({
@@ -153,6 +156,7 @@ export async function initiateAmiqusVerification(
         action_id: actionId,
         amiqus_record_id: amiqusRecord.id,
         amiqus_client_id: amiqusClient.id,
+        amiqus_client_name: formattedName || null,
         status: 'pending',
         perform_url: amiqusRecord.perform_url,
         created_by: user.id,
@@ -400,6 +404,19 @@ export async function linkExistingAmiqusRecord(
       }
     }
 
+    // Fetch the client name from Amiqus so the Hub UI / PDF can identify
+    // which person each verification relates to. Non-fatal if it fails.
+    let amiqusClientName: string | null = null;
+    if (amiqusData.client_id && amiqusData.client_id > 0) {
+      try {
+        const client = await getAmiqusClient(amiqusData.client_id, apiKey);
+        const formatted = formatAmiqusClientName(client);
+        if (formatted) amiqusClientName = formatted;
+      } catch (err) {
+        console.error('Failed to fetch Amiqus client name (non-fatal):', err);
+      }
+    }
+
     // Insert amiqus_verifications row
     const { data: verification, error: insertErr } = await supabase
       .from('amiqus_verifications')
@@ -409,6 +426,7 @@ export async function linkExistingAmiqusRecord(
         action_id: actionId,
         amiqus_record_id: amiqusRecordId,
         amiqus_client_id: amiqusData.client_id || null,
+        amiqus_client_name: amiqusClientName,
         status: 'complete',
         verified_at: verifiedAt,
         created_by: user.id,
@@ -530,14 +548,16 @@ export async function linkExistingAmiqusRecord(
 }
 
 /**
- * Backfill missing `amiqus_client_id` values on existing amiqus_verifications rows.
+ * Backfill missing `amiqus_client_id` AND `amiqus_client_name` values on
+ * existing amiqus_verifications rows.
  *
- * Older records (created before the client_id extraction fix) may have null
- * `amiqus_client_id`, which causes "View in Amiqus" links to fall back to the
- * homepage. This action looks each up via the Amiqus API and updates the row.
+ * Older records may have null client_id (causing "View in Amiqus" links to
+ * fall back to the homepage) or null client_name (preventing the UI from
+ * identifying which director/BO each verification relates to). This action
+ * looks each row up via the Amiqus API and updates whichever fields are
+ * missing.
  *
- * Scoped to a single assessment to keep the work bounded; can be run from any
- * assessment page via the export PDF flow if links look wrong.
+ * Scoped to a single assessment to keep the work bounded.
  */
 export type BackfillResult =
   | { success: true; updated: number; total: number; failures: string[] }
@@ -555,12 +575,12 @@ export async function backfillAmiqusClientIds(assessmentId: string): Promise<Bac
       return { success: false, error: 'Amiqus integration is not configured' };
     }
 
-    // Find verifications on this assessment that are missing client_id
+    // Find verifications missing either client_id or client_name
     const { data: rows, error: queryErr } = await supabase
       .from('amiqus_verifications')
-      .select('id, amiqus_record_id')
+      .select('id, amiqus_record_id, amiqus_client_id, amiqus_client_name')
       .eq('assessment_id', assessmentId)
-      .is('amiqus_client_id', null);
+      .or('amiqus_client_id.is.null,amiqus_client_name.is.null');
 
     if (queryErr) {
       return { success: false, error: queryErr.message };
@@ -576,19 +596,49 @@ export async function backfillAmiqusClientIds(assessmentId: string): Promise<Bac
 
     for (const row of rows || []) {
       try {
-        const result = await getAmiqusRecordOrCase(row.amiqus_record_id, apiKey);
-        if (result.data.client_id && result.data.client_id > 0) {
-          const { error: updateErr } = await supabase
-            .from('amiqus_verifications')
-            .update({ amiqus_client_id: result.data.client_id })
-            .eq('id', row.id);
-          if (updateErr) {
-            failures.push(`Record ${row.amiqus_record_id}: ${updateErr.message}`);
-          } else {
-            updated++;
+        // Resolve client_id (use existing if present, otherwise look it up)
+        let clientId: number | null = row.amiqus_client_id;
+        if (!clientId && row.amiqus_record_id) {
+          const result = await getAmiqusRecordOrCase(row.amiqus_record_id, apiKey);
+          if (result.data.client_id && result.data.client_id > 0) {
+            clientId = result.data.client_id;
           }
+        }
+
+        // Fetch client name when we have a client_id and it's missing
+        let clientName: string | null = row.amiqus_client_name;
+        if (clientId && !clientName) {
+          try {
+            const client = await getAmiqusClient(clientId, apiKey);
+            const formatted = formatAmiqusClientName(client);
+            if (formatted) clientName = formatted;
+          } catch (err) {
+            // Don't fail the whole row — client_id is more important than name
+            if (!(err instanceof AmiqusError) || err.statusCode !== 404) {
+              console.error(`Failed to fetch Amiqus client ${clientId}:`, err);
+            }
+          }
+        }
+
+        // Build update payload — only include fields that changed
+        const update: { amiqus_client_id?: number; amiqus_client_name?: string } = {};
+        if (clientId && clientId !== row.amiqus_client_id) update.amiqus_client_id = clientId;
+        if (clientName && clientName !== row.amiqus_client_name) update.amiqus_client_name = clientName;
+
+        if (Object.keys(update).length === 0) {
+          // Nothing fetched — count as a failure for visibility
+          failures.push(`Record ${row.amiqus_record_id}: no client info returned by Amiqus`);
+          continue;
+        }
+
+        const { error: updateErr } = await supabase
+          .from('amiqus_verifications')
+          .update(update)
+          .eq('id', row.id);
+        if (updateErr) {
+          failures.push(`Record ${row.amiqus_record_id}: ${updateErr.message}`);
         } else {
-          failures.push(`Record ${row.amiqus_record_id}: no client_id returned by Amiqus`);
+          updated++;
         }
       } catch (err) {
         const msg = err instanceof AmiqusError ? err.message : err instanceof Error ? err.message : 'Unknown error';
