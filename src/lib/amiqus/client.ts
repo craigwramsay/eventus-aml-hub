@@ -193,13 +193,30 @@ export async function getAmiqusRecordOrCase(
 
 /**
  * List webhooks registered with Amiqus.
- * Returns an array (may be empty). Used as a lightweight read-only ping
- * for diagnostic purposes — succeeds if the API key is valid.
+ * The API may return either a bare array or a wrapper like `{ data: [...] }`,
+ * so we coerce both shapes. Used as a lightweight ping in the diagnostic.
  */
 export async function listAmiqusWebhooks(
   apiKey: string
 ): Promise<AmiqusWebhookResponse[]> {
-  return amiqusFetch<AmiqusWebhookResponse[]>('/webhooks', apiKey);
+  const raw = await amiqusFetch<unknown>('/webhooks', apiKey);
+  if (Array.isArray(raw)) return raw as AmiqusWebhookResponse[];
+  if (raw && typeof raw === 'object' && Array.isArray((raw as { data?: unknown }).data)) {
+    return (raw as { data: AmiqusWebhookResponse[] }).data;
+  }
+  return [];
+}
+
+/**
+ * Generic GET against the Amiqus API returning the raw parsed JSON.
+ * Used by diagnostic tooling to inspect the actual response shape when
+ * the typed helpers can't extract the expected fields.
+ */
+export async function getAmiqusRaw(
+  path: string,
+  apiKey: string
+): Promise<unknown> {
+  return amiqusFetch<unknown>(path, apiKey);
 }
 
 /**
