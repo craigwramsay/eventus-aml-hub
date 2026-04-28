@@ -192,6 +192,17 @@ export async function getAmiqusRecordOrCase(
 }
 
 /**
+ * List webhooks registered with Amiqus.
+ * Returns an array (may be empty). Used as a lightweight read-only ping
+ * for diagnostic purposes — succeeds if the API key is valid.
+ */
+export async function listAmiqusWebhooks(
+  apiKey: string
+): Promise<AmiqusWebhookResponse[]> {
+  return amiqusFetch<AmiqusWebhookResponse[]>('/webhooks', apiKey);
+}
+
+/**
  * Register a webhook with Amiqus.
  * Returns the webhook including the shared secret.
  */
