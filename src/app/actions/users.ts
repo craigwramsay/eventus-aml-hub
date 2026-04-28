@@ -118,6 +118,18 @@ export async function inviteUser(input: InviteUserInput): Promise<InviteUserResu
       return { success: false, error: signUpErr.message };
     }
 
+    // Detect Supabase's silent duplicate-email response. As an anti-enumeration
+    // measure, Supabase returns success but with `identities: []` when the
+    // email is already registered — and crucially, no invitation email is
+    // sent. Without this check the UI would falsely report success.
+    const identities = signUpData?.user?.identities;
+    if (!identities || identities.length === 0) {
+      return {
+        success: false,
+        error: 'A user with this email address already exists. Ask them to sign in at the Hub, or trigger a password reset if they need help recovering access.',
+      };
+    }
+
     // Note: user_profiles row is created during invite acceptance (/invite/accept)
     // when the new user is authenticated as themselves (RLS allows self-insert).
     // The firm_id, role, and full_name are stored in auth user metadata above.
