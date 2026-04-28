@@ -77,17 +77,23 @@ export function BeneficialOwnersEditor({
   };
 
   // ── Read-only display ──
-  // The BO list is documentary metadata (who needed to be verified) rather than
-  // a risk decision — so it can be amended even after finalisation. Amendments
-  // are audit-logged with a `post_finalisation: true` flag.
+  // Finalised assessments are locked — the BO list is captured during the
+  // assessment flow before finalisation. (Pre-feature assessments require a
+  // one-off DB amendment.)
   if (!isEditing) {
     if (names.length === 0) {
       return (
         <div className={styles.boEditorEmpty}>
-          <span className={styles.boEditorEmptyText}>No beneficial owners listed yet.</span>
-          <button type="button" className={styles.boEditorAddButton} onClick={startEdit}>
-            Add beneficial owners
-          </button>
+          {isFinalised ? (
+            <span className={styles.boEditorEmptyText}>No beneficial owners recorded.</span>
+          ) : (
+            <>
+              <span className={styles.boEditorEmptyText}>No beneficial owners listed yet.</span>
+              <button type="button" className={styles.boEditorAddButton} onClick={startEdit}>
+                Add beneficial owners
+              </button>
+            </>
+          )}
         </div>
       );
     }
@@ -101,9 +107,11 @@ export function BeneficialOwnersEditor({
             <li key={i} className={styles.personListItem}>{name}</li>
           ))}
         </ul>
-        <button type="button" className={styles.boEditorEditButton} onClick={startEdit}>
-          {isFinalised ? 'Amend list' : 'Edit list'}
-        </button>
+        {!isFinalised && (
+          <button type="button" className={styles.boEditorEditButton} onClick={startEdit}>
+            Edit list
+          </button>
+        )}
       </div>
     );
   }
