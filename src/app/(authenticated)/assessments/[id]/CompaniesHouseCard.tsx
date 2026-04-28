@@ -95,7 +95,9 @@ function formatAddress(addr?: NonNullable<CHData['profile']>['registered_office_
 }
 
 export function CompaniesHouseCard({ evidence }: CompaniesHouseCardProps) {
-  const [expanded, setExpanded] = useState(false);
+  // Default to expanded — the CH report contents (officers, PSCs, etc.) are
+  // the substantive content that users want visible without needing to click.
+  const [expanded, setExpanded] = useState(true);
   const data = evidence.data as unknown as CHData | null;
 
   if (!data?.profile) {

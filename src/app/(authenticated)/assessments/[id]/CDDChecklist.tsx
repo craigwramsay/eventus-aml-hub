@@ -65,6 +65,10 @@ interface CDDChecklistProps {
   syncRecords?: ClioDriveSync[];
   userNames?: Record<string, string>;
   clientAmiqus?: { amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null;
+  /** Director names from latest Companies House lookup (for "Identify and verify all directors") */
+  directorNames?: string[];
+  /** Manually-entered beneficial owner names (for "Identify and verify all beneficial owners") */
+  beneficialOwnerNames?: string[];
 }
 
 export function CDDChecklist({
@@ -90,6 +94,8 @@ export function CDDChecklist({
   syncRecords = [],
   userNames = {},
   clientAmiqus,
+  directorNames = [],
+  beneficialOwnerNames = [],
 }: CDDChecklistProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -334,11 +340,24 @@ export function CDDChecklist({
     const isApproval = action.actionId === 'senior_management_approval' || action.actionId === 'mlro_approval';
     const approvalDone = isApproval && approvalStatus?.status === 'approved';
 
+    // Person list for items that enumerate directors / beneficial owners to verify.
+    // Directors come from Companies House; beneficial owners are entered manually.
+    let personList: string[] | null = null;
+    let isBeneficialOwnerList = false;
+    if (action.actionId === 'identify_and_verify_directors' && directorNames.length > 0) {
+      personList = directorNames;
+    } else if (action.actionId === 'identify_and_verify_beneficial_owners') {
+      personList = beneficialOwnerNames.length > 0 ? beneficialOwnerNames : null;
+      isBeneficialOwnerList = true;
+    }
+
     return (
       <CDDChecklistItem
         key={action.actionId}
         action={action}
         num={num}
+        personList={personList}
+        isBeneficialOwnerList={isBeneficialOwnerList}
         assessmentId={assessmentId}
         isCompleted={optimisticCompleted.has(action.actionId)}
         approvalCompleted={approvalDone}

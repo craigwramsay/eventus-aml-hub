@@ -5,6 +5,7 @@ import type { MandatoryAction } from '@/lib/rules-engine/types';
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
 import { EvidencePanel } from './EvidencePanel';
 import { ItemActionBar } from './ItemActionBar';
+import { BeneficialOwnersEditor } from './BeneficialOwnersEditor';
 import styles from './page.module.css';
 
 /** Check if an action should show a CH lookup button */
@@ -138,6 +139,10 @@ function renderVerificationNote(note: string): React.ReactNode {
 interface CDDChecklistItemProps {
   action: MandatoryAction;
   num: number;
+  /** Optional list of related person names (e.g. directors, beneficial owners) to display under the requirement */
+  personList?: string[] | null;
+  /** True if this is the BO list — enables the inline editor */
+  isBeneficialOwnerList?: boolean;
   assessmentId: string;
   isCompleted: boolean;
   approvalCompleted: boolean;
@@ -196,6 +201,8 @@ interface CDDChecklistItemProps {
 export function CDDChecklistItem({
   action,
   num,
+  personList,
+  isBeneficialOwnerList,
   assessmentId,
   isCompleted,
   approvalCompleted,
@@ -269,9 +276,29 @@ export function CDDChecklistItem({
       {/* ── ZONE 1: WHAT — the requirement ── */}
       <div className={styles.itemRequirement}>
         <span className={styles.cddItemNumber}>{num}.</span>
-        <span className={styles.cddItemText}>
-          {action.displayText || action.description}
-        </span>
+        <div className={styles.cddItemTextWrap}>
+          <span className={styles.cddItemText}>
+            {action.displayText || action.description}
+          </span>
+          {isBeneficialOwnerList ? (
+            <BeneficialOwnersEditor
+              assessmentId={assessmentId}
+              names={personList || []}
+              isFinalised={isFinalised}
+            />
+          ) : personList && personList.length > 0 ? (
+            <div className={styles.personList}>
+              <div className={styles.personListLabel}>
+                {personList.length === 1 ? 'Person' : `${personList.length} persons`}
+              </div>
+              <ul className={styles.personListItems}>
+                {personList.map((name, i) => (
+                  <li key={i} className={styles.personListItem}>{name}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* ── ZONE 2: HOW — what satisfied it ── */}

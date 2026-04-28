@@ -528,3 +528,77 @@ export async function linkExistingAmiqusRecord(
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
+
+/**
+ * Backfill missing `amiqus_client_id` values on existing amiqus_verifications rows.
+ *
+ * Older records (created before the client_id extraction fix) may have null
+ * `amiqus_client_id`, which causes "View in Amiqus" links to fall back to the
+ * homepage. This action looks each up via the Amiqus API and updates the row.
+ *
+ * Scoped to a single assessment to keep the work bounded; can be run from any
+ * assessment page via the export PDF flow if links look wrong.
+ */
+export type BackfillResult =
+  | { success: true; updated: number; total: number; failures: string[] }
+  | { success: false; error: string };
+
+export async function backfillAmiqusClientIds(assessmentId: string): Promise<BackfillResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    const apiKey = getAmiqusApiKey();
+    if (!apiKey) {
+      return { success: false, error: 'Amiqus integration is not configured' };
+    }
+
+    // Find verifications on this assessment that are missing client_id
+    const { data: rows, error: queryErr } = await supabase
+      .from('amiqus_verifications')
+      .select('id, amiqus_record_id')
+      .eq('assessment_id', assessmentId)
+      .is('amiqus_client_id', null);
+
+    if (queryErr) {
+      return { success: false, error: queryErr.message };
+    }
+
+    const total = rows?.length || 0;
+    if (total === 0) {
+      return { success: true, updated: 0, total: 0, failures: [] };
+    }
+
+    let updated = 0;
+    const failures: string[] = [];
+
+    for (const row of rows || []) {
+      try {
+        const result = await getAmiqusRecordOrCase(row.amiqus_record_id, apiKey);
+        if (result.data.client_id && result.data.client_id > 0) {
+          const { error: updateErr } = await supabase
+            .from('amiqus_verifications')
+            .update({ amiqus_client_id: result.data.client_id })
+            .eq('id', row.id);
+          if (updateErr) {
+            failures.push(`Record ${row.amiqus_record_id}: ${updateErr.message}`);
+          } else {
+            updated++;
+          }
+        } else {
+          failures.push(`Record ${row.amiqus_record_id}: no client_id returned by Amiqus`);
+        }
+      } catch (err) {
+        const msg = err instanceof AmiqusError ? err.message : err instanceof Error ? err.message : 'Unknown error';
+        failures.push(`Record ${row.amiqus_record_id}: ${msg}`);
+      }
+    }
+
+    return { success: true, updated, total, failures };
+  } catch (err) {
+    console.error('Error in backfillAmiqusClientIds:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
