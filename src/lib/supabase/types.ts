@@ -100,8 +100,11 @@ export interface UserInvitation {
   id: string;
   firm_id: string;
   email: string;
+  full_name: string | null;
   role: UserRole;
   invited_by: string;
+  invite_token: string;
+  invite_token_expires_at: string;
   accepted_at: string | null;
   created_at: string;
 }

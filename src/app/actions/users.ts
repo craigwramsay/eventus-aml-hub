@@ -11,6 +11,18 @@ import type { UserProfile, UserInvitation } from '@/lib/supabase/types';
 import { canManageUsers, ASSIGNABLE_ROLES } from '@/lib/auth/roles';
 import type { UserRole, AssignableRole } from '@/lib/auth/roles';
 import { buildHubUrl } from '@/lib/url';
+import { sendInvitationEmail } from '@/lib/email/resend';
+
+const INVITE_TOKEN_TTL_DAYS = 7;
+
+/** Generate a 64-character URL-safe random token. */
+function generateInviteToken(): string {
+  return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+}
+
+function inviteExpiry(): Date {
+  return new Date(Date.now() + INVITE_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
+}
 
 async function getUserAndProfile() {
   const supabase = await createClient();
@@ -26,7 +38,7 @@ async function getUserAndProfile() {
 
   const { data: profile, error: profileErr } = await supabase
     .from('user_profiles')
-    .select('user_id, firm_id, role')
+    .select('user_id, firm_id, role, full_name')
     .eq('user_id', user.id)
     .single();
 
@@ -100,68 +112,64 @@ export async function inviteUser(input: InviteUserInput): Promise<InviteUserResu
       return { success: false, error: 'An invitation is already pending for this email' };
     }
 
-    // Create the auth user via signUp with a random password.
-    // Supabase will send the confirmation/invite email automatically.
-    // The user will set their real password via /invite/accept after clicking the link.
-    const tempPassword = crypto.randomUUID() + '!Aa1';
-    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-      email,
-      password: tempPassword,
-      options: {
-        data: { full_name, role, firm_id: profile.firm_id },
-        emailRedirectTo: buildHubUrl('/auth/callback?type=invite'),
-      },
-    });
+    // Generate the invitation token and persist the row. We DO NOT call
+    // Supabase signUp here — instead, the auth.users row is created when
+    // the recipient submits their password on the /invite/[token] page.
+    // This avoids Microsoft 365 Safe Links / similar pre-fetchers from
+    // consuming Supabase's one-time-code email confirmation links.
+    const inviteToken = generateInviteToken();
+    const expiresAt = inviteExpiry();
 
-    if (signUpErr) {
-      console.error('Failed to create auth user:', signUpErr);
-      return { success: false, error: signUpErr.message };
-    }
-
-    // Detect Supabase's silent duplicate-email response. As an anti-enumeration
-    // measure, Supabase returns success but with `identities: []` when the
-    // email is already registered — and crucially, no invitation email is
-    // sent. Without this check the UI would falsely report success.
-    const identities = signUpData?.user?.identities;
-    if (!identities || identities.length === 0) {
-      return {
-        success: false,
-        error: 'A user with this email address already exists. Ask them to sign in at the Hub, or trigger a password reset if they need help recovering access.',
-      };
-    }
-
-    // Note: user_profiles row is created during invite acceptance (/invite/accept)
-    // when the new user is authenticated as themselves (RLS allows self-insert).
-    // The firm_id, role, and full_name are stored in auth user metadata above.
-
-    // Create invitation record
-    const { data, error: insertErr } = await supabase
+    const { data: invitationRow, error: insertErr } = await supabase
       .from('user_invitations')
       .insert({
         firm_id: profile.firm_id,
         email,
+        full_name,
         role,
         invited_by: user.id,
+        invite_token: inviteToken,
+        invite_token_expires_at: expiresAt.toISOString(),
       })
       .select()
       .single();
 
-    if (insertErr || !data) {
+    if (insertErr || !invitationRow) {
       console.error('Failed to create invitation:', insertErr);
       return { success: false, error: 'Failed to create invitation' };
+    }
+
+    // Send the email. If this fails, surface the error and keep the row
+    // in the DB so the admin can retry via "Resend" rather than having to
+    // re-enter the email and role.
+    try {
+      await sendInvitationEmail({
+        to: email,
+        recipientName: full_name,
+        inviteUrl: buildHubUrl(`/invite/${inviteToken}`),
+        invitedByName: profile.full_name || null,
+        expiresAt,
+      });
+    } catch (emailErr) {
+      console.error('Failed to send invitation email:', emailErr);
+      const message = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
+      return {
+        success: false,
+        error: `Invitation created but email delivery failed (${message}). Click "Resend" to retry.`,
+      };
     }
 
     // Audit log
     await supabase.from('audit_events').insert({
       firm_id: profile.firm_id,
       entity_type: 'user_invitation',
-      entity_id: data.id,
+      entity_id: invitationRow.id,
       action: 'user_invited',
       metadata: { email, role, full_name },
       created_by: user.id,
     });
 
-    return { success: true, invitation: data as UserInvitation };
+    return { success: true, invitation: invitationRow as UserInvitation };
   } catch (error) {
     console.error('Error in inviteUser:', error);
     return {
@@ -288,7 +296,10 @@ export type ResendInviteResult =
   | { success: false; error: string };
 
 /**
- * Resend an invitation email (admin-only)
+ * Resend an invitation email (admin-only).
+ *
+ * Regenerates the invite_token (so any leaked-but-unused old token
+ * stops working) and pushes the expiry out by another TTL.
  */
 export async function resendInvite(invitationId: string): Promise<ResendInviteResult> {
   try {
@@ -314,14 +325,35 @@ export async function resendInvite(invitationId: string): Promise<ResendInviteRe
       return { success: false, error: 'Invitation not found or already accepted' };
     }
 
-    const { error: resendErr } = await supabase.auth.resend({
-      type: 'signup',
-      email: invitation.email,
-    });
+    // Regenerate token + extend expiry
+    const newToken = generateInviteToken();
+    const newExpiry = inviteExpiry();
 
-    if (resendErr) {
-      console.error('Failed to resend invite:', resendErr);
-      return { success: false, error: resendErr.message };
+    const { error: updateErr } = await supabase
+      .from('user_invitations')
+      .update({
+        invite_token: newToken,
+        invite_token_expires_at: newExpiry.toISOString(),
+      })
+      .eq('id', invitationId);
+
+    if (updateErr) {
+      console.error('Failed to update invitation token:', updateErr);
+      return { success: false, error: 'Failed to refresh invitation token' };
+    }
+
+    try {
+      await sendInvitationEmail({
+        to: invitation.email,
+        recipientName: invitation.full_name,
+        inviteUrl: buildHubUrl(`/invite/${newToken}`),
+        invitedByName: profile.full_name || null,
+        expiresAt: newExpiry,
+      });
+    } catch (emailErr) {
+      console.error('Failed to resend invitation email:', emailErr);
+      const message = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
+      return { success: false, error: `Email delivery failed: ${message}` };
     }
 
     // Audit log
@@ -578,6 +610,118 @@ export async function deleteFirmUser(userId: string): Promise<DeleteUserResult> 
     return { success: true };
   } catch (error) {
     console.error('Error in deleteFirmUser:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
+// ────────────────────────────────────────────────────────
+// Invitation acceptance flow (token-based)
+// ────────────────────────────────────────────────────────
+
+export interface AcceptInvitationInput {
+  token: string;
+  password: string;
+}
+
+export type AcceptInvitationResult =
+  | { success: true; email: string }
+  | { success: false; error: string };
+
+/**
+ * Validate an invitation token and create the user account.
+ *
+ * Called from the public /invite/[token] page after the recipient
+ * enters their password. Uses the get_invitation_by_token RPC for the
+ * read (token IS the access control), then calls supabase.auth.signUp
+ * with the user's chosen password to create the auth.users row, then
+ * accept_invitation_finalise RPC to insert the user_profile and mark
+ * the invitation accepted atomically.
+ *
+ * Requires "Confirm email" to be DISABLED in the Supabase Auth project
+ * settings — otherwise signUp would trigger a redundant confirmation
+ * email. The token is itself proof of email ownership.
+ */
+export async function acceptInvitation(
+  input: AcceptInvitationInput
+): Promise<AcceptInvitationResult> {
+  try {
+    const { token, password } = input;
+
+    if (!token || !password) {
+      return { success: false, error: 'Token and password are required' };
+    }
+
+    if (password.length < 12) {
+      return { success: false, error: 'Password must be at least 12 characters' };
+    }
+
+    // Use a fresh client (caller is unauthenticated at this point)
+    const supabase = await createClient();
+
+    // Look up the invitation via the public SECURITY DEFINER RPC
+    const { data: invitations, error: lookupErr } = await supabase.rpc(
+      'get_invitation_by_token',
+      { target_token: token }
+    );
+
+    if (lookupErr) {
+      console.error('Invitation lookup failed:', lookupErr);
+      return { success: false, error: 'Failed to validate invitation' };
+    }
+
+    const invitation = Array.isArray(invitations) ? invitations[0] : null;
+    if (!invitation) {
+      return { success: false, error: 'Invitation not found or invalid' };
+    }
+    if (invitation.accepted_at) {
+      return { success: false, error: 'Invitation has already been accepted' };
+    }
+    if (new Date(invitation.expires_at) < new Date()) {
+      return { success: false, error: 'Invitation has expired — ask your administrator to resend' };
+    }
+
+    // Create the auth.users row. With "Confirm email" disabled in
+    // Supabase, signUp auto-confirms and returns a session immediately.
+    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+      email: invitation.email,
+      password,
+    });
+
+    if (signUpErr) {
+      console.error('signUp failed during invitation acceptance:', signUpErr);
+      return { success: false, error: signUpErr.message };
+    }
+
+    const newUserId = signUpData?.user?.id;
+    if (!newUserId) {
+      // Identity-empty response indicates a duplicate email — should be
+      // rare since we checked at invite time, but guard anyway.
+      return {
+        success: false,
+        error: 'Could not create account. The email may already be in use — contact your administrator.',
+      };
+    }
+
+    // Finalise: validate token + insert profile + mark accepted (atomic)
+    const { error: finaliseErr } = await supabase.rpc('accept_invitation_finalise', {
+      target_token: token,
+      target_user_id: newUserId,
+    });
+
+    if (finaliseErr) {
+      console.error('accept_invitation_finalise failed:', finaliseErr);
+      return {
+        success: false,
+        error: finaliseErr.message || 'Failed to finalise invitation acceptance',
+      };
+    }
+
+    return { success: true, email: invitation.email };
+  } catch (error) {
+    console.error('Error in acceptInvitation:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
