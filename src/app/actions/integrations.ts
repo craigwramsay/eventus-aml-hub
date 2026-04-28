@@ -18,8 +18,6 @@ import {
   deleteAmiqusWebhook,
   listAmiqusWebhooks,
   getAmiqusRaw,
-  getAmiqusClient,
-  formatAmiqusClientName,
   AmiqusError,
 } from '@/lib/amiqus';
 
@@ -441,10 +439,12 @@ export interface TestAmiqusConnectionResult {
         type: 'record' | 'case';
         clientId: number;
         clientName: string | null;
-        /** Top-level keys of the raw response — surfaced so we can find the client_id field if extraction failed */
+        /** Top-level keys of the raw record/case response */
         responseKeys?: string[];
-        /** A short JSON dump of the raw response (truncated) — handy for diagnosing unknown shapes */
+        /** Truncated JSON dump of the raw record/case response */
         rawSnippet?: string;
+        /** Raw client response (when client_id was found) */
+        clientResponse?: { keys: string[]; rawSnippet: string } | { error: string; statusCode?: number };
       }
     | { ok: false; error: string; statusCode?: number };
 }
@@ -556,19 +556,44 @@ export async function testAmiqusConnection(
       }
 
       let clientName: string | null = null;
+      type ClientResponseShape = NonNullable<
+        Extract<TestAmiqusConnectionResult['recordTest'], { ok: true }>['clientResponse']
+      >;
+      let clientResponse: ClientResponseShape | undefined;
+
       if (clientId > 0) {
-        try {
-          const client = await getAmiqusClient(clientId, apiKey);
-          clientName = formatAmiqusClientName(client) || null;
-        } catch (err) {
-          const statusCode = err instanceof AmiqusError ? err.statusCode : undefined;
-          const message = err instanceof Error ? err.message : 'Unknown error';
-          result.recordTest = {
-            ok: false,
-            error: `Found ${type} (client_id from ${foundVia}) but client lookup failed: ${message}`,
-            statusCode,
+        const clientFetch = await tryFetchRaw(`/clients/${clientId}`);
+        if ('raw' in clientFetch) {
+          const clientObj = (clientFetch.raw && typeof clientFetch.raw === 'object')
+            ? clientFetch.raw as Record<string, unknown>
+            : {};
+          clientResponse = {
+            keys: Object.keys(clientObj),
+            rawSnippet: JSON.stringify(clientFetch.raw, null, 2).slice(0, 800),
           };
-          return { success: true, result };
+          // Try multiple name shapes — first/last object, full string, first_name/last_name
+          const nameField = clientObj.name;
+          const fullName = clientObj.full_name;
+          const firstName = clientObj.first_name;
+          const lastName = clientObj.last_name;
+          if (typeof nameField === 'string' && nameField.trim()) {
+            clientName = nameField.trim();
+          } else if (typeof fullName === 'string' && fullName.trim()) {
+            clientName = fullName.trim();
+          } else if (nameField && typeof nameField === 'object') {
+            const n = nameField as { first?: unknown; last?: unknown };
+            const f = typeof n.first === 'string' ? n.first.trim() : '';
+            const l = typeof n.last === 'string' ? n.last.trim() : '';
+            const joined = [f, l].filter(Boolean).join(' ');
+            if (joined) clientName = joined;
+          } else if (typeof firstName === 'string' || typeof lastName === 'string') {
+            const joined = [firstName, lastName].filter((v): v is string => typeof v === 'string' && v.trim().length > 0).join(' ');
+            if (joined) clientName = joined;
+          }
+        } else {
+          const e = clientFetch.err;
+          const statusCode = e instanceof AmiqusError ? e.statusCode : undefined;
+          clientResponse = { error: e.message, statusCode };
         }
       }
 
@@ -579,6 +604,7 @@ export async function testAmiqusConnection(
         clientName,
         responseKeys,
         rawSnippet,
+        clientResponse,
       };
     }
 

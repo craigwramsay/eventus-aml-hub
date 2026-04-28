@@ -169,15 +169,34 @@ function AmiqusTestResultPanel({ result }: { result: TestAmiqusConnectionResult 
               : `Failed${result.recordTest.statusCode ? ` (HTTP ${result.recordTest.statusCode})` : ''}: ${result.recordTest.error}`}
           </Row>
           {result.recordTest.ok && result.recordTest.responseKeys && (
-            <Row label="Response top-level keys" ok={true}>
+            <Row label="Case top-level keys" ok={true}>
               <code>{result.recordTest.responseKeys.join(', ') || '(none)'}</code>
             </Row>
           )}
           {result.recordTest.ok && result.recordTest.rawSnippet && (
             <details className={styles.amiqusTestDetails}>
-              <summary>Raw response (first 800 chars)</summary>
+              <summary>Raw case response (first 800 chars)</summary>
               <pre className={styles.amiqusTestPre}>{result.recordTest.rawSnippet}</pre>
             </details>
+          )}
+          {result.recordTest.ok && result.recordTest.clientResponse && (
+            <>
+              {'keys' in result.recordTest.clientResponse ? (
+                <>
+                  <Row label="Client top-level keys" ok={true}>
+                    <code>{result.recordTest.clientResponse.keys.join(', ') || '(none)'}</code>
+                  </Row>
+                  <details className={styles.amiqusTestDetails}>
+                    <summary>Raw client response (first 800 chars)</summary>
+                    <pre className={styles.amiqusTestPre}>{result.recordTest.clientResponse.rawSnippet}</pre>
+                  </details>
+                </>
+              ) : (
+                <Row label="Client lookup" ok={false}>
+                  Failed{result.recordTest.clientResponse.statusCode ? ` (HTTP ${result.recordTest.clientResponse.statusCode})` : ''}: {result.recordTest.clientResponse.error}
+                </Row>
+              )}
+            </>
           )}
         </>
       )}
