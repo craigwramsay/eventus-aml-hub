@@ -21,16 +21,18 @@ export interface AmiqusRecordStep {
 }
 
 /**
- * Amiqus API can return the client either as a top-level `client_id` field
- * or as a nested `client: { id, ... }` object depending on the endpoint.
- * Use `extractAmiqusClientId()` from the client module to handle both.
+ * Amiqus API can return the client in three shapes depending on the endpoint:
+ *   - `client_id: number` (older /records responses)
+ *   - `client: number` (current /cases responses — ID directly)
+ *   - `client: { id: number }` (some expanded responses)
+ * Use `extractAmiqusClientId()` from the client module to handle all three.
  */
 export interface AmiqusRecord {
   id: number;
   status: string;
   perform_url: string;
   client_id?: number;
-  client?: { id: number };
+  client?: number | { id: number };
   created_at: string;
   updated_at: string;
   completed_at: string | null;
@@ -40,7 +42,7 @@ export interface AmiqusCase {
   id: number;
   status: string;
   client_id?: number;
-  client?: { id: number };
+  client?: number | { id: number };
   created_at: string;
   updated_at: string;
   completed_at: string | null;

@@ -535,6 +535,7 @@ export async function testAmiqusConnection(
 
       const candidatePaths: Array<[string, () => unknown]> = [
         ['client_id', () => obj.client_id],
+        ['client (number)', () => obj.client],
         ['client.id', () => (obj.client as { id?: unknown } | undefined)?.id],
         ['client.uuid', () => (obj.client as { uuid?: unknown } | undefined)?.uuid],
         ['client_uuid', () => obj.client_uuid],
