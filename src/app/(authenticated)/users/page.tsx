@@ -8,6 +8,7 @@ import { getUserProfile } from '@/lib/supabase/server';
 import { canManageUsers, ROLE_LABELS } from '@/lib/auth/roles';
 import { getUsersForFirm, getPendingInvitations } from '@/app/actions/users';
 import InvitationsTable from './InvitationsTable';
+import DeleteUserButton from './DeleteUserButton';
 import styles from './users.module.css';
 
 const ROLE_BADGE: Record<string, string> = {
@@ -64,9 +65,17 @@ export default async function UsersPage() {
                   {new Date(user.created_at).toLocaleDateString('en-GB')}
                 </td>
                 <td>
-                  <Link href={`/users/${user.user_id}`} className={styles.tableLink}>
-                    Edit
-                  </Link>
+                  <div className={styles.actionsRow}>
+                    <Link href={`/users/${user.user_id}`} className={styles.tableLink}>
+                      Edit
+                    </Link>
+                    <DeleteUserButton
+                      userId={user.user_id}
+                      email={user.email}
+                      fullName={user.full_name}
+                      isSelf={user.user_id === profile.user_id}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

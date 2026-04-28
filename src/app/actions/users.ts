@@ -386,6 +386,22 @@ export async function cancelInvite(invitationId: string): Promise<CancelInviteRe
       return { success: false, error: 'Failed to cancel invitation' };
     }
 
+    // Also purge any orphan auth.users row left behind by Supabase's signUp
+    // when the invitee never accepted. Without this, re-inviting the same
+    // email would silently no-op (anti-enumeration behaviour) and the
+    // invitee would never receive a fresh email.
+    // This RPC only deletes when the account is unconfirmed AND has no
+    // user_profile, so it can't be used to revoke active accounts.
+    const { error: purgeErr } = await supabase.rpc('admin_purge_unconfirmed_invite', {
+      target_email: invitation.email,
+    });
+    if (purgeErr) {
+      // Non-fatal — the invitation row is already removed, so the UI
+      // state is consistent. Log so we know if the orphan cleanup is
+      // failing in production.
+      console.warn('admin_purge_unconfirmed_invite failed (non-fatal):', purgeErr);
+    }
+
     // Audit log
     await supabase.from('audit_events').insert({
       firm_id: profile.firm_id,
@@ -511,6 +527,57 @@ export async function deactivateUser(userId: string): Promise<DeactivateUserResu
     return { success: true };
   } catch (error) {
     console.error('Error in deactivateUser:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
+export type DeleteUserResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Permanently delete a user from the firm.
+ *
+ * Removes user_profiles, any pending user_invitations matching their email,
+ * and the auth.users row itself (via the SECURITY DEFINER RPC
+ * `admin_delete_firm_user`). Historical references (created_by columns
+ * on assessments, evidence, audit events, etc.) are preserved by design
+ * — those are plain uuid columns rather than foreign keys.
+ *
+ * Cannot delete:
+ *   - Yourself
+ *   - A user from a different firm (unless platform_admin)
+ */
+export async function deleteFirmUser(userId: string): Promise<DeleteUserResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageUsers(profile.role as UserRole)) {
+      return { success: false, error: 'Only administrators can delete users' };
+    }
+
+    if (userId === user.id) {
+      return { success: false, error: 'You cannot delete your own account' };
+    }
+
+    const { error: rpcErr } = await supabase.rpc('admin_delete_firm_user', {
+      target_user_id: userId,
+    });
+
+    if (rpcErr) {
+      console.error('admin_delete_firm_user failed:', rpcErr);
+      return { success: false, error: rpcErr.message || 'Failed to delete user' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in deleteFirmUser:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
