@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { UserProfile, UserInvitation } from '@/lib/supabase/types';
 import { canManageUsers, ASSIGNABLE_ROLES } from '@/lib/auth/roles';
 import type { UserRole, AssignableRole } from '@/lib/auth/roles';
+import { buildHubUrl } from '@/lib/url';
 
 async function getUserAndProfile() {
   const supabase = await createClient();
@@ -108,7 +109,7 @@ export async function inviteUser(input: InviteUserInput): Promise<InviteUserResu
       password: tempPassword,
       options: {
         data: { full_name, role, firm_id: profile.firm_id },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?type=invite`,
+        emailRedirectTo: buildHubUrl('/auth/callback?type=invite'),
       },
     });
 
@@ -427,7 +428,7 @@ export async function sendPasswordReset(userId: string): Promise<SendPasswordRes
       return { success: false, error: 'User not found in your firm' };
     }
 
-    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?type=recovery`;
+    const redirectTo = buildHubUrl('/auth/callback?type=recovery');
 
     const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
       targetProfile.email,
