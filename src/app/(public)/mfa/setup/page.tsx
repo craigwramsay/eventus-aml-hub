@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
+const FRIENDLY_NAME = 'Authenticator App';
+
 export default function MFASetupPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -19,9 +21,45 @@ export default function MFASetupPage() {
     setIsEnrolling(true);
     setError(null);
 
+    // Clean up any stale unverified factors from previous attempts. If a
+    // verified factor already exists, send the user to MFA verify instead
+    // of trying to enrol again. Supabase rejects duplicate friendly names
+    // per user, so without this any partial previous enrolment blocks
+    // future attempts with "factor already exists".
+    try {
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const allFactors = [
+        ...(factorsData?.totp ?? []),
+        ...(factorsData?.all ?? []),
+      ];
+      // Dedupe by id
+      const byId = new Map(allFactors.map((f) => [f.id, f]));
+      const factors = Array.from(byId.values());
+
+      const verified = factors.find(
+        (f) => f.factor_type === 'totp' && f.status === 'verified'
+      );
+      if (verified) {
+        // Already set up — they should authenticate via verify, not setup.
+        router.push('/mfa/verify');
+        return;
+      }
+
+      const stale = factors.filter(
+        (f) => f.factor_type === 'totp' && f.status === 'unverified'
+      );
+      for (const f of stale) {
+        await supabase.auth.mfa.unenroll({ factorId: f.id });
+      }
+    } catch (cleanupErr) {
+      // Non-fatal — try enrol anyway; if it really is a leftover factor
+      // we can't see, the enrol error message will surface it.
+      console.warn('MFA factor cleanup failed (non-fatal):', cleanupErr);
+    }
+
     const { data, error: enrolError } = await supabase.auth.mfa.enroll({
       factorType: 'totp',
-      friendlyName: 'Authenticator App',
+      friendlyName: FRIENDLY_NAME,
     });
 
     if (enrolError || !data) {
