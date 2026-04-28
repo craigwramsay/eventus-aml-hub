@@ -1,0 +1,162 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background-color: #f8fafc;
+}
+
+.card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 0.625rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  padding: 2.25rem;
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.body {
+  margin: 0 0 1rem;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.summary {
+  margin: 1.25rem 0 1.5rem;
+  padding: 1rem 1.25rem;
+  background-color: #f1f5f9;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.summaryRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.25rem 0;
+  font-size: 0.9375rem;
+}
+
+.summaryRow + .summaryRow {
+  border-top: 1px solid #e2e8f0;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+}
+
+.summaryRow dt {
+  flex: 0 0 4rem;
+  margin: 0;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.summaryRow dd {
+  flex: 1;
+  margin: 0;
+  color: #1a1a2e;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.helper {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.input {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.input:focus {
+  outline: 2px solid #4f46e5;
+  outline-offset: 1px;
+  border-color: #4f46e5;
+}
+
+.error {
+  padding: 0.625rem 0.875rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.submit {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.submit:hover:not(:disabled) {
+  background-color: #4338ca;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primaryLink {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  background-color: #4f46e5;
+  color: #ffffff;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.primaryLink:hover {
+  background-color: #4338ca;
+}
+
+.secondaryLink {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: #4f46e5;
+  text-decoration: none;
+  font-size: 0.9375rem;
+}
+
+.secondaryLink:hover {
+  text-decoration: underline;
+}

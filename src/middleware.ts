@@ -10,8 +10,10 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-// Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/auth/callback', '/auth/confirm', '/set-password', '/invite/accept', '/api/webhooks/clio', '/api/webhooks/amiqus', '/api/cron/'];
+// Routes that don't require authentication.
+// `/invite` covers both the new token-based `/invite/[token]` route and the
+// legacy `/invite/accept` page kept for backward compat with old emails.
+const PUBLIC_ROUTES = ['/login', '/auth/callback', '/auth/confirm', '/set-password', '/invite', '/api/webhooks/clio', '/api/webhooks/amiqus', '/api/cron/'];
 
 // Routes that need auth but not MFA (MFA flow itself)
 const MFA_EXEMPT_ROUTES = ['/mfa/setup', '/mfa/verify'];
