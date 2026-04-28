@@ -592,6 +592,35 @@ const s = StyleSheet.create({
     color: '#b45309',
     textAlign: 'right',
   },
+  // Contents (front-page index)
+  tocSection: {
+    marginTop: 24,
+    paddingTop: 12,
+    borderTopWidth: 0.5,
+    borderTopColor: '#cbd5e1',
+  },
+  tocTitle: {
+    fontSize: 13,
+    fontFamily: 'Helvetica-Bold',
+    color: '#1a1a2e',
+    marginBottom: 8,
+  },
+  tocItem: {
+    fontSize: 10.5,
+    color: '#1a73e8',
+    paddingVertical: 3,
+    textDecoration: 'none',
+  },
+  tocItemMain: {
+    fontFamily: 'Helvetica-Bold',
+    color: '#1a1a2e',
+    marginTop: 4,
+  },
+  tocItemSub: {
+    paddingLeft: 16,
+    fontSize: 10,
+    color: '#1a73e8',
+  },
   // Footer
   footer: {
     position: 'absolute',
@@ -743,20 +772,39 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
           )}
         </View>
 
+        {/* ── Contents index (front-page) ──
+            Each entry is an internal link to a section anchor on a later
+            page. Categories present in this assessment are listed as
+            indented sub-items under "CDD Requirements". */}
+        <View style={s.tocSection}>
+          <Text style={s.tocTitle}>Contents</Text>
+          <Link src="#toc-cdd" style={[s.tocItem, s.tocItemMain]}>CDD Requirements</Link>
+          {Array.from(itemsByCategory.keys()).map((category) => (
+            <Link key={category} src={`#toc-cat-${category}`} style={[s.tocItem, s.tocItemSub]}>
+              {CATEGORY_LABELS[category] || category}
+            </Link>
+          ))}
+          {formQuestions.length > 0 && (
+            <Link src="#toc-scoring" style={[s.tocItem, s.tocItemMain]}>Risk Assessment Scoring</Link>
+          )}
+        </View>
+
         {/* ── SECTION 1: CDD Requirements (3-column table) ──
             Forced onto a new page so page 1 acts as a clean cover sheet.
             Trying to flow the table onto page 1 either leaves a large gap
             (when wrap=false) or splits a single row at the bottom (when
             wrap=true) — neither reads as well as a dedicated cover.        */}
         <View break>
-          <Text style={[s.sectionTitle, s.sectionTitleFirst]}>CDD Requirements</Text>
+          <Text id="toc-cdd" style={[s.sectionTitle, s.sectionTitleFirst]}>
+            CDD Requirements
+          </Text>
           <Text style={s.progressText}>
             {completedCount} of {totalCount} requirements completed
           </Text>
 
           {(() => { let itemNum = 0; return Array.from(itemsByCategory.entries()).map(([category, items]) => (
             <View key={category}>
-              <Text style={s.categoryTitle}>
+              <Text id={`toc-cat-${category}`} style={s.categoryTitle}>
                 {CATEGORY_LABELS[category] || category}
               </Text>
               <View style={{ borderWidth: 0.5, borderColor: '#cbd5e1', borderRadius: 3 }}>
@@ -937,7 +985,9 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
         {/* ── SECTION 2: Risk Assessment Scoring (questions + factors + EDD) ── */}
         {formQuestions.length > 0 && (
           <View style={s.qaSection} break>
-            <Text style={s.sectionTitle}>Risk Assessment Scoring</Text>
+            <Text id="toc-scoring" style={s.sectionTitle}>
+              Risk Assessment Scoring
+            </Text>
 
             {/* Risk summary */}
             <View style={{ flexDirection: 'row', marginBottom: 10, alignItems: 'center', gap: 8 }}>
