@@ -329,17 +329,31 @@ export async function resendInvite(invitationId: string): Promise<ResendInviteRe
     const newToken = generateInviteToken();
     const newExpiry = inviteExpiry();
 
-    const { error: updateErr } = await supabase
+    const { data: updateRows, error: updateErr } = await supabase
       .from('user_invitations')
       .update({
         invite_token: newToken,
         invite_token_expires_at: newExpiry.toISOString(),
       })
-      .eq('id', invitationId);
+      .eq('id', invitationId)
+      .select('id');
 
     if (updateErr) {
       console.error('Failed to update invitation token:', updateErr);
-      return { success: false, error: 'Failed to refresh invitation token' };
+      return {
+        success: false,
+        error: `Failed to refresh invitation token: ${updateErr.message || updateErr.code || 'unknown error'}`,
+      };
+    }
+
+    // RLS-blocked UPDATEs return success with 0 rows affected rather than an
+    // error. Detect that explicitly so we don't silently send the email with
+    // a stale token.
+    if (!updateRows || updateRows.length === 0) {
+      return {
+        success: false,
+        error: 'No rows updated — the admin update RLS policy may not be applied. Run migration 20260429_invitation_admin_update.sql in Supabase.',
+      };
     }
 
     try {
