@@ -17,7 +17,7 @@ import {
   registerAmiqusWebhook,
   deleteAmiqusWebhook,
   listAmiqusWebhooks,
-  getAmiqusRecordOrCase,
+  getAmiqusRaw,
   getAmiqusClient,
   formatAmiqusClientName,
   AmiqusError,
@@ -436,7 +436,16 @@ export interface TestAmiqusConnectionResult {
     | { ok: true; webhookCount: number }
     | { ok: false; error: string; statusCode?: number };
   recordTest?:
-    | { ok: true; type: 'record' | 'case'; clientId: number; clientName: string | null }
+    | {
+        ok: true;
+        type: 'record' | 'case';
+        clientId: number;
+        clientName: string | null;
+        /** Top-level keys of the raw response — surfaced so we can find the client_id field if extraction failed */
+        responseKeys?: string[];
+        /** A short JSON dump of the raw response (truncated) — handy for diagnosing unknown shapes */
+        rawSnippet?: string;
+      }
     | { ok: false; error: string; statusCode?: number };
 }
 
@@ -480,29 +489,96 @@ export async function testAmiqusConnection(
       return { success: true, result }; // surface the error rather than throwing
     }
 
-    // 3. Optional record/case lookup when an ID is supplied
+    // 3. Optional record/case lookup when an ID is supplied — uses raw fetch so
+    //    the diagnostic can show the actual response shape (which is what we
+    //    need to figure out where Amiqus is putting client_id).
     if (amiqusRecordId) {
-      try {
-        const lookup = await getAmiqusRecordOrCase(amiqusRecordId, apiKey);
-        const clientId = lookup.data.client_id;
-        let clientName: string | null = null;
-        if (clientId && clientId > 0) {
-          try {
-            const client = await getAmiqusClient(clientId, apiKey);
-            clientName = formatAmiqusClientName(client) || null;
-          } catch (err) {
-            const statusCode = err instanceof AmiqusError ? err.statusCode : undefined;
-            const message = err instanceof Error ? err.message : 'Unknown error';
-            result.recordTest = { ok: false, error: `Found ${lookup.type} but client lookup failed: ${message}`, statusCode };
-            return { success: true, result };
-          }
+      const tryFetchRaw = async (path: string): Promise<{ raw: unknown } | { err: AmiqusError | Error }> => {
+        try {
+          return { raw: await getAmiqusRaw(path, apiKey) };
+        } catch (err) {
+          return { err: err instanceof Error ? err : new Error('Unknown error') };
         }
-        result.recordTest = { ok: true, type: lookup.type, clientId, clientName };
-      } catch (err) {
-        const statusCode = err instanceof AmiqusError ? err.statusCode : undefined;
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        result.recordTest = { ok: false, error: message, statusCode };
+      };
+
+      // Try /cases/{id} first, then /records/{id} on 404, matching the existing helper
+      let raw: unknown = null;
+      let type: 'record' | 'case' | null = null;
+      const caseAttempt = await tryFetchRaw(`/cases/${amiqusRecordId}`);
+      if ('raw' in caseAttempt) {
+        raw = caseAttempt.raw;
+        type = 'case';
+      } else if (caseAttempt.err instanceof AmiqusError && caseAttempt.err.statusCode === 404) {
+        const recordAttempt = await tryFetchRaw(`/records/${amiqusRecordId}`);
+        if ('raw' in recordAttempt) {
+          raw = recordAttempt.raw;
+          type = 'record';
+        } else {
+          const e = recordAttempt.err;
+          const statusCode = e instanceof AmiqusError ? e.statusCode : undefined;
+          result.recordTest = { ok: false, error: e.message, statusCode };
+          return { success: true, result };
+        }
+      } else {
+        const e = caseAttempt.err;
+        const statusCode = e instanceof AmiqusError ? e.statusCode : undefined;
+        result.recordTest = { ok: false, error: e.message, statusCode };
+        return { success: true, result };
       }
+
+      // Inspect the raw response. Walk a small set of plausible field paths to
+      // try to find the linked client id — surface keys + a JSON snippet either
+      // way so we can see what's actually there.
+      const obj = (raw && typeof raw === 'object') ? raw as Record<string, unknown> : {};
+      const responseKeys = Object.keys(obj);
+      const rawSnippet = JSON.stringify(raw, null, 2).slice(0, 800);
+
+      const candidatePaths: Array<[string, () => unknown]> = [
+        ['client_id', () => obj.client_id],
+        ['client.id', () => (obj.client as { id?: unknown } | undefined)?.id],
+        ['client.uuid', () => (obj.client as { uuid?: unknown } | undefined)?.uuid],
+        ['client_uuid', () => obj.client_uuid],
+        ['subject_id', () => obj.subject_id],
+        ['subject.id', () => (obj.subject as { id?: unknown } | undefined)?.id],
+        ['assignee_id', () => obj.assignee_id],
+        ['assignee.id', () => (obj.assignee as { id?: unknown } | undefined)?.id],
+      ];
+      let clientId = 0;
+      let foundVia: string | null = null;
+      for (const [path, fn] of candidatePaths) {
+        const v = fn();
+        if (typeof v === 'number' && v > 0) {
+          clientId = v;
+          foundVia = path;
+          break;
+        }
+      }
+
+      let clientName: string | null = null;
+      if (clientId > 0) {
+        try {
+          const client = await getAmiqusClient(clientId, apiKey);
+          clientName = formatAmiqusClientName(client) || null;
+        } catch (err) {
+          const statusCode = err instanceof AmiqusError ? err.statusCode : undefined;
+          const message = err instanceof Error ? err.message : 'Unknown error';
+          result.recordTest = {
+            ok: false,
+            error: `Found ${type} (client_id from ${foundVia}) but client lookup failed: ${message}`,
+            statusCode,
+          };
+          return { success: true, result };
+        }
+      }
+
+      result.recordTest = {
+        ok: true,
+        type: type!,
+        clientId,
+        clientName,
+        responseKeys,
+        rawSnippet,
+      };
     }
 
     return { success: true, result };
