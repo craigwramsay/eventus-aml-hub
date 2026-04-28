@@ -9,6 +9,8 @@ import { getUserProfile, createClient } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
 import { getClioBaseUrl } from '@/lib/clio/client';
+import { parseCHReport, getDirectorNames } from '@/lib/clio/ch-report';
+import { extractBeneficialOwnerNames } from '@/lib/evidence/beneficial-owners';
 import { ExportPdfButton } from './ExportPdfButton';
 import { FinaliseButton } from './FinaliseButton';
 import { DeleteAssessmentButton } from './DeleteAssessmentButton';
@@ -138,6 +140,17 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   const inputSnapshot = assessment.input_snapshot as { clientType: string; formAnswers: Record<string, string | string[]> };
   const matterDescription = (inputSnapshot.formAnswers?.['23'] || inputSnapshot.formAnswers?.['41'] || '') as string;
 
+  // Director names auto-extracted from the most recent Companies House report
+  // (used to enumerate persons-to-verify on item 5).
+  const latestChEvidence = [...evidence]
+    .filter(e => e.evidence_type === 'companies_house' && e.data)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+  const parsedChReport = parseCHReport(latestChEvidence?.data ?? null);
+  const directorNames = getDirectorNames(parsedChReport);
+  // Beneficial-owner names are entered manually — PSCs at Companies House are
+  // not always the beneficial owners that should be verified for AML purposes.
+  const beneficialOwnerNames = extractBeneficialOwnerNames(evidence);
+
   // Separate actions: non-EDD (includes monitoring for acknowledgement), EDD
   const nonEddNonMonitoringActions = outputSnapshot.mandatoryActions.filter(
     (a: MandatoryAction) => a.category !== 'edd'
@@ -153,8 +166,12 @@ export default async function AssessmentViewPage({ params }: PageProps) {
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>{client.name}</h1>
+          <p className={styles.matterHeader}>
+            {matter.description ? <strong>{matter.description}</strong> : <em>Matter</em>}
+            <span className={styles.matterHeaderRef}> &middot; {matter.reference}</span>
+          </p>
           <p className={styles.subtitle}>
-            {assessment.reference} &middot; {matter.reference} &middot; {formatDate(assessment.created_at)}
+            {assessment.reference} &middot; {formatDate(assessment.created_at)}
             {' '}&middot;{' '}
             <span className={isFinalised ? styles.statusFinalised : styles.statusDraft}>
               {isFinalised ? 'Finalised' : 'Draft'}
@@ -240,6 +257,8 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         syncRecords={clioDriveSyncRecords}
         userNames={userNames}
         clientAmiqus={clientAmiqus}
+        directorNames={directorNames}
+        beneficialOwnerNames={beneficialOwnerNames}
       />
 
       {/* 4. Monitoring Statement */}

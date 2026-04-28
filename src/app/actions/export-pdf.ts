@@ -7,8 +7,11 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { generateAssessmentPdf } from '@/lib/clio/drive-pdf';
-import type { CddItemSummary, DeclarationData, RiskFactorSummary } from '@/lib/clio/drive-pdf';
+import type { CddItemSummary, CddEvidenceItem, DeclarationData, RiskFactorSummary } from '@/lib/clio/drive-pdf';
 import { getClioBaseUrl } from '@/lib/clio/client';
+import { parseCHReport, getDirectorNames } from '@/lib/clio/ch-report';
+import { isBeneficialOwnerListRow } from '@/lib/evidence/beneficial-owners';
+import { getAmiqusApiKey, getAmiqusRecordOrCase, AmiqusError } from '@/lib/amiqus';
 
 export async function exportAssessmentPdf(
   assessmentId: string
@@ -27,7 +30,7 @@ export async function exportAssessmentPdf(
 
     const { data: matter } = await supabase
       .from('matters')
-      .select('reference, client_id, clio_matter_id')
+      .select('reference, description, client_id, clio_matter_id')
       .eq('id', assessment.matter_id)
       .single();
 
@@ -52,9 +55,33 @@ export async function exportAssessmentPdf(
     // Fetch evidence, Amiqus, and progress
     const [evidenceResult, amiqusResult, progressResult] = await Promise.all([
       supabase.from('assessment_evidence').select('action_id, evidence_type, source, label, verified_at, data, notes').eq('assessment_id', assessmentId),
-      supabase.from('amiqus_verifications').select('action_id, amiqus_record_id, amiqus_client_id, status, verified_at').eq('assessment_id', assessmentId).eq('status', 'complete'),
+      supabase.from('amiqus_verifications').select('id, action_id, amiqus_record_id, amiqus_client_id, status, verified_at').eq('assessment_id', assessmentId).eq('status', 'complete'),
       supabase.from('cdd_item_progress').select('action_id, completed_at, completed_by').eq('assessment_id', assessmentId),
     ]);
+
+    // Auto-backfill missing amiqus_client_id values so "View in Amiqus" links
+    // resolve to the correct client page rather than the homepage. Older records
+    // (created before the client_id extraction fix) often have null client_id.
+    const apiKey = getAmiqusApiKey();
+    if (apiKey && amiqusResult.data) {
+      const missingClientId = amiqusResult.data.filter(v => !v.amiqus_client_id && v.amiqus_record_id);
+      for (const row of missingClientId) {
+        try {
+          const result = await getAmiqusRecordOrCase(row.amiqus_record_id, apiKey);
+          if (result.data.client_id && result.data.client_id > 0) {
+            await supabase
+              .from('amiqus_verifications')
+              .update({ amiqus_client_id: result.data.client_id })
+              .eq('id', row.id);
+            // Mutate in-memory so the rendered PDF uses the right URL
+            row.amiqus_client_id = result.data.client_id;
+          }
+        } catch (err) {
+          // Non-fatal — link will fall back to homepage for this row
+          if (!(err instanceof AmiqusError)) console.error('Backfill error:', err);
+        }
+      }
+    }
 
     const fmtDate = (d: string) => new Date(d + (d.includes('T') ? '' : 'T00:00:00')).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -77,14 +104,25 @@ export async function exportAssessmentPdf(
       }
     }
 
-    type EvidenceRow = { evidence_type: string; source: string; label: string; verified_at: string | null; data: unknown; notes: string | null };
+    type EvidenceRow = { evidence_type: string; source: string; label: string; verified_at: string | null; data: unknown; notes: string | null; action_id: string | null };
     const evidenceByAction = new Map<string, EvidenceRow[]>();
     const declarations: DeclarationData[] = [];
+    let latestChData: unknown = null;
+    let beneficialOwnerNames: string[] = [];
     for (const e of evidenceResult.data || []) {
       if (e.action_id) {
         const list = evidenceByAction.get(e.action_id) || [];
         list.push(e);
         evidenceByAction.set(e.action_id, list);
+      }
+      if (e.evidence_type === 'companies_house' && e.data) {
+        latestChData = e.data;
+      }
+      if (isBeneficialOwnerListRow(e) && e.data && typeof e.data === 'object') {
+        const namesField = (e.data as { names?: unknown }).names;
+        if (Array.isArray(namesField)) {
+          beneficialOwnerNames = namesField.filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
+        }
       }
       if ((e.evidence_type === 'sow_declaration' || e.evidence_type === 'sof_declaration') && e.data) {
         declarations.push({
@@ -94,6 +132,8 @@ export async function exportAssessmentPdf(
         });
       }
     }
+    const parsedChReport = parseCHReport(latestChData);
+    const directorNames = getDirectorNames(parsedChReport);
 
     const amiqusByAction = new Map<string, { amiqus_record_id: number | null; amiqus_client_id: number | null; verified_at: string | null }>();
     for (const v of amiqusResult.data || []) {
@@ -107,7 +147,7 @@ export async function exportAssessmentPdf(
       const amiqus = amiqusByAction.get(action.actionId);
       const progress = progressByAction.get(action.actionId);
 
-      const evidenceItems: Array<{ type: 'amiqus' | 'file' | 'note' | 'declaration' | 'ch' | 'confirmed'; label: string; date?: string | null; notes?: string | null; url?: string | null }> = [];
+      const evidenceItems: CddEvidenceItem[] = [];
       let amiqusUrl: string | null = null;
 
       if (amiqus?.amiqus_record_id) {
@@ -129,6 +169,7 @@ export async function exportAssessmentPdf(
 
       for (const ev of actionEvidence) {
         if (amiqus && ev.label === 'Prior identity verification confirmed still valid') continue;
+        if (isBeneficialOwnerListRow(ev)) continue; // BO list is rendered under requirement, not as evidence
         const evType = ev.evidence_type === 'file_upload' ? 'file' as const
           : ev.evidence_type === 'companies_house' ? 'ch' as const
           : (ev.evidence_type === 'sow_declaration' || ev.evidence_type === 'sof_declaration') ? 'declaration' as const
@@ -138,7 +179,17 @@ export async function exportAssessmentPdf(
           label: ev.label || ev.source || ev.evidence_type,
           date: ev.verified_at ? `Verified ${fmtDate(ev.verified_at)}` : undefined,
           notes: ev.notes || undefined,
+          chReport: ev.evidence_type === 'companies_house' && ev.data
+            ? parseCHReport(ev.data) ?? undefined
+            : undefined,
         });
+      }
+
+      let personList: { names: string[] } | null = null;
+      if (action.actionId === 'identify_and_verify_directors' && directorNames.length > 0) {
+        personList = { names: directorNames };
+      } else if (action.actionId === 'identify_and_verify_beneficial_owners' && beneficialOwnerNames.length > 0) {
+        personList = { names: beneficialOwnerNames };
       }
 
       const completedDate = progress?.completed_at ? fmtDate(progress.completed_at) : null;
@@ -149,6 +200,7 @@ export async function exportAssessmentPdf(
         completedDate, completedBy, evidenceItems,
         evidenceSummary: evidenceItems.length === 0 && completed ? 'Confirmed by user' : null,
         amiqusUrl,
+        personList,
       };
     });
 
@@ -253,6 +305,7 @@ export async function exportAssessmentPdf(
       assessmentReference: assessment.reference,
       clientName: client.name,
       matterReference: matter.reference,
+      matterDescription: matter.description ?? null,
       riskLevel: assessment.risk_level,
       score: assessment.score,
       finalisedAt: assessment.finalised_at || new Date().toISOString(),

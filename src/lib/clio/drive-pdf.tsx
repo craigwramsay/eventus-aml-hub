@@ -21,6 +21,20 @@ interface CddEvidenceItem {
   date?: string | null;
   notes?: string | null;
   url?: string | null;
+  /** For CH evidence — structured report details (profile, officers, PSCs) */
+  chReport?: {
+    profile: {
+      type?: string;
+      incorporated?: string;
+      address?: string;
+      sicCodes?: string[];
+      insolvencyHistory?: boolean;
+      status?: string;
+    };
+    officers: Array<{ name: string; role: string }>;
+    pscs: Array<{ name: string; nationality?: string; control?: string }>;
+    lookedUpAt?: string;
+  };
 }
 
 interface CddItemSummary {
@@ -35,6 +49,8 @@ interface CddItemSummary {
   evidenceSummary: string | null;
   /** Clickable Amiqus URL if applicable */
   amiqusUrl: string | null;
+  /** Names of people associated with this requirement (directors for item 5, beneficial owners for item 6) */
+  personList?: { names: string[] } | null;
 }
 
 interface DeclarationData {
@@ -55,6 +71,7 @@ interface AssessmentPdfParams {
   assessmentReference: string;
   clientName: string;
   matterReference: string;
+  matterDescription?: string | null;
   riskLevel: string;
   score: number;
   finalisedAt: string;
@@ -124,9 +141,25 @@ const s = StyleSheet.create({
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Helvetica-Bold',
     marginBottom: 4,
+  },
+  headerClientName: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: 2,
+  },
+  headerMatter: {
+    color: '#fff',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  headerMatterRef: {
+    color: '#cbd5e1',
+    fontSize: 10,
+    fontFamily: 'Helvetica',
   },
   headerSubtitle: {
     color: '#ccc',
@@ -280,6 +313,63 @@ const s = StyleSheet.create({
     color: '#64748b',
     fontStyle: 'italic',
     marginTop: 2,
+  },
+  // Companies House inline detail block
+  chDetailBlock: {
+    marginTop: 4,
+    padding: 4,
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    borderWidth: 0.5,
+    borderColor: '#e2e8f0',
+  },
+  chDetailRow: {
+    flexDirection: 'row',
+    marginBottom: 2,
+  },
+  chDetailLabel: {
+    width: 60,
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: '#64748b',
+    textTransform: 'uppercase',
+  },
+  chDetailValue: {
+    flex: 1,
+    fontSize: 7.5,
+    color: '#333',
+  },
+  chDetailHeading: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: '#475569',
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  chDetailListItem: {
+    fontSize: 7.5,
+    color: '#333',
+    marginBottom: 1,
+    paddingLeft: 6,
+  },
+  // Person list (e.g. directors / beneficial owners listed under requirement)
+  personList: {
+    marginTop: 4,
+    paddingLeft: 8,
+    borderLeftWidth: 1,
+    borderLeftColor: '#cbd5e1',
+  },
+  personListLabel: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  personListItem: {
+    fontSize: 8,
+    color: '#333',
+    marginBottom: 1,
   },
   cddStatusText: {
     fontSize: 8,
@@ -556,6 +646,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
     assessmentReference,
     clientName,
     matterReference,
+    matterDescription,
     riskLevel,
     score,
     finalisedAt,
@@ -599,7 +690,13 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
         {/* Header */}
         <View style={s.header}>
           <Text style={s.headerTitle}>AML Risk Assessment</Text>
-          <Text style={s.headerSubtitle}>{clientName}</Text>
+          <Text style={s.headerClientName}>{clientName}</Text>
+          {matterDescription && (
+            <Text style={s.headerMatter}>{matterDescription} <Text style={s.headerMatterRef}>· {matterReference}</Text></Text>
+          )}
+          {!matterDescription && (
+            <Text style={s.headerMatter}><Text style={s.headerMatterRef}>{matterReference}</Text></Text>
+          )}
         </View>
 
         {/* Risk Badge */}
@@ -674,6 +771,16 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                   {/* Column 1: Requirement */}
                   <View style={s.cddColRequirement}>
                     <Text style={s.cddDescriptionText}>{itemNum}. {capitaliseFirst(item.description)}</Text>
+                    {item.personList && item.personList.names.length > 0 && (
+                      <View style={s.personList}>
+                        <Text style={s.personListLabel}>
+                          {item.personList.names.length === 1 ? 'Person' : `${item.personList.names.length} persons`}
+                        </Text>
+                        {item.personList.names.map((name, ni) => (
+                          <Text key={ni} style={s.personListItem}>• {name}</Text>
+                        ))}
+                      </View>
+                    )}
                   </View>
                   {/* Column 2: Evidence */}
                   <View style={s.cddColEvidence}>
@@ -694,6 +801,71 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
                           {ev.date && <Text style={s.cddEvidenceDate}>{ev.date}</Text>}
                           {ev.notes && <Text style={s.cddEvidenceNotes}>{ev.notes}</Text>}
                           {ev.url && <Link src={ev.url} style={s.amiqusLink}>View in Amiqus</Link>}
+                          {ev.chReport && (
+                            <View style={s.chDetailBlock}>
+                              {ev.chReport.profile.status && (
+                                <View style={s.chDetailRow}>
+                                  <Text style={s.chDetailLabel}>Status</Text>
+                                  <Text style={s.chDetailValue}>{ev.chReport.profile.status}</Text>
+                                </View>
+                              )}
+                              {ev.chReport.profile.type && (
+                                <View style={s.chDetailRow}>
+                                  <Text style={s.chDetailLabel}>Type</Text>
+                                  <Text style={s.chDetailValue}>{ev.chReport.profile.type}</Text>
+                                </View>
+                              )}
+                              {ev.chReport.profile.incorporated && (
+                                <View style={s.chDetailRow}>
+                                  <Text style={s.chDetailLabel}>Incorp.</Text>
+                                  <Text style={s.chDetailValue}>{ev.chReport.profile.incorporated}</Text>
+                                </View>
+                              )}
+                              {ev.chReport.profile.address && (
+                                <View style={s.chDetailRow}>
+                                  <Text style={s.chDetailLabel}>Address</Text>
+                                  <Text style={s.chDetailValue}>{ev.chReport.profile.address}</Text>
+                                </View>
+                              )}
+                              {ev.chReport.profile.sicCodes && ev.chReport.profile.sicCodes.length > 0 && (
+                                <View style={s.chDetailRow}>
+                                  <Text style={s.chDetailLabel}>SIC</Text>
+                                  <Text style={s.chDetailValue}>{ev.chReport.profile.sicCodes.join(', ')}</Text>
+                                </View>
+                              )}
+                              {ev.chReport.profile.insolvencyHistory && (
+                                <View style={s.chDetailRow}>
+                                  <Text style={s.chDetailLabel}>Insolvency</Text>
+                                  <Text style={[s.chDetailValue, { color: '#b91c1c', fontFamily: 'Helvetica-Bold' }]}>Yes</Text>
+                                </View>
+                              )}
+                              {ev.chReport.officers.length > 0 && (
+                                <>
+                                  <Text style={s.chDetailHeading}>Active Officers ({ev.chReport.officers.length})</Text>
+                                  {ev.chReport.officers.map((o, oi) => (
+                                    <Text key={oi} style={s.chDetailListItem}>• {o.name}{o.role ? ` — ${o.role}` : ''}</Text>
+                                  ))}
+                                </>
+                              )}
+                              {ev.chReport.pscs.length > 0 && (
+                                <>
+                                  <Text style={s.chDetailHeading}>Persons with Significant Control ({ev.chReport.pscs.length})</Text>
+                                  {ev.chReport.pscs.map((p, pi) => (
+                                    <Text key={pi} style={s.chDetailListItem}>
+                                      • {p.name}
+                                      {p.nationality ? ` (${p.nationality})` : ''}
+                                      {p.control ? ` — ${p.control}` : ''}
+                                    </Text>
+                                  ))}
+                                </>
+                              )}
+                              {ev.chReport.lookedUpAt && (
+                                <Text style={[s.chDetailValue, { fontSize: 6.5, color: '#94a3b8', textAlign: 'right', marginTop: 3 }]}>
+                                  Looked up: {ev.chReport.lookedUpAt}
+                                </Text>
+                              )}
+                            </View>
+                          )}
                         </View>
                       ))
                     ) : (
@@ -832,7 +1004,7 @@ function AssessmentPdfDocument(params: AssessmentPdfParams) {
 
 // ── Public API ──────────────────────────────────────────────────────────
 
-export type { AssessmentPdfParams, CddItemSummary, DeclarationData, RiskFactorSummary };
+export type { AssessmentPdfParams, CddItemSummary, CddEvidenceItem, DeclarationData, RiskFactorSummary };
 
 /**
  * Generate a PDF buffer for a finalised assessment.

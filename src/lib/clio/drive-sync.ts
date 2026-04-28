@@ -16,8 +16,10 @@ import {
 } from './client';
 import { getClioAccessTokenForFirm } from './token';
 import { generateAssessmentPdf } from './drive-pdf';
-import type { CddItemSummary, DeclarationData, RiskFactorSummary } from './drive-pdf';
+import type { CddItemSummary, CddEvidenceItem, DeclarationData, RiskFactorSummary } from './drive-pdf';
 import { generateSowHtml, generateSofHtml } from './sow-sof-html';
+import { parseCHReport, getDirectorNames } from './ch-report';
+import { isBeneficialOwnerListRow } from '@/lib/evidence/beneficial-owners';
 
 /** Evidence types that produce files worth syncing to Clio Drive */
 const SYNCABLE_EVIDENCE_TYPES = ['file_upload', 'companies_house', 'sow_declaration', 'sof_declaration'];
@@ -113,7 +115,7 @@ export async function syncFinalisationPdfToClio(
 
   const { data: matter } = await supabase
     .from('matters')
-    .select('reference, client_id')
+    .select('reference, description, client_id')
     .eq('id', assessment.matter_id)
     .single();
 
@@ -193,13 +195,26 @@ export async function syncFinalisationPdfToClio(
     }
   }
 
-  const evidenceByAction = new Map<string, Array<{ evidence_type: string; source: string; label: string; verified_at: string | null; notes: string | null }>>();
+  const evidenceByAction = new Map<string, Array<{ evidence_type: string; source: string; label: string; verified_at: string | null; notes: string | null; data?: unknown; action_id: string | null }>>();
   const declarations: DeclarationData[] = [];
+  // Track most recent CH evidence (for inline rendering on item 3 + director names on item 5)
+  let latestChData: unknown = null;
+  // Collect manually-entered beneficial owner names for item 6
+  let beneficialOwnerNames: string[] = [];
   for (const e of evidenceResult.data || []) {
     if (e.action_id) {
       const list = evidenceByAction.get(e.action_id) || [];
       list.push(e);
       evidenceByAction.set(e.action_id, list);
+    }
+    if (e.evidence_type === 'companies_house' && e.data) {
+      latestChData = e.data; // last write wins (rows ordered by created_at ASC by default)
+    }
+    if (isBeneficialOwnerListRow(e) && e.data && typeof e.data === 'object') {
+      const namesField = (e.data as { names?: unknown }).names;
+      if (Array.isArray(namesField)) {
+        beneficialOwnerNames = namesField.filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
+      }
     }
     // Collect SoW/SoF declarations for expanded display in PDF
     if ((e.evidence_type === 'sow_declaration' || e.evidence_type === 'sof_declaration') && e.data) {
@@ -210,6 +225,8 @@ export async function syncFinalisationPdfToClio(
       });
     }
   }
+  const parsedChReport = parseCHReport(latestChData);
+  const directorNames = getDirectorNames(parsedChReport);
 
   const amiqusByAction = new Map<string, { amiqus_record_id: number | null; amiqus_client_id: number | null; verified_at: string | null }>();
   for (const v of amiqusResult.data || []) {
@@ -225,7 +242,7 @@ export async function syncFinalisationPdfToClio(
     const amiqus = amiqusByAction.get(action.actionId);
     const progress = progressByAction.get(action.actionId);
 
-    const evidenceItems: Array<{ type: 'amiqus' | 'file' | 'note' | 'declaration' | 'ch' | 'confirmed'; label: string; date?: string | null; notes?: string | null; url?: string | null }> = [];
+    const evidenceItems: CddEvidenceItem[] = [];
     let amiqusUrl: string | null = null;
 
     // Amiqus verification
@@ -251,6 +268,7 @@ export async function syncFinalisationPdfToClio(
     // Other evidence (excluding carry-forward when amiqus present)
     for (const ev of actionEvidence) {
       if (amiqus && ev.label === 'Prior identity verification confirmed still valid') continue;
+      if (isBeneficialOwnerListRow(ev)) continue; // BO list is rendered under requirement, not as evidence
       const evType = ev.evidence_type === 'file_upload' ? 'file' as const
         : ev.evidence_type === 'companies_house' ? 'ch' as const
         : (ev.evidence_type === 'sow_declaration' || ev.evidence_type === 'sof_declaration') ? 'declaration' as const
@@ -260,7 +278,20 @@ export async function syncFinalisationPdfToClio(
         label: ev.label || ev.source || ev.evidence_type,
         date: ev.verified_at ? `Verified ${fmtDate(ev.verified_at)}` : undefined,
         notes: ev.notes || undefined,
+        // Attach structured CH report so the PDF can render it inline
+        chReport: ev.evidence_type === 'companies_house' && ev.data
+          ? parseCHReport(ev.data) ?? undefined
+          : undefined,
       });
+    }
+
+    // Persons-list for items that need explicit director / beneficial owner enumeration.
+    // Directors come from Companies House; beneficial owners are entered manually.
+    let personList: { names: string[] } | null = null;
+    if (action.actionId === 'identify_and_verify_directors' && directorNames.length > 0) {
+      personList = { names: directorNames };
+    } else if (action.actionId === 'identify_and_verify_beneficial_owners' && beneficialOwnerNames.length > 0) {
+      personList = { names: beneficialOwnerNames };
     }
 
     const completedDate = progress?.completed_at ? fmtDate(progress.completed_at) : null;
@@ -275,6 +306,7 @@ export async function syncFinalisationPdfToClio(
       evidenceItems,
       evidenceSummary: evidenceItems.length === 0 && completed ? 'Confirmed by user' : null,
       amiqusUrl,
+      personList,
     };
   });
 
@@ -385,6 +417,7 @@ export async function syncFinalisationPdfToClio(
     assessmentReference: assessment.reference,
     clientName: client.name,
     matterReference: matter.reference,
+    matterDescription: matter.description ?? null,
     riskLevel: assessment.risk_level,
     score: assessment.score,
     finalisedAt: assessment.finalised_at || new Date().toISOString(),

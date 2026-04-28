@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
 import { SOW_INDIVIDUAL_FIELDS, SOW_CORPORATE_FIELDS, SOF_FIELDS } from '@/lib/clio/sow-sof-html';
+import { isBeneficialOwnerListRow } from '@/lib/evidence/beneficial-owners';
 import { CompaniesHouseCard } from './CompaniesHouseCard';
 import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
 import styles from './page.module.css';
@@ -57,7 +58,22 @@ export function EvidencePanel({
   verifications,
   clientAmiqus,
 }: EvidencePanelProps) {
-  const [expandedEvidence, setExpandedEvidence] = useState<Set<string>>(new Set());
+  // Companies House and SoW/SoF Declaration evidence are expanded by default —
+  // these contain the substantive content (CH report, declaration form values)
+  // that should be visible without needing to click "Details".
+  const [expandedEvidence, setExpandedEvidence] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    for (const ev of evidence) {
+      if (
+        ev.evidence_type === 'companies_house' ||
+        ev.evidence_type === 'sow_declaration' ||
+        ev.evidence_type === 'sof_declaration'
+      ) {
+        initial.add(ev.id);
+      }
+    }
+    return initial;
+  });
 
   const toggleExpanded = (id: string) => {
     setExpandedEvidence(prev => {
@@ -176,6 +192,9 @@ export function EvidencePanel({
         // When Amiqus line is showing, hide the carry-forward manual record
         // (the "Existing verification confirmed still valid" note replaces it)
         if (hasAmiqus && ev.label === 'Prior identity verification confirmed still valid') return false;
+        // The beneficial-owners-to-verify list is metadata (rendered under the
+        // requirement description), not user-facing evidence.
+        if (isBeneficialOwnerListRow(ev)) return false;
         return true;
       }).map((ev) => {
         const isExpanded = expandedEvidence.has(ev.id);

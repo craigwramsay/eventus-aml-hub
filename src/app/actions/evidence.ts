@@ -16,6 +16,7 @@ import type { UserRole } from '@/lib/auth/roles';
 import { canCreateAssessment } from '@/lib/auth/roles';
 import { toggleItemCompletion } from '@/app/actions/progress';
 import { getCddStalenessConfig } from '@/lib/rules-engine/config-loader';
+import { BO_LIST_SOURCE, BO_LIST_LABEL, BO_LIST_ACTION_ID } from '@/lib/evidence/beneficial-owners';
 
 /** Result types */
 export type EvidenceResult =
@@ -287,6 +288,90 @@ export async function addManualRecord(
   } catch (err) {
     console.error('Error in addManualRecord:', err);
     return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Set (upsert) the manually-entered list of beneficial owners to verify
+ * for an assessment. PSCs from Companies House are not always the
+ * beneficial owners that should be verified, so this is captured manually.
+ *
+ * Empty `names` removes the existing list.
+ */
+export async function setBeneficialOwnerNames(
+  assessmentId: string,
+  names: string[]
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit editing this list' };
+    }
+
+    const access = await validateAssessmentAccess(assessmentId, profile.firm_id);
+    if (!access.valid) {
+      return { success: false, error: access.error };
+    }
+
+    // Normalise names: trim, drop blanks, dedupe (case-insensitive)
+    const cleaned: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of names) {
+      const trimmed = raw.trim();
+      if (!trimmed) continue;
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      cleaned.push(trimmed);
+    }
+
+    // Find any existing BO list row for this assessment
+    const { data: existing } = await supabase
+      .from('assessment_evidence')
+      .select('id')
+      .eq('assessment_id', assessmentId)
+      .eq('action_id', BO_LIST_ACTION_ID)
+      .eq('source', BO_LIST_SOURCE)
+      .maybeSingle();
+
+    if (cleaned.length === 0) {
+      // Empty list — delete any existing record
+      if (existing) {
+        await supabase.from('assessment_evidence').delete().eq('id', existing.id);
+      }
+      return { success: true };
+    }
+
+    if (existing) {
+      const { error: updateErr } = await supabase
+        .from('assessment_evidence')
+        .update({ data: { names: cleaned } })
+        .eq('id', existing.id);
+      if (updateErr) return { success: false, error: updateErr.message };
+    } else {
+      const { error: insertErr } = await supabase
+        .from('assessment_evidence')
+        .insert({
+          firm_id: profile.firm_id,
+          assessment_id: assessmentId,
+          action_id: BO_LIST_ACTION_ID,
+          evidence_type: 'manual_record',
+          label: BO_LIST_LABEL,
+          source: BO_LIST_SOURCE,
+          data: { names: cleaned },
+          created_by: user.id,
+        });
+      if (insertErr) return { success: false, error: insertErr.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error in setBeneficialOwnerNames:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
 
