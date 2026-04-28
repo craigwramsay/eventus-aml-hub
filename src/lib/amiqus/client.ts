@@ -141,13 +141,23 @@ export async function getAmiqusCase(
 }
 
 /**
- * Extract the Amiqus client ID from a response, handling both
- * top-level `client_id` and nested `client.id` shapes.
+ * Extract the Amiqus client ID from a response.
+ *
+ * Amiqus returns the linked client in three different shapes depending on
+ * the endpoint:
+ *   - top-level `client_id: number` (older /records responses)
+ *   - top-level `client: number` (current /cases responses — the ID directly)
+ *   - top-level `client: { id: number }` (some expanded responses)
+ *
+ * Returns 0 as a fallback (stored as null in the DB).
  */
-function extractClientId(data: { client_id?: number; client?: { id: number } }): number {
+function extractClientId(data: { client_id?: number; client?: number | { id: number } }): number {
   if (typeof data.client_id === 'number') return data.client_id;
-  if (data.client && typeof data.client.id === 'number') return data.client.id;
-  return 0; // fallback (will be stored as null/0)
+  if (typeof data.client === 'number') return data.client;
+  if (data.client && typeof data.client === 'object' && typeof data.client.id === 'number') {
+    return data.client.id;
+  }
+  return 0;
 }
 
 /**
