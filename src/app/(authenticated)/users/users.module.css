@@ -331,6 +331,12 @@
   margin: 0.25rem 0 0;
 }
 
+.selfRowMarker {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
 /* Role change row */
 .roleChangeRow {
   display: flex;
