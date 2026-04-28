@@ -179,6 +179,8 @@ export interface AmiqusVerification {
   action_id: string;
   amiqus_record_id: number | null;
   amiqus_client_id: number | null;
+  /** Full name of the verified client (from Amiqus). May be null for older rows pre-backfill. */
+  amiqus_client_name: string | null;
   status: AmiqusVerificationStatus;
   perform_url: string | null;
   verified_at: string | null;

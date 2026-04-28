@@ -164,7 +164,7 @@ export async function syncFinalisationPdfToClio(
       .eq('assessment_id', assessmentId),
     supabase
       .from('amiqus_verifications')
-      .select('action_id, amiqus_record_id, amiqus_client_id, status, verified_at')
+      .select('action_id, amiqus_record_id, amiqus_client_id, amiqus_client_name, status, verified_at')
       .eq('assessment_id', assessmentId)
       .eq('status', 'complete'),
     supabase
@@ -228,9 +228,14 @@ export async function syncFinalisationPdfToClio(
   const parsedChReport = parseCHReport(latestChData);
   const directorNames = getDirectorNames(parsedChReport);
 
-  const amiqusByAction = new Map<string, { amiqus_record_id: number | null; amiqus_client_id: number | null; verified_at: string | null }>();
+  // Group all Amiqus verifications per action — corporate matters often have
+  // multiple verifications (one per director / beneficial owner) on the same item.
+  const amiqusByAction = new Map<string, Array<{ amiqus_record_id: number | null; amiqus_client_id: number | null; amiqus_client_name: string | null; verified_at: string | null }>>();
   for (const v of amiqusResult.data || []) {
-    if (v.action_id) amiqusByAction.set(v.action_id, v);
+    if (!v.action_id) continue;
+    const list = amiqusByAction.get(v.action_id) || [];
+    list.push(v);
+    amiqusByAction.set(v.action_id, list);
   }
 
   const fmtDate = (d: string) => new Date(d + (d.includes('T') ? '' : 'T00:00:00')).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -239,36 +244,46 @@ export async function syncFinalisationPdfToClio(
   const cddItems: CddItemSummary[] = (outputSnapshot.mandatoryActions || []).map((action) => {
     const completed = completedActions.has(action.actionId);
     const actionEvidence = evidenceByAction.get(action.actionId) || [];
-    const amiqus = amiqusByAction.get(action.actionId);
+    const amiqusList = amiqusByAction.get(action.actionId) || [];
     const progress = progressByAction.get(action.actionId);
 
     const evidenceItems: CddEvidenceItem[] = [];
     let amiqusUrl: string | null = null;
 
-    // Amiqus verification
-    if (amiqus?.amiqus_record_id) {
-      const hasCarryForward = actionEvidence.some(ev => ev.label === 'Prior identity verification confirmed still valid');
-      const carryForwardEvidence = actionEvidence.find(ev => ev.label === 'Prior identity verification confirmed still valid');
-      amiqusUrl = amiqus.amiqus_client_id ? `https://id.amiqus.co/clients/${amiqus.amiqus_client_id}` : 'https://id.amiqus.co/';
+    // Amiqus verifications — one line per verification (corporate matters
+    // commonly have multiple, one per director / beneficial owner).
+    const hasCarryForward = actionEvidence.some(ev => ev.label === 'Prior identity verification confirmed still valid');
+    const carryForwardEvidence = actionEvidence.find(ev => ev.label === 'Prior identity verification confirmed still valid');
+    for (const amiqus of amiqusList) {
+      if (!amiqus.amiqus_record_id) continue;
+      const url = amiqus.amiqus_client_id ? `https://id.amiqus.co/clients/${amiqus.amiqus_client_id}` : 'https://id.amiqus.co/';
+      if (!amiqusUrl) amiqusUrl = url; // remember first for the row-level link
 
-      let label = 'Identity verified electronically';
-      if (hasCarryForward) {
+      const namePrefix = amiqus.amiqus_client_name ? `${amiqus.amiqus_client_name} — ` : '';
+      // Carry-forward wording only applies when there's exactly one verification
+      const showCarryForwardWording = hasCarryForward && amiqusList.length === 1;
+      let label: string;
+      if (showCarryForwardWording) {
         const verifiedDate = amiqus.verified_at ? fmtDate(amiqus.verified_at) : 'unknown';
         const confirmedDate = carryForwardEvidence?.verified_at ? fmtDate(carryForwardEvidence.verified_at) : null;
-        label = `Identity verified electronically — existing Amiqus verification dated ${verifiedDate} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`;
+        label = `${namePrefix}Identity verified electronically — existing Amiqus verification dated ${verifiedDate} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`;
+      } else {
+        label = `${namePrefix}Identity verified electronically${amiqus.amiqus_record_id ? ` (case ${amiqus.amiqus_record_id})` : ''}`;
       }
       evidenceItems.push({
         type: 'amiqus',
         label,
-        date: !hasCarryForward && amiqus.verified_at ? `Verified ${fmtDate(amiqus.verified_at)}` : undefined,
-        url: amiqusUrl,
+        date: !showCarryForwardWording && amiqus.verified_at ? `Verified ${fmtDate(amiqus.verified_at)}` : undefined,
+        url,
       });
     }
 
-    // Other evidence (excluding carry-forward when amiqus present)
+    // Other evidence (excluding carry-forward when any Amiqus row exists)
+    const hasAmiqus = amiqusList.length > 0;
     for (const ev of actionEvidence) {
-      if (amiqus && ev.label === 'Prior identity verification confirmed still valid') continue;
+      if (hasAmiqus && ev.label === 'Prior identity verification confirmed still valid') continue;
       if (isBeneficialOwnerListRow(ev)) continue; // BO list is rendered under requirement, not as evidence
+      if (ev.evidence_type === 'amiqus') continue; // already represented above
       const evType = ev.evidence_type === 'file_upload' ? 'file' as const
         : ev.evidence_type === 'companies_house' ? 'ch' as const
         : (ev.evidence_type === 'sow_declaration' || ev.evidence_type === 'sof_declaration') ? 'declaration' as const

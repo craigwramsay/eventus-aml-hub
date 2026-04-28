@@ -97,6 +97,12 @@ export function EvidencePanel({
     <div className={styles.evidenceSection}>
       {/* Render each Amiqus verification as a separate evidence line */}
       {verifications.map((verification) => {
+        // Prefix the line with the verified person's name when known so the
+        // user can tell which director / beneficial owner each line is for.
+        const namePrefix = verification.amiqus_client_name
+          ? `${verification.amiqus_client_name} — `
+          : '';
+
         if (verification.status === 'complete') {
           const amiqusUrl = verification.amiqus_client_id
             ? `https://id.amiqus.co/clients/${verification.amiqus_client_id}`
@@ -116,8 +122,8 @@ export function EvidencePanel({
                 <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeAmiqus}`}>Amiqus</span>
                 <span className={styles.evidenceLineLabel}>
                   {showCarryForwardWording
-                    ? `Identity verified electronically — existing Amiqus verification dated ${verifiedDate || 'unknown'} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`
-                    : `Identity verified electronically${verifiedDate ? ` on ${verifiedDate}` : ''}${verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}`
+                    ? `${namePrefix}Identity verified electronically — existing Amiqus verification dated ${verifiedDate || 'unknown'} was confirmed as still valid for this assessment${confirmedDate ? ` on ${confirmedDate}` : ''}`
+                    : `${namePrefix}Identity verified electronically${verifiedDate ? ` on ${verifiedDate}` : ''}${verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}`
                   }
                 </span>
                 <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
@@ -137,7 +143,7 @@ export function EvidencePanel({
                 {verification.status === 'pending' ? 'Pending' : 'In Progress'}
               </span>
               <span className={styles.evidenceLineLabel}>
-                Electronic identity verification{verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}
+                {namePrefix}Electronic identity verification{verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}
               </span>
               <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
                 View in Amiqus
@@ -151,7 +157,7 @@ export function EvidencePanel({
               <span className={`${styles.evidenceTypeBadge} ${styles.evidenceTypeBadgeFailed}`}>
                 {verification.status === 'failed' ? 'Failed' : 'Expired'}
               </span>
-              <span className={styles.evidenceLineLabel}>Electronic identity verification{verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}</span>
+              <span className={styles.evidenceLineLabel}>{namePrefix}Electronic identity verification{verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}</span>
             </div>
           );
         }
@@ -195,6 +201,9 @@ export function EvidencePanel({
         // The beneficial-owners-to-verify list is metadata (rendered under the
         // requirement description), not user-facing evidence.
         if (isBeneficialOwnerListRow(ev)) return false;
+        // Amiqus-type evidence rows are redundant — the verifications array
+        // above already renders a line for each Amiqus record.
+        if (ev.evidence_type === 'amiqus') return false;
         return true;
       }).map((ev) => {
         const isExpanded = expandedEvidence.has(ev.id);

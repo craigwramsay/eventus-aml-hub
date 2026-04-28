@@ -14,6 +14,8 @@ export {
   getAmiqusRecord,
   getAmiqusCase,
   getAmiqusRecordOrCase,
+  getAmiqusClient,
+  formatAmiqusClientName,
   registerAmiqusWebhook,
   deleteAmiqusWebhook,
 } from './client';
