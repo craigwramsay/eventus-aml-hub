@@ -5,13 +5,28 @@
  * See: https://developers.amiqus.co/
  */
 
+/**
+ * Amiqus client object. The `name` field is wrapped in a structured object
+ * with several pre-concatenated representations (`name`, `full_name`,
+ * `complete_name`) plus the parts (`first_name`, `middle_name`, `last_name`).
+ * Older API responses used `{ first, last }` instead — both shapes are kept
+ * optional so we can handle either.
+ */
 export interface AmiqusClient {
   id: number;
-  name: {
-    first: string;
-    last: string;
+  name?: {
+    title?: string | null;
+    first_name?: string | null;
+    middle_name?: string | null;
+    last_name?: string | null;
+    name?: string | null;
+    full_name?: string | null;
+    complete_name?: string | null;
+    /** Older API shape — kept for back-compat */
+    first?: string | null;
+    last?: string | null;
   };
-  email: string;
+  email?: string;
   created_at: string;
 }
 
