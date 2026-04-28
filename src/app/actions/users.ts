@@ -112,6 +112,26 @@ export async function inviteUser(input: InviteUserInput): Promise<InviteUserResu
       return { success: false, error: 'An invitation is already pending for this email' };
     }
 
+    // Check whether the email is already registered in auth.users globally.
+    // If it is, the recipient won't be able to complete signup later (they'd
+    // hit "User already registered"), so refuse upfront with a clear message.
+    // Uses a SECURITY DEFINER RPC because the authenticated role can't read
+    // auth.users directly.
+    const { data: emailExists, error: emailCheckErr } = await supabase
+      .rpc('email_in_auth_users', { target_email: email });
+
+    if (emailCheckErr) {
+      // Non-fatal — fall through to the invite attempt rather than blocking.
+      // The user will hit a clear error at acceptance time if there's a
+      // genuine conflict.
+      console.warn('email_in_auth_users RPC failed (non-fatal):', emailCheckErr);
+    } else if (emailExists === true) {
+      return {
+        success: false,
+        error: 'This email is already registered. If they used to be a user, delete their account from the Hub first; otherwise ask them to sign in directly.',
+      };
+    }
+
     // Generate the invitation token and persist the row. We DO NOT call
     // Supabase signUp here — instead, the auth.users row is created when
     // the recipient submits their password on the /invite/[token] page.
