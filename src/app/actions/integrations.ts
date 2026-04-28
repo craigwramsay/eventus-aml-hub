@@ -571,24 +571,30 @@ export async function testAmiqusConnection(
             keys: Object.keys(clientObj),
             rawSnippet: JSON.stringify(clientFetch.raw, null, 2).slice(0, 800),
           };
-          // Try multiple name shapes — first/last object, full string, first_name/last_name
+          // Extract the name. Handles every shape we've seen Amiqus return:
+          //   - top-level `name` as plain string
+          //   - top-level `full_name` / `first_name` / `last_name`
+          //   - nested `name: { full_name }` / `name: { first_name, last_name }`
+          //   - nested `name: { first, last }` (older shape)
+          const trimOrEmpty = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
           const nameField = clientObj.name;
-          const fullName = clientObj.full_name;
-          const firstName = clientObj.first_name;
-          const lastName = clientObj.last_name;
           if (typeof nameField === 'string' && nameField.trim()) {
             clientName = nameField.trim();
-          } else if (typeof fullName === 'string' && fullName.trim()) {
-            clientName = fullName.trim();
           } else if (nameField && typeof nameField === 'object') {
-            const n = nameField as { first?: unknown; last?: unknown };
-            const f = typeof n.first === 'string' ? n.first.trim() : '';
-            const l = typeof n.last === 'string' ? n.last.trim() : '';
-            const joined = [f, l].filter(Boolean).join(' ');
-            if (joined) clientName = joined;
-          } else if (typeof firstName === 'string' || typeof lastName === 'string') {
-            const joined = [firstName, lastName].filter((v): v is string => typeof v === 'string' && v.trim().length > 0).join(' ');
-            if (joined) clientName = joined;
+            const n = nameField as Record<string, unknown>;
+            const fullName = trimOrEmpty(n.full_name) || trimOrEmpty(n.name);
+            if (fullName) {
+              clientName = fullName;
+            } else {
+              const newShape = [n.first_name, n.middle_name, n.last_name]
+                .map(trimOrEmpty).filter(Boolean).join(' ');
+              const oldShape = [n.first, n.last].map(trimOrEmpty).filter(Boolean).join(' ');
+              clientName = newShape || oldShape || null;
+            }
+          } else {
+            const fallback = trimOrEmpty(clientObj.full_name)
+              || [clientObj.first_name, clientObj.last_name].map(trimOrEmpty).filter(Boolean).join(' ');
+            if (fallback) clientName = fallback;
           }
         } else {
           const e = clientFetch.err;

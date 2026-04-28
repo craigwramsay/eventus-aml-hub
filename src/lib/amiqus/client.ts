@@ -111,13 +111,34 @@ export async function getAmiqusClient(
 }
 
 /**
- * Format an Amiqus client name as a single string ("Alice Smith").
- * Trims and skips empty parts.
+ * Format an Amiqus client name as a single string ("Alexandra Inglis").
+ *
+ * Amiqus's /clients/{id} response wraps the name in a structured object with
+ * several representations:
+ *   - `name.full_name` / `name.name` — already concatenated
+ *   - `name.first_name` + `name.middle_name` + `name.last_name` — parts
+ *   - older shape: `name.first` + `name.last`
+ *
+ * Prefers the pre-concatenated `full_name`, falling back through the part-
+ * based shapes. Returns empty string when none are usable.
  */
 export function formatAmiqusClientName(client: AmiqusClient): string {
-  const first = (client.name?.first || '').trim();
-  const last = (client.name?.last || '').trim();
-  return [first, last].filter(Boolean).join(' ');
+  const n = client.name;
+  if (!n) return '';
+
+  const trimOrEmpty = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+
+  const fullName = trimOrEmpty(n.full_name) || trimOrEmpty(n.name);
+  if (fullName) return fullName;
+
+  const newShape = [n.first_name, n.middle_name, n.last_name]
+    .map(trimOrEmpty)
+    .filter(Boolean)
+    .join(' ');
+  if (newShape) return newShape;
+
+  const oldShape = [n.first, n.last].map(trimOrEmpty).filter(Boolean).join(' ');
+  return oldShape;
 }
 
 /**
