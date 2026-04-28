@@ -8,7 +8,8 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { disconnectIntegration, registerAmiqusWebhookForFirm } from '@/app/actions/integrations';
+import { disconnectIntegration, registerAmiqusWebhookForFirm, testAmiqusConnection } from '@/app/actions/integrations';
+import type { TestAmiqusConnectionResult } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
 
@@ -24,6 +25,8 @@ export function IntegrationCards({ provider, isConfigured, isConnected, hasWebho
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [testRecordId, setTestRecordId] = useState('');
+  const [testResult, setTestResult] = useState<TestAmiqusConnectionResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -48,6 +51,21 @@ export function IntegrationCards({ provider, isConfigured, isConnected, hasWebho
       } else {
         setSuccess(hasWebhook ? 'Webhook re-registered successfully.' : 'Webhook registered successfully.');
         router.refresh();
+      }
+    });
+  };
+
+  const handleTestAmiqusConnection = () => {
+    setError(null);
+    setSuccess(null);
+    setTestResult(null);
+    const recordId = testRecordId.trim() ? parseInt(testRecordId.trim(), 10) : undefined;
+    startTransition(async () => {
+      const result = await testAmiqusConnection(recordId);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setTestResult(result.result);
       }
     });
   };
@@ -101,8 +119,67 @@ export function IntegrationCards({ provider, isConfigured, isConnected, hasWebho
               {isPending ? 'Disconnecting...' : 'Disconnect'}
             </button>
           )}
+          <div className={styles.amiqusTestBlock}>
+            <div className={styles.amiqusTestRow}>
+              <input
+                type="text"
+                className={styles.amiqusTestInput}
+                placeholder="Optional: record/case ID (e.g. 51331)"
+                value={testRecordId}
+                onChange={(e) => setTestRecordId(e.target.value)}
+                disabled={isPending}
+              />
+              <button
+                type="button"
+                className={styles.testConnectionButton}
+                onClick={handleTestAmiqusConnection}
+                disabled={isPending}
+              >
+                {isPending ? 'Testing...' : 'Test Connection'}
+              </button>
+            </div>
+            {testResult && <AmiqusTestResultPanel result={testResult} />}
+          </div>
         </>
       )}
+    </div>
+  );
+}
+
+/** Diagnostic result panel — surfaces env var status, auth result, and optional record lookup */
+function AmiqusTestResultPanel({ result }: { result: TestAmiqusConnectionResult }) {
+  return (
+    <div className={styles.amiqusTestResult}>
+      <Row label="API key configured" ok={result.apiKeyConfigured}>
+        {result.apiKeyConfigured ? `Yes (${result.apiKeyTail})` : 'No — AMIQUS_API_KEY env var is not set'}
+      </Row>
+      <Row label="App URL configured" ok={result.appUrlConfigured}>
+        {result.appUrlConfigured ? 'Yes' : 'No — NEXT_PUBLIC_APP_URL env var is not set'}
+      </Row>
+      <Row label="Authenticated API call" ok={result.authTest.ok}>
+        {result.authTest.ok
+          ? `OK — fetched ${result.authTest.webhookCount} webhook${result.authTest.webhookCount === 1 ? '' : 's'}`
+          : `Failed${result.authTest.statusCode ? ` (HTTP ${result.authTest.statusCode})` : ''}: ${result.authTest.error}`}
+      </Row>
+      {result.recordTest && (
+        <Row label="Record/case lookup" ok={result.recordTest.ok}>
+          {result.recordTest.ok
+            ? `OK — found ${result.recordTest.type}, client ID ${result.recordTest.clientId || '(none)'}, name ${result.recordTest.clientName || '(none returned)'}`
+            : `Failed${result.recordTest.statusCode ? ` (HTTP ${result.recordTest.statusCode})` : ''}: ${result.recordTest.error}`}
+        </Row>
+      )}
+    </div>
+  );
+}
+
+function Row({ label, ok, children }: { label: string; ok: boolean; children: React.ReactNode }) {
+  return (
+    <div className={styles.amiqusTestResultRow}>
+      <span className={`${styles.amiqusTestStatus} ${ok ? styles.amiqusTestOk : styles.amiqusTestFail}`}>
+        {ok ? '✓' : '✗'}
+      </span>
+      <span className={styles.amiqusTestLabel}>{label}</span>
+      <span className={styles.amiqusTestValue}>{children}</span>
     </div>
   );
 }

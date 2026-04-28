@@ -12,7 +12,16 @@ import type { FirmIntegration, IntegrationProvider } from '@/lib/supabase/types'
 import type { UserRole } from '@/lib/auth/roles';
 import { canManageIntegrations } from '@/lib/auth/roles';
 import { deleteClioWebhook, registerClioWebhook, refreshClioToken, ClioError } from '@/lib/clio';
-import { getAmiqusApiKey, registerAmiqusWebhook, deleteAmiqusWebhook, AmiqusError } from '@/lib/amiqus';
+import {
+  getAmiqusApiKey,
+  registerAmiqusWebhook,
+  deleteAmiqusWebhook,
+  listAmiqusWebhooks,
+  getAmiqusRecordOrCase,
+  getAmiqusClient,
+  formatAmiqusClientName,
+  AmiqusError,
+} from '@/lib/amiqus';
 
 export type IntegrationStatusResult =
   | { success: true; integrations: FirmIntegration[] }
@@ -404,5 +413,101 @@ export async function registerAmiqusWebhookForFirm(): Promise<DisconnectResult> 
   } catch (err) {
     console.error('Error registering Amiqus webhook:', err);
     return { success: false, error: 'Failed to register webhook' };
+  }
+}
+
+/**
+ * Diagnostic: test the Amiqus integration end-to-end.
+ *
+ * Reports on three independent things so we can pinpoint why backfill
+ * isn't running:
+ *   1. Server-side env vars (AMIQUS_API_KEY, NEXT_PUBLIC_APP_URL).
+ *   2. Authenticated API call (GET /webhooks) — proves the key is valid.
+ *   3. Optionally a record/case lookup + linked client lookup, when the
+ *      caller supplies an `amiqusRecordId`. This mirrors exactly what
+ *      `backfillAmiqusClientIds` does, so a failure here explains why
+ *      the backfill is producing no name updates.
+ */
+export interface TestAmiqusConnectionResult {
+  apiKeyConfigured: boolean;
+  appUrlConfigured: boolean;
+  apiKeyTail: string | null;
+  authTest:
+    | { ok: true; webhookCount: number }
+    | { ok: false; error: string; statusCode?: number };
+  recordTest?:
+    | { ok: true; type: 'record' | 'case'; clientId: number; clientName: string | null }
+    | { ok: false; error: string; statusCode?: number };
+}
+
+export async function testAmiqusConnection(
+  amiqusRecordId?: number
+): Promise<{ success: true; result: TestAmiqusConnectionResult } | { success: false; error: string }> {
+  try {
+    const { user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const apiKey = getAmiqusApiKey();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const apiKeyTail = apiKey ? `…${apiKey.slice(-4)}` : null;
+
+    const result: TestAmiqusConnectionResult = {
+      apiKeyConfigured: !!apiKey,
+      appUrlConfigured: !!appUrl,
+      apiKeyTail,
+      authTest: { ok: false, error: 'Not run' },
+    };
+
+    if (!apiKey) {
+      result.authTest = { ok: false, error: 'AMIQUS_API_KEY env var is not set in this environment' };
+      return { success: true, result };
+    }
+
+    // 2. Auth test — GET /webhooks
+    try {
+      const webhooks = await listAmiqusWebhooks(apiKey);
+      result.authTest = { ok: true, webhookCount: webhooks.length };
+    } catch (err) {
+      const statusCode = err instanceof AmiqusError ? err.statusCode : undefined;
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      result.authTest = { ok: false, error: message, statusCode };
+      return { success: true, result }; // surface the error rather than throwing
+    }
+
+    // 3. Optional record/case lookup when an ID is supplied
+    if (amiqusRecordId) {
+      try {
+        const lookup = await getAmiqusRecordOrCase(amiqusRecordId, apiKey);
+        const clientId = lookup.data.client_id;
+        let clientName: string | null = null;
+        if (clientId && clientId > 0) {
+          try {
+            const client = await getAmiqusClient(clientId, apiKey);
+            clientName = formatAmiqusClientName(client) || null;
+          } catch (err) {
+            const statusCode = err instanceof AmiqusError ? err.statusCode : undefined;
+            const message = err instanceof Error ? err.message : 'Unknown error';
+            result.recordTest = { ok: false, error: `Found ${lookup.type} but client lookup failed: ${message}`, statusCode };
+            return { success: true, result };
+          }
+        }
+        result.recordTest = { ok: true, type: lookup.type, clientId, clientName };
+      } catch (err) {
+        const statusCode = err instanceof AmiqusError ? err.statusCode : undefined;
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        result.recordTest = { ok: false, error: message, statusCode };
+      }
+    }
+
+    return { success: true, result };
+  } catch (err) {
+    console.error('Error in testAmiqusConnection:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
