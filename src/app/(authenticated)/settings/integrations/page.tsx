@@ -113,6 +113,14 @@ export default async function IntegrationsSettingsPage({ searchParams }: PagePro
                     </span>
                   </div>
                 )}
+                <div className={styles.infoRow}>
+                  <span className={styles.infoLabel}>Webhook</span>
+                  <span className={styles.infoValue}>
+                    {clioIntegration.webhook_id
+                      ? `Registered (ID ${clioIntegration.webhook_id})`
+                      : 'Not registered'}
+                  </span>
+                </div>
                 {clioWebhookDaysLeft !== null && (
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Webhook expires</span>
@@ -123,10 +131,16 @@ export default async function IntegrationsSettingsPage({ searchParams }: PagePro
                     </span>
                   </div>
                 )}
+                {!clioIntegration.webhook_id && (
+                  <div className={styles.webhookWarning}>
+                    Webhook not registered. Click &ldquo;Re-register Webhook&rdquo; to enable
+                    automatic syncing of new clients and matters from Clio.
+                  </div>
+                )}
                 {clioWebhookDaysLeft !== null && clioWebhookDaysLeft <= 3 && (
                   <div className={styles.webhookWarning}>
                     Webhook {clioWebhookDaysLeft <= 0 ? 'has expired' : 'expires soon'}.
-                    Reconnect to renew.
+                    Click &ldquo;Re-register Webhook&rdquo; to renew.
                   </div>
                 )}
               </>
@@ -141,6 +155,7 @@ export default async function IntegrationsSettingsPage({ searchParams }: PagePro
             provider="clio"
             isConfigured={clioConfigured}
             isConnected={!!clioIntegration}
+            hasWebhook={!!clioIntegration?.webhook_id}
           />
         </div>
 
