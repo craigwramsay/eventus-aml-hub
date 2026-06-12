@@ -187,6 +187,12 @@ export async function refreshClioToken(refreshToken: string): Promise<ClioTokenR
 /**
  * Register a webhook with Clio.
  * Clio webhooks expire after max 31 days.
+ *
+ * Note on response fields: Clio's create endpoint only returns fields requested
+ * via the `?fields=` query param. We MUST request `shared_secret` and `expires_at`
+ * explicitly or they'll be missing from the response — which is what caused
+ * webhook_secret/webhook_expires_at to be silently null in firm_integrations,
+ * making every incoming Clio event fail HMAC verification with 401.
  */
 export async function registerClioWebhook(
   accessToken: string,
@@ -196,18 +202,24 @@ export async function registerClioWebhook(
   // Clio allows up to 31 days — set to 30 days for buffer
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  return clioFetch<ClioWebhookResponse>('/api/v4/webhooks.json', accessToken, {
-    method: 'POST',
-    body: JSON.stringify({
-      data: {
-        url,
-        fields: ['id', 'etag', 'display_number', 'description', 'status'],
-        events,
-        model: 'matter',
-        expires_at: expiresAt,
-      },
-    }),
-  });
+  const responseFields = 'id,etag,url,events,model,status,expires_at,shared_secret,created_at,updated_at';
+
+  return clioFetch<ClioWebhookResponse>(
+    `/api/v4/webhooks.json?fields=${encodeURIComponent(responseFields)}`,
+    accessToken,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        data: {
+          url,
+          fields: ['id', 'etag', 'display_number', 'description', 'status'],
+          events,
+          model: 'matter',
+          expires_at: expiresAt,
+        },
+      }),
+    }
+  );
 }
 
 /**

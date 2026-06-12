@@ -237,27 +237,41 @@ export async function renewClioWebhook(): Promise<DisconnectResult> {
       }
     }
 
-    // Register new webhook
+    // Register new webhook — the registerClioWebhook helper now requests
+    // shared_secret and expires_at explicitly in the response.
     const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/clio`;
     const webhook = await registerClioWebhook(accessToken!, webhookUrl, ['created']);
 
-    // Resolve secret: try API response first, then handshake table
+    // Resolve secret: try API response first; fall back to handshake table.
+    // Clio's handshake POST arrives ~1s after the API response, so poll with retries —
+    // a single immediate check finds nothing and gets us a null secret (which causes
+    // every subsequent webhook to fail HMAC with 401).
     const webhookData = webhook.data as Record<string, unknown>;
     let webhookSecret = webhookData.shared_secret ?? webhookData.secret ?? null;
 
     if (!webhookSecret) {
-      const { data: handshakeSecret } = await supabase.rpc(
-        'get_clio_webhook_handshake',
-        { p_webhook_id: String(webhook.data.id) }
-      );
-      if (handshakeSecret) {
-        webhookSecret = handshakeSecret;
-      } else {
-        const { data: pendingSecret } = await supabase.rpc(
-          'get_clio_webhook_handshake',
-          { p_webhook_id: 'pending' }
-        );
-        if (pendingSecret) webhookSecret = pendingSecret;
+      const webhookIdStr = String(webhook.data.id);
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const { data: byId } = await supabase.rpc('get_clio_webhook_handshake', {
+          p_webhook_id: webhookIdStr,
+        });
+        if (byId) {
+          webhookSecret = byId;
+          break;
+        }
+        const { data: byPending } = await supabase.rpc('get_clio_webhook_handshake', {
+          p_webhook_id: 'pending',
+        });
+        if (byPending) {
+          webhookSecret = byPending;
+          break;
+        }
+        if (attempt < 5) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+      if (!webhookSecret) {
+        console.error('Clio renew: no webhook secret found after 3s of handshake polling');
       }
     }
 
