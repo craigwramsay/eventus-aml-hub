@@ -204,7 +204,7 @@ export async function registerClioWebhook(
 
   const responseFields = 'id,etag,url,events,model,status,expires_at,shared_secret,created_at,updated_at';
 
-  return clioFetch<ClioWebhookResponse>(
+  const response = await clioFetch<ClioWebhookResponse>(
     `/api/v4/webhooks.json?fields=${encodeURIComponent(responseFields)}`,
     accessToken,
     {
@@ -220,18 +220,16 @@ export async function registerClioWebhook(
       }),
     }
   );
-}
 
-/**
- * List all webhooks registered for the authenticated Clio OAuth credentials.
- */
-export async function listClioWebhooks(
-  accessToken: string
-): Promise<ClioWebhookListResponse> {
-  return clioFetch<ClioWebhookListResponse>(
-    '/api/v4/webhooks.json?fields=id,url,model,events,status,expires_at,created_at,updated_at',
-    accessToken
-  );
+  // Clio's create response sometimes omits expires_at even when requested via
+  // ?fields=. Inject the value we asked for so callers can always persist
+  // webhook_expires_at — Clio honors the requested expiry (visible via the
+  // list endpoint), so this is the same value, not a guess.
+  if (response.data && !response.data.expires_at) {
+    response.data.expires_at = expiresAt;
+  }
+
+  return response;
 }
 
 /**
