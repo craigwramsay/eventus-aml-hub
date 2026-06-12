@@ -14,6 +14,7 @@ import { canManageIntegrations } from '@/lib/auth/roles';
 import {
   deleteClioWebhook,
   listClioWebhooks,
+  listClioMattersCreatedSince,
   registerClioWebhook,
   refreshClioToken,
   ClioError,
@@ -830,6 +831,326 @@ export async function testClioConnection(): Promise<
     return { success: true, result };
   } catch (err) {
     console.error('Error in testClioConnection:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Backfill clients/matters from Clio that were created while the webhook was
+ * broken (or before it existed).
+ *
+ * For each matter created in Clio since `sinceISO`, one of four outcomes:
+ *   - imported: process_clio_webhook ran and created the client+matter
+ *   - already_linked: a Hub matter with the same clio_matter_id already exists
+ *     (either a prior backfill, or an event-synced record)
+ *   - manual_duplicate_candidate: there's a Hub matter whose reference matches
+ *     this Clio matter's display_number AND whose client name matches the Clio
+ *     contact name, but its clio_matter_id is NULL — the user likely created
+ *     it manually. We DO NOT import, to avoid duplicates. User should link manually.
+ *   - error: the RPC or fetch failed (with reason)
+ *
+ * Idempotent: safe to re-run; nothing already-linked gets touched twice.
+ */
+export interface BackfillClioMatterOutcome {
+  clioMatterId: string;
+  displayNumber: string;
+  contactName: string;
+  contactId: string;
+  status: 'imported' | 'already_linked' | 'manual_duplicate_candidate' | 'error';
+  /** For manual_duplicate_candidate: the existing Hub matter id+reference that looks like a manual entry. */
+  manualMatch?: { matterId: string; reference: string };
+  error?: string;
+}
+
+export interface BackfillClioMattersResult {
+  sinceISO: string;
+  totalFromClio: number;
+  imported: number;
+  alreadyLinked: number;
+  manualDuplicateCandidates: number;
+  errors: number;
+  cappedAtMax: boolean;
+  outcomes: BackfillClioMatterOutcome[];
+}
+
+export async function backfillClioMatters(
+  sinceISO?: string
+): Promise<{ success: true; result: BackfillClioMattersResult } | { success: false; error: string }> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    // Default `since` to the firm's Clio connected_at (i.e. everything since connection)
+    let resolvedSince = sinceISO;
+    if (!resolvedSince) {
+      const { data: integration } = await supabase
+        .from('firm_integrations')
+        .select('connected_at')
+        .eq('firm_id', profile.firm_id)
+        .eq('provider', 'clio')
+        .maybeSingle();
+      resolvedSince = (integration as { connected_at?: string } | null)?.connected_at;
+    }
+    if (!resolvedSince) {
+      return { success: false, error: 'No `since` date supplied and no Clio connection date on file' };
+    }
+
+    const tokenResult = await getClioAccessTokenForFirm(supabase, profile.firm_id);
+    if (!tokenResult) {
+      return { success: false, error: 'Clio is not connected for this firm' };
+    }
+
+    // Fetch Clio matters since the date
+    const MAX_MATTERS = 500;
+    const matters = await listClioMattersCreatedSince(
+      tokenResult.accessToken,
+      resolvedSince,
+      MAX_MATTERS
+    );
+    const cappedAtMax = matters.length >= MAX_MATTERS;
+
+    // Preload Hub matters for this firm so we can dedup without N+1 queries
+    const { data: hubMatters } = await supabase
+      .from('matters')
+      .select('id, reference, clio_matter_id, client_id, clients(name)')
+      .eq('firm_id', profile.firm_id);
+
+    type HubMatterRow = {
+      id: string;
+      reference: string | null;
+      clio_matter_id: string | null;
+      client_id: string;
+      clients: { name: string | null } | { name: string | null }[] | null;
+    };
+    const hubMatterRows = (hubMatters || []) as HubMatterRow[];
+
+    const linkedClioMatterIds = new Set(
+      hubMatterRows.filter((m) => m.clio_matter_id).map((m) => m.clio_matter_id as string)
+    );
+
+    const outcomes: BackfillClioMatterOutcome[] = [];
+    let imported = 0;
+    let alreadyLinked = 0;
+    let manualDuplicateCandidates = 0;
+    let errors = 0;
+
+    for (const matter of matters) {
+      const clioMatterId = String(matter.id);
+      const displayNumber = matter.display_number || `CLIO-${clioMatterId}`;
+      const contact = matter.client;
+      const contactName = contact?.name?.trim() || '';
+      const contactId = contact ? String(contact.id) : '';
+
+      if (!contact) {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName: '',
+          contactId: '',
+          status: 'error',
+          error: 'Clio matter has no client',
+        });
+        errors++;
+        continue;
+      }
+
+      // Already linked?
+      if (linkedClioMatterIds.has(clioMatterId)) {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName,
+          contactId,
+          status: 'already_linked',
+        });
+        alreadyLinked++;
+        continue;
+      }
+
+      // Likely-manual duplicate check: Hub matter with same reference AND same client name
+      const contactNameLower = contactName.toLowerCase();
+      const manualMatch = hubMatterRows.find((m) => {
+        if (m.clio_matter_id) return false;
+        if (!m.reference || m.reference.trim().toLowerCase() !== displayNumber.trim().toLowerCase()) {
+          return false;
+        }
+        const clientRel = Array.isArray(m.clients) ? m.clients[0] : m.clients;
+        const clientName = clientRel?.name?.trim().toLowerCase() || '';
+        return clientName === contactNameLower;
+      });
+
+      if (manualMatch) {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName,
+          contactId,
+          status: 'manual_duplicate_candidate',
+          manualMatch: { matterId: manualMatch.id, reference: manualMatch.reference || '' },
+        });
+        manualDuplicateCandidates++;
+        continue;
+      }
+
+      // Import via the same RPC the webhook uses
+      const { error: rpcErr } = await supabase.rpc('process_clio_webhook', {
+        p_firm_id: profile.firm_id,
+        p_clio_matter_id: clioMatterId,
+        p_matter_display_number: displayNumber,
+        p_matter_description: matter.description || '',
+        p_clio_contact_id: contactId,
+        p_contact_name: contactName,
+        p_contact_type: contact.type || 'Person',
+        p_user_id: user.id,
+      });
+
+      if (rpcErr) {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName,
+          contactId,
+          status: 'error',
+          error: rpcErr.message,
+        });
+        errors++;
+      } else {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName,
+          contactId,
+          status: 'imported',
+        });
+        imported++;
+        // Add to linked set so a subsequent duplicate within the same run is treated as already-linked
+        linkedClioMatterIds.add(clioMatterId);
+      }
+    }
+
+    // Audit log — one entry for the whole pass
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'integration',
+      entity_id: 'clio',
+      action: 'clio_backfill_run',
+      metadata: {
+        since_iso: resolvedSince,
+        total_from_clio: matters.length,
+        imported,
+        already_linked: alreadyLinked,
+        manual_duplicate_candidates: manualDuplicateCandidates,
+        errors,
+        capped_at_max: cappedAtMax,
+      },
+      created_by: user.id,
+    });
+
+    return {
+      success: true,
+      result: {
+        sinceISO: resolvedSince,
+        totalFromClio: matters.length,
+        imported,
+        alreadyLinked,
+        manualDuplicateCandidates,
+        errors,
+        cappedAtMax,
+        outcomes,
+      },
+    };
+  } catch (err) {
+    console.error('Error in backfillClioMatters:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Delete any Clio webhooks registered against this firm's OAuth credentials
+ * that aren't the one we have stored in firm_integrations. These typically
+ * come from previous connect attempts where webhook registration succeeded
+ * but the row didn't get updated cleanly.
+ */
+export interface CleanupClioWebhooksResult {
+  storedWebhookId: string | null;
+  totalWebhooks: number;
+  deleted: string[];
+  failed: { id: string; error: string }[];
+}
+
+export async function cleanupOrphanClioWebhooks(): Promise<
+  { success: true; result: CleanupClioWebhooksResult } | { success: false; error: string }
+> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const { data: integration } = await supabase
+      .from('firm_integrations')
+      .select('webhook_id')
+      .eq('firm_id', profile.firm_id)
+      .eq('provider', 'clio')
+      .maybeSingle();
+    const storedWebhookId = (integration as { webhook_id?: string } | null)?.webhook_id || null;
+
+    const tokenResult = await getClioAccessTokenForFirm(supabase, profile.firm_id);
+    if (!tokenResult) {
+      return { success: false, error: 'Clio is not connected for this firm' };
+    }
+
+    const list = await listClioWebhooks(tokenResult.accessToken);
+
+    const deleted: string[] = [];
+    const failed: { id: string; error: string }[] = [];
+
+    for (const webhook of list.data) {
+      const id = String(webhook.id);
+      if (storedWebhookId && id === storedWebhookId) continue;
+      try {
+        await deleteClioWebhook(tokenResult.accessToken, id);
+        deleted.push(id);
+      } catch (err) {
+        failed.push({ id, error: err instanceof Error ? err.message : 'Unknown error' });
+      }
+    }
+
+    if (deleted.length || failed.length) {
+      await supabase.from('audit_events').insert({
+        firm_id: profile.firm_id,
+        entity_type: 'integration',
+        entity_id: 'clio',
+        action: 'clio_orphan_webhook_cleanup',
+        metadata: {
+          stored_webhook_id: storedWebhookId,
+          total_webhooks: list.data.length,
+          deleted,
+          failed,
+        },
+        created_by: user.id,
+      });
+    }
+
+    return {
+      success: true,
+      result: {
+        storedWebhookId,
+        totalWebhooks: list.data.length,
+        deleted,
+        failed,
+      },
+    };
+  } catch (err) {
+    console.error('Error in cleanupOrphanClioWebhooks:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
