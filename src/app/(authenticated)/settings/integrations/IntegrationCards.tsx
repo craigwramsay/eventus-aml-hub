@@ -17,12 +17,14 @@ import {
   testClioConnection,
   backfillClioMatters,
   cleanupOrphanClioWebhooks,
+  mergeClioImportedDuplicates,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
   TestClioConnectionResult,
   BackfillClioMattersResult,
   CleanupClioWebhooksResult,
+  MergeClioDuplicatesResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -50,6 +52,7 @@ export function IntegrationCards({
   const [backfillSince, setBackfillSince] = useState('');
   const [backfillResult, setBackfillResult] = useState<BackfillClioMattersResult | null>(null);
   const [cleanupResult, setCleanupResult] = useState<CleanupClioWebhooksResult | null>(null);
+  const [mergeResult, setMergeResult] = useState<MergeClioDuplicatesResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -154,6 +157,48 @@ export function IntegrationCards({
     });
   };
 
+  const handlePreviewMerge = () => {
+    setError(null);
+    setSuccess(null);
+    setMergeResult(null);
+    startTransition(async () => {
+      const result = await mergeClioImportedDuplicates({ dryRun: true });
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setMergeResult(result.result);
+      }
+    });
+  };
+
+  const handleExecuteMerge = () => {
+    setError(null);
+    setSuccess(null);
+    const toMerge = mergeResult?.merged ?? 0;
+    if (!toMerge) {
+      setError('No pairs ready to merge — run Preview first.');
+      return;
+    }
+    const ok = window.confirm(
+      `Merge ${toMerge} duplicate pair${toMerge === 1 ? '' : 's'}? This will:\n` +
+        `  • Link the manual records to Clio's IDs\n` +
+        `  • Repoint audit events onto the manual records\n` +
+        `  • DELETE the Clio-imported duplicates\n\n` +
+        `Pairs flagged as ambiguous or having assessments will be skipped.`
+    );
+    if (!ok) return;
+    setMergeResult(null);
+    startTransition(async () => {
+      const result = await mergeClioImportedDuplicates({ dryRun: false });
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setMergeResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
   if (!isConfigured) {
     return null;
   }
@@ -232,6 +277,29 @@ export function IntegrationCards({
                 </button>
               </div>
               {cleanupResult && <CleanupResultPanel result={cleanupResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handlePreviewMerge}
+                  disabled={isPending}
+                  title="Find clients/matters that exist twice — once manually, once Clio-imported — without making any changes."
+                >
+                  {isPending ? 'Scanning...' : 'Preview Duplicates'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleExecuteMerge}
+                  disabled={isPending || !mergeResult || mergeResult.merged === 0}
+                  title="Merge the duplicate pairs identified in the preview: link manual records to Clio IDs, delete the Clio-imported duplicates."
+                >
+                  {isPending ? 'Merging...' : 'Merge Duplicates'}
+                </button>
+              </div>
+              {mergeResult && <MergeResultPanel result={mergeResult} />}
             </div>
           </>
         ) : (
@@ -524,6 +592,72 @@ function CleanupResultPanel({ result }: { result: CleanupClioWebhooksResult }) {
             </div>
           ))}
         </Row>
+      )}
+    </div>
+  );
+}
+
+/** Result panel for mergeClioImportedDuplicates — shows preview or actual merge outcomes. */
+function MergeResultPanel({ result }: { result: MergeClioDuplicatesResult }) {
+  const headerLabel = result.dryRun ? 'Preview (no changes made)' : 'Merge executed';
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Mode" ok={true}>
+        {headerLabel}
+      </Row>
+      <Row label="Pairs scanned" ok={true}>
+        {result.pairsFound}
+      </Row>
+      <Row label={result.dryRun ? 'Ready to merge' : 'Merged'} ok={true}>
+        {result.merged}
+      </Row>
+      <Row label="Skipped — ambiguous matter count" ok={result.skippedAmbiguous === 0}>
+        {result.skippedAmbiguous}
+      </Row>
+      <Row label="Skipped — already merged" ok={true}>
+        {result.skippedAlreadyMerged}
+      </Row>
+      <Row label="Skipped — assessments on Clio side" ok={result.skippedHasAssessments === 0}>
+        {result.skippedHasAssessments}
+        {result.skippedHasAssessments > 0 &&
+          ' — manual review needed (work was already started on the Clio-imported duplicate)'}
+      </Row>
+      <Row label="Errors" ok={result.errors === 0}>
+        {result.errors}
+      </Row>
+      {result.outcomes.length > 0 && (
+        <details className={styles.connectionTestDetails} open>
+          <summary>Per-pair outcomes ({result.outcomes.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.outcomes.map((o, i) => (
+              <Row
+                key={`${o.manualClientId || ''}-${i}`}
+                label={o.clientName}
+                ok={o.status === 'merged' || o.status === 'preview_merged' || o.status === 'skipped_already_merged'}
+              >
+                {o.status === 'preview_merged' && (
+                  <>
+                    Would link <code>{o.manualMatterReference}</code> → Clio matter{' '}
+                    <code>{o.clioMatterId}</code>, then delete imported{' '}
+                    <code>{o.clioImportedMatterReference}</code>
+                  </>
+                )}
+                {o.status === 'merged' && (
+                  <>
+                    Linked <code>{o.manualMatterReference}</code> → Clio matter{' '}
+                    <code>{o.clioMatterId}</code>; deleted imported{' '}
+                    <code>{o.clioImportedMatterReference}</code>
+                  </>
+                )}
+                {o.status === 'skipped_already_merged' && 'Already linked'}
+                {o.status === 'skipped_ambiguous' && <>Ambiguous: {o.reason}</>}
+                {o.status === 'skipped_unmatched_clients' && <>{o.reason}</>}
+                {o.status === 'skipped_has_assessments' && <>{o.reason}</>}
+                {o.status === 'error' && <>Error: {o.reason}</>}
+              </Row>
+            ))}
+          </div>
+        </details>
       )}
     </div>
   );

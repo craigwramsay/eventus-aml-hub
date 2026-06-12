@@ -1154,3 +1154,372 @@ export async function cleanupOrphanClioWebhooks(): Promise<
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
+/**
+ * Find and merge duplicate clients/matters where the backfill imported a Clio
+ * copy of a record the user had already created manually.
+ *
+ * Detection: pairs of clients with the SAME name (case-insensitive) where
+ *   - one has `clio_contact_id IS NULL` (treated as the "manual" original), and
+ *   - the other has `clio_contact_id` set (the Clio-imported copy)
+ * Each client must have exactly 1 matter on each side (otherwise the action
+ * skips that pair as ambiguous — manual reconciliation needed).
+ *
+ * Merge strategy (Option A — keep the manual record):
+ *   1. Move `clio_matter_id` from the Clio-imported matter onto the manual matter
+ *      (releasing the unique index on the imported one first so we don't conflict)
+ *   2. Move `clio_contact_id` from the Clio-imported client onto the manual client
+ *   3. Repoint any `audit_events.entity_id` pointing at the Clio-imported records
+ *      (no FK enforcement on this column) onto the manual records
+ *   4. Delete the Clio-imported matter and client. Postgres will REJECT the delete
+ *      if any FK reference (assessment, evidence, drive sync, amiqus verification,
+ *      cdd progress, mlro approval) was somehow attached to the Clio-imported side —
+ *      this is a load-bearing safety net, not paranoia.
+ *
+ * Pre-merge safety check: count assessments on the Clio-imported matter. If > 0,
+ * abort that pair with `skipped_has_assessments` so a human can decide.
+ *
+ * Not transactional across Postgres statements (Supabase JS doesn't expose
+ * transactions), so the steps are ordered to fail safe: an interruption between
+ * step 1 and step 4 leaves a recoverable state (both matters NULL on clio_matter_id),
+ * and re-running the action picks back up the pairing by client name.
+ */
+export interface MergeClioDuplicatePairOutcome {
+  clientName: string;
+  status:
+    | 'merged'
+    | 'preview_merged'
+    | 'skipped_ambiguous'
+    | 'skipped_already_merged'
+    | 'skipped_has_assessments'
+    | 'skipped_unmatched_clients'
+    | 'error';
+  /** Human-readable reason for skipped/error outcomes */
+  reason?: string;
+  manualClientId?: string;
+  clioImportedClientId?: string;
+  manualMatterId?: string;
+  clioImportedMatterId?: string;
+  manualMatterReference?: string;
+  clioImportedMatterReference?: string;
+  /** Clio IDs that would be / were copied across */
+  clioContactId?: string;
+  clioMatterId?: string;
+}
+
+export interface MergeClioDuplicatesResult {
+  dryRun: boolean;
+  pairsFound: number;
+  merged: number;
+  skippedAmbiguous: number;
+  skippedAlreadyMerged: number;
+  skippedHasAssessments: number;
+  errors: number;
+  outcomes: MergeClioDuplicatePairOutcome[];
+}
+
+export async function mergeClioImportedDuplicates(
+  options: { dryRun?: boolean } = {}
+): Promise<
+  { success: true; result: MergeClioDuplicatesResult } | { success: false; error: string }
+> {
+  const dryRun = options.dryRun ?? true;
+
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    // Load all clients for the firm — we group by lowercased name
+    const { data: clients, error: clientsErr } = await supabase
+      .from('clients')
+      .select('id, name, clio_contact_id, created_at')
+      .eq('firm_id', profile.firm_id);
+    if (clientsErr) return { success: false, error: clientsErr.message };
+
+    type ClientRow = {
+      id: string;
+      name: string;
+      clio_contact_id: string | null;
+      created_at: string;
+    };
+    const rows = (clients || []) as ClientRow[];
+
+    // Group by lowercase name
+    const byName = new Map<string, ClientRow[]>();
+    for (const c of rows) {
+      const key = c.name.trim().toLowerCase();
+      if (!key) continue;
+      const bucket = byName.get(key) ?? [];
+      bucket.push(c);
+      byName.set(key, bucket);
+    }
+
+    const outcomes: MergeClioDuplicatePairOutcome[] = [];
+
+    for (const [, group] of byName) {
+      const withClio = group.filter((c) => c.clio_contact_id);
+      const withoutClio = group.filter((c) => !c.clio_contact_id);
+
+      // We only auto-merge unambiguous 1:1 pairings.
+      if (withClio.length !== 1 || withoutClio.length !== 1) {
+        // Only report if there's at least one of each side — otherwise it's not a duplicate situation
+        if (withClio.length > 0 && withoutClio.length > 0) {
+          outcomes.push({
+            clientName: group[0].name,
+            status: 'skipped_unmatched_clients',
+            reason: `Found ${withoutClio.length} manual + ${withClio.length} Clio-imported clients with this name; needs manual review`,
+          });
+        }
+        continue;
+      }
+
+      const manualClient = withoutClio[0];
+      const clioImportedClient = withClio[0];
+
+      // Find matters for both clients
+      const { data: manualMatters } = await supabase
+        .from('matters')
+        .select('id, reference, clio_matter_id')
+        .eq('firm_id', profile.firm_id)
+        .eq('client_id', manualClient.id);
+      const { data: clioMatters } = await supabase
+        .from('matters')
+        .select('id, reference, clio_matter_id')
+        .eq('firm_id', profile.firm_id)
+        .eq('client_id', clioImportedClient.id);
+
+      const mList = manualMatters || [];
+      const cList = clioMatters || [];
+
+      if (mList.length !== 1 || cList.length !== 1) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'skipped_ambiguous',
+          reason: `Manual client has ${mList.length} matter(s), Clio-imported client has ${cList.length} matter(s); only auto-merge 1:1`,
+          manualClientId: manualClient.id,
+          clioImportedClientId: clioImportedClient.id,
+        });
+        continue;
+      }
+
+      const manualMatter = mList[0] as { id: string; reference: string; clio_matter_id: string | null };
+      const clioMatter = cList[0] as { id: string; reference: string; clio_matter_id: string | null };
+
+      // Already merged?
+      if (manualMatter.clio_matter_id && !clioMatter.clio_matter_id) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'skipped_already_merged',
+          reason: 'Manual matter already has clio_matter_id set',
+          manualClientId: manualClient.id,
+          clioImportedClientId: clioImportedClient.id,
+          manualMatterId: manualMatter.id,
+          clioImportedMatterId: clioMatter.id,
+        });
+        continue;
+      }
+
+      // Sanity: manual matter must not already have a Clio link, Clio-imported must
+      if (manualMatter.clio_matter_id || !clioMatter.clio_matter_id) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'error',
+          reason: `Unexpected matter state — manual.clio_matter_id=${manualMatter.clio_matter_id}, clio.clio_matter_id=${clioMatter.clio_matter_id}`,
+          manualClientId: manualClient.id,
+          clioImportedClientId: clioImportedClient.id,
+          manualMatterId: manualMatter.id,
+          clioImportedMatterId: clioMatter.id,
+        });
+        continue;
+      }
+
+      // Pre-merge safety: assessments on the Clio-imported matter mean someone
+      // started work on the duplicate — abort that pair, human review needed.
+      const { count: assessmentCount } = await supabase
+        .from('assessments')
+        .select('id', { count: 'exact', head: true })
+        .eq('firm_id', profile.firm_id)
+        .eq('matter_id', clioMatter.id);
+
+      if (assessmentCount && assessmentCount > 0) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'skipped_has_assessments',
+          reason: `${assessmentCount} assessment(s) on the Clio-imported matter — manual review needed`,
+          manualClientId: manualClient.id,
+          clioImportedClientId: clioImportedClient.id,
+          manualMatterId: manualMatter.id,
+          clioImportedMatterId: clioMatter.id,
+        });
+        continue;
+      }
+
+      const clioMatterIdValue = clioMatter.clio_matter_id;
+      const clioContactIdValue = clioImportedClient.clio_contact_id!;
+
+      if (dryRun) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'preview_merged',
+          manualClientId: manualClient.id,
+          clioImportedClientId: clioImportedClient.id,
+          manualMatterId: manualMatter.id,
+          clioImportedMatterId: clioMatter.id,
+          manualMatterReference: manualMatter.reference,
+          clioImportedMatterReference: clioMatter.reference,
+          clioContactId: clioContactIdValue,
+          clioMatterId: clioMatterIdValue,
+        });
+        continue;
+      }
+
+      // Execute merge.
+      // Step 1: free the unique constraint on clio_matter_id
+      const { error: step1Err } = await supabase
+        .from('matters')
+        .update({ clio_matter_id: null })
+        .eq('id', clioMatter.id);
+      if (step1Err) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'error',
+          reason: `Step 1 (free clio_matter_id) failed: ${step1Err.message}`,
+        });
+        continue;
+      }
+
+      // Step 2: repoint audit_events to manual records (no FK enforcement, so manual sweep)
+      await supabase
+        .from('audit_events')
+        .update({ entity_id: manualMatter.id })
+        .eq('firm_id', profile.firm_id)
+        .eq('entity_type', 'matter')
+        .eq('entity_id', clioMatter.id);
+      await supabase
+        .from('audit_events')
+        .update({ entity_id: manualClient.id })
+        .eq('firm_id', profile.firm_id)
+        .eq('entity_type', 'client')
+        .eq('entity_id', clioImportedClient.id);
+
+      // Step 3: set Clio link on manual records
+      const { error: step3aErr } = await supabase
+        .from('matters')
+        .update({ clio_matter_id: clioMatterIdValue })
+        .eq('id', manualMatter.id);
+      if (step3aErr) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'error',
+          reason: `Step 3a (set clio_matter_id on manual) failed: ${step3aErr.message}`,
+        });
+        continue;
+      }
+      const { error: step3bErr } = await supabase
+        .from('clients')
+        .update({ clio_contact_id: clioContactIdValue })
+        .eq('id', manualClient.id);
+      if (step3bErr) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'error',
+          reason: `Step 3b (set clio_contact_id on manual) failed: ${step3bErr.message}`,
+        });
+        continue;
+      }
+
+      // Step 4: clear clio_contact_id from imported client (in case future unique index gets added)
+      await supabase
+        .from('clients')
+        .update({ clio_contact_id: null })
+        .eq('id', clioImportedClient.id);
+
+      // Step 5: delete the Clio-imported matter (Postgres rejects if FKs exist)
+      const { error: deleteMatterErr } = await supabase
+        .from('matters')
+        .delete()
+        .eq('id', clioMatter.id);
+      if (deleteMatterErr) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'error',
+          reason: `Delete imported matter failed (likely FK reference remained): ${deleteMatterErr.message}`,
+        });
+        continue;
+      }
+
+      // Step 6: delete the Clio-imported client
+      const { error: deleteClientErr } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', clioImportedClient.id);
+      if (deleteClientErr) {
+        outcomes.push({
+          clientName: manualClient.name,
+          status: 'error',
+          reason: `Delete imported client failed (likely FK reference remained): ${deleteClientErr.message}`,
+        });
+        continue;
+      }
+
+      // Audit log per successful merge
+      await supabase.from('audit_events').insert({
+        firm_id: profile.firm_id,
+        entity_type: 'matter',
+        entity_id: manualMatter.id,
+        action: 'clio_duplicate_merged',
+        metadata: {
+          deleted_clio_imported_matter_id: clioMatter.id,
+          deleted_clio_imported_client_id: clioImportedClient.id,
+          adopted_clio_matter_id: clioMatterIdValue,
+          adopted_clio_contact_id: clioContactIdValue,
+        },
+        created_by: user.id,
+      });
+
+      outcomes.push({
+        clientName: manualClient.name,
+        status: 'merged',
+        manualClientId: manualClient.id,
+        clioImportedClientId: clioImportedClient.id,
+        manualMatterId: manualMatter.id,
+        clioImportedMatterId: clioMatter.id,
+        manualMatterReference: manualMatter.reference,
+        clioImportedMatterReference: clioMatter.reference,
+        clioContactId: clioContactIdValue,
+        clioMatterId: clioMatterIdValue,
+      });
+    }
+
+    const pairsFound = outcomes.length;
+    const merged = outcomes.filter((o) => o.status === 'merged' || o.status === 'preview_merged').length;
+    const skippedAmbiguous = outcomes.filter(
+      (o) => o.status === 'skipped_ambiguous' || o.status === 'skipped_unmatched_clients'
+    ).length;
+    const skippedAlreadyMerged = outcomes.filter((o) => o.status === 'skipped_already_merged').length;
+    const skippedHasAssessments = outcomes.filter((o) => o.status === 'skipped_has_assessments').length;
+    const errors = outcomes.filter((o) => o.status === 'error').length;
+
+    return {
+      success: true,
+      result: {
+        dryRun,
+        pairsFound,
+        merged,
+        skippedAmbiguous,
+        skippedAlreadyMerged,
+        skippedHasAssessments,
+        errors,
+        outcomes,
+      },
+    };
+  } catch (err) {
+    console.error('Error in mergeClioImportedDuplicates:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
