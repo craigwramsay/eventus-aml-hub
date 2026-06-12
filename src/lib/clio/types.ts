@@ -98,3 +98,25 @@ export interface ClioDocument {
 export interface ClioFolderListResponse {
   data: ClioFolder[];
 }
+
+/**
+ * Single webhook as returned by the list endpoint.
+ * Note: list responses do NOT include `shared_secret` (only the create response does).
+ * Field name for expiry has varied between `expires_at` and `expired_at` across Clio API versions —
+ * keep both optional and resolve at the call site.
+ */
+export interface ClioWebhookListItem {
+  id: number;
+  url: string;
+  model: string;
+  events: string[];
+  status?: string;
+  expires_at?: string;
+  expired_at?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ClioWebhookListResponse {
+  data: ClioWebhookListItem[];
+}

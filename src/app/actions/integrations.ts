@@ -11,7 +11,14 @@ import { createClient } from '@/lib/supabase/server';
 import type { FirmIntegration, IntegrationProvider } from '@/lib/supabase/types';
 import type { UserRole } from '@/lib/auth/roles';
 import { canManageIntegrations } from '@/lib/auth/roles';
-import { deleteClioWebhook, registerClioWebhook, refreshClioToken, ClioError } from '@/lib/clio';
+import {
+  deleteClioWebhook,
+  listClioWebhooks,
+  registerClioWebhook,
+  refreshClioToken,
+  ClioError,
+} from '@/lib/clio';
+import { getClioAccessTokenForFirm } from '@/lib/clio/token';
 import {
   getAmiqusApiKey,
   registerAmiqusWebhook,
@@ -617,6 +624,198 @@ export async function testAmiqusConnection(
     return { success: true, result };
   } catch (err) {
     console.error('Error in testAmiqusConnection:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Diagnostic: test the Clio integration end-to-end.
+ *
+ * Reports on four independent things so we can pinpoint why webhook events
+ * aren't reaching the Hub:
+ *   1. Server-side env vars (CLIO_CLIENT_ID, CLIO_CLIENT_SECRET, NEXT_PUBLIC_APP_URL).
+ *   2. Stored row state — presence of webhook id/secret/expiry; never returns the secret itself.
+ *   3. Access token validity — calls getClioAccessTokenForFirm, which refreshes if expired.
+ *   4. Live API check — GET /webhooks.json, look up our stored ID, confirm URL/events/expiry.
+ */
+export interface TestClioConnectionResult {
+  envVars: {
+    clientIdConfigured: boolean;
+    clientSecretConfigured: boolean;
+    appUrlConfigured: boolean;
+    appUrl: string | null;
+  };
+  integration: {
+    exists: boolean;
+    webhookIdStored: string | null;
+    webhookSecretStored: boolean;
+    storedWebhookExpiresAt: string | null;
+    storedWebhookDaysLeft: number | null;
+    tokenExpiresAt: string | null;
+  };
+  tokenTest:
+    | { ok: true; refreshed: boolean }
+    | { ok: false; error: string };
+  webhookListTest?:
+    | {
+        ok: true;
+        totalWebhooks: number;
+        storedWebhookFound: boolean;
+        liveWebhook?: {
+          url: string;
+          model: string;
+          events: string[];
+          expiresAt: string | null;
+          urlMatchesExpected: boolean;
+          expectedUrl: string;
+          daysUntilExpiry: number | null;
+        };
+      }
+    | { ok: false; error: string; statusCode?: number };
+}
+
+function daysFromNow(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+export async function testClioConnection(): Promise<
+  { success: true; result: TestClioConnectionResult } | { success: false; error: string }
+> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || null;
+    const result: TestClioConnectionResult = {
+      envVars: {
+        clientIdConfigured: !!process.env.CLIO_CLIENT_ID,
+        clientSecretConfigured: !!process.env.CLIO_CLIENT_SECRET,
+        appUrlConfigured: !!appUrl,
+        appUrl,
+      },
+      integration: {
+        exists: false,
+        webhookIdStored: null,
+        webhookSecretStored: false,
+        storedWebhookExpiresAt: null,
+        storedWebhookDaysLeft: null,
+        tokenExpiresAt: null,
+      },
+      tokenTest: { ok: false, error: 'Not run' },
+    };
+
+    const { data: integration } = await supabase
+      .from('firm_integrations')
+      .select(
+        'id, access_token, refresh_token, token_expires_at, webhook_id, webhook_secret, webhook_expires_at'
+      )
+      .eq('firm_id', profile.firm_id)
+      .eq('provider', 'clio')
+      .maybeSingle();
+
+    if (!integration) {
+      result.tokenTest = { ok: false, error: 'Clio is not connected for this firm' };
+      return { success: true, result };
+    }
+
+    const typed = integration as Pick<
+      FirmIntegration,
+      | 'id'
+      | 'access_token'
+      | 'refresh_token'
+      | 'token_expires_at'
+      | 'webhook_id'
+      | 'webhook_secret'
+      | 'webhook_expires_at'
+    >;
+
+    result.integration = {
+      exists: true,
+      webhookIdStored: typed.webhook_id || null,
+      webhookSecretStored: !!typed.webhook_secret,
+      storedWebhookExpiresAt: typed.webhook_expires_at || null,
+      storedWebhookDaysLeft: daysFromNow(typed.webhook_expires_at),
+      tokenExpiresAt: typed.token_expires_at || null,
+    };
+
+    // Token refresh check — getClioAccessTokenForFirm refreshes if expired
+    const tokenWasExpired = typed.token_expires_at
+      ? new Date(typed.token_expires_at).getTime() <= Date.now() + 5 * 60 * 1000
+      : true;
+
+    let accessToken: string | null = null;
+    try {
+      const tokenResult = await getClioAccessTokenForFirm(supabase, profile.firm_id);
+      if (tokenResult) {
+        accessToken = tokenResult.accessToken;
+        result.tokenTest = { ok: true, refreshed: tokenWasExpired };
+      } else {
+        result.tokenTest = { ok: false, error: 'No access/refresh token stored — reconnect Clio' };
+      }
+    } catch (err) {
+      result.tokenTest = {
+        ok: false,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      };
+    }
+
+    if (!accessToken) {
+      return { success: true, result };
+    }
+
+    // Live webhook list test
+    try {
+      const list = await listClioWebhooks(accessToken);
+      const expectedUrl = `${appUrl || ''}/api/webhooks/clio`;
+      const storedId = typed.webhook_id;
+
+      let storedWebhookFound = false;
+      let liveWebhook:
+        | NonNullable<Extract<TestClioConnectionResult['webhookListTest'], { ok: true }>['liveWebhook']>
+        | undefined;
+
+      if (storedId) {
+        const match = list.data.find((w) => String(w.id) === storedId);
+        if (match) {
+          storedWebhookFound = true;
+          const expiresAt = match.expires_at ?? match.expired_at ?? null;
+          liveWebhook = {
+            url: match.url,
+            model: match.model,
+            events: match.events,
+            expiresAt,
+            urlMatchesExpected: !!appUrl && match.url === expectedUrl,
+            expectedUrl,
+            daysUntilExpiry: daysFromNow(expiresAt),
+          };
+        }
+      }
+
+      result.webhookListTest = {
+        ok: true,
+        totalWebhooks: list.data.length,
+        storedWebhookFound,
+        liveWebhook,
+      };
+    } catch (err) {
+      const statusCode = err instanceof ClioError ? err.statusCode : undefined;
+      result.webhookListTest = {
+        ok: false,
+        error: err instanceof Error ? err.message : 'Unknown error',
+        statusCode,
+      };
+    }
+
+    return { success: true, result };
+  } catch (err) {
+    console.error('Error in testClioConnection:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }

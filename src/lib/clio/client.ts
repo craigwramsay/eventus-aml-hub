@@ -10,6 +10,7 @@ import type {
   ClioContact,
   ClioTokenResponse,
   ClioWebhookResponse,
+  ClioWebhookListResponse,
   ClioApiResponse,
   ClioFolder,
   ClioDocument,
@@ -207,6 +208,18 @@ export async function registerClioWebhook(
       },
     }),
   });
+}
+
+/**
+ * List all webhooks registered for the authenticated Clio OAuth credentials.
+ */
+export async function listClioWebhooks(
+  accessToken: string
+): Promise<ClioWebhookListResponse> {
+  return clioFetch<ClioWebhookListResponse>(
+    '/api/v4/webhooks.json?fields=id,url,model,events,status,expires_at,created_at,updated_at',
+    accessToken
+  );
 }
 
 /**
