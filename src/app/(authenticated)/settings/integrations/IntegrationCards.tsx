@@ -15,10 +15,14 @@ import {
   testAmiqusConnection,
   renewClioWebhook,
   testClioConnection,
+  backfillClioMatters,
+  cleanupOrphanClioWebhooks,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
   TestClioConnectionResult,
+  BackfillClioMattersResult,
+  CleanupClioWebhooksResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -43,6 +47,9 @@ export function IntegrationCards({
   const [testRecordId, setTestRecordId] = useState('');
   const [amiqusTestResult, setAmiqusTestResult] = useState<TestAmiqusConnectionResult | null>(null);
   const [clioTestResult, setClioTestResult] = useState<TestClioConnectionResult | null>(null);
+  const [backfillSince, setBackfillSince] = useState('');
+  const [backfillResult, setBackfillResult] = useState<BackfillClioMattersResult | null>(null);
+  const [cleanupResult, setCleanupResult] = useState<CleanupClioWebhooksResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -114,6 +121,39 @@ export function IntegrationCards({
     });
   };
 
+  const handleBackfillClioMatters = () => {
+    setError(null);
+    setSuccess(null);
+    setBackfillResult(null);
+    // Convert YYYY-MM-DD input to start-of-day ISO; empty means "use server default" (connected_at)
+    const sinceISO = backfillSince.trim()
+      ? new Date(`${backfillSince}T00:00:00.000Z`).toISOString()
+      : undefined;
+    startTransition(async () => {
+      const result = await backfillClioMatters(sinceISO);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setBackfillResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
+  const handleCleanupOrphans = () => {
+    setError(null);
+    setSuccess(null);
+    setCleanupResult(null);
+    startTransition(async () => {
+      const result = await cleanupOrphanClioWebhooks();
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setCleanupResult(result.result);
+      }
+    });
+  };
+
   if (!isConfigured) {
     return null;
   }
@@ -156,6 +196,42 @@ export function IntegrationCards({
                 </button>
               </div>
               {clioTestResult && <ClioTestResultPanel result={clioTestResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <input
+                  type="date"
+                  className={styles.connectionTestInput}
+                  value={backfillSince}
+                  onChange={(e) => setBackfillSince(e.target.value)}
+                  disabled={isPending}
+                  aria-label="Backfill since date"
+                />
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleBackfillClioMatters}
+                  disabled={isPending}
+                  title="Pull any matters created in Clio since the date above (default: Clio connection date). Skips ones already in the Hub."
+                >
+                  {isPending ? 'Backfilling...' : 'Backfill Matters'}
+                </button>
+              </div>
+              {backfillResult && <BackfillResultPanel result={backfillResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleCleanupOrphans}
+                  disabled={isPending}
+                  title="Delete any Clio webhooks against this firm's account that aren't the one we have stored."
+                >
+                  {isPending ? 'Cleaning up...' : 'Clean Up Orphan Webhooks'}
+                </button>
+              </div>
+              {cleanupResult && <CleanupResultPanel result={cleanupResult} />}
             </div>
           </>
         ) : (
@@ -364,6 +440,90 @@ function ClioTestResultPanel({ result }: { result: TestClioConnectionResult }) {
             </>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+/** Result panel for backfillClioMatters — categorises every Clio matter we found. */
+function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) {
+  const sinceShort = result.sinceISO.split('T')[0];
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Backfill window" ok={true}>
+        Since <code>{sinceShort}</code>
+      </Row>
+      <Row label="Matters found in Clio" ok={true}>
+        {result.totalFromClio}
+        {result.cappedAtMax && ' (capped at 500 — narrow the date range to see more)'}
+      </Row>
+      <Row label="Imported" ok={true}>
+        {result.imported}
+      </Row>
+      <Row label="Already linked (skipped)" ok={true}>
+        {result.alreadyLinked}
+      </Row>
+      <Row
+        label="Likely manual duplicates (NOT imported)"
+        ok={result.manualDuplicateCandidates === 0}
+      >
+        {result.manualDuplicateCandidates}
+        {result.manualDuplicateCandidates > 0 && ' — review below and link manually if appropriate'}
+      </Row>
+      <Row label="Errors" ok={result.errors === 0}>
+        {result.errors}
+      </Row>
+      {result.outcomes.length > 0 && (
+        <details className={styles.connectionTestDetails}>
+          <summary>Per-matter outcomes ({result.outcomes.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.outcomes.map((o) => (
+              <Row
+                key={o.clioMatterId}
+                label={`${o.displayNumber} — ${o.contactName || '(no contact)'}`}
+                ok={o.status === 'imported' || o.status === 'already_linked'}
+              >
+                {o.status === 'imported' && 'Imported'}
+                {o.status === 'already_linked' && 'Already linked'}
+                {o.status === 'manual_duplicate_candidate' && (
+                  <>
+                    Likely manual duplicate of Hub matter{' '}
+                    <code>{o.manualMatch?.reference || o.manualMatch?.matterId}</code>
+                  </>
+                )}
+                {o.status === 'error' && <>Error: {o.error}</>}
+              </Row>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+/** Result panel for cleanupOrphanClioWebhooks — shows what we deleted on Clio's side. */
+function CleanupResultPanel({ result }: { result: CleanupClioWebhooksResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Stored webhook" ok={!!result.storedWebhookId}>
+        {result.storedWebhookId ? <code>{result.storedWebhookId}</code> : 'None recorded'}
+      </Row>
+      <Row label="Total Clio webhooks before cleanup" ok={true}>
+        {result.totalWebhooks}
+      </Row>
+      <Row label="Deleted orphans" ok={result.failed.length === 0}>
+        {result.deleted.length === 0
+          ? 'None — nothing to clean up'
+          : result.deleted.map((id) => <code key={id} style={{ marginRight: '0.5rem' }}>{id}</code>)}
+      </Row>
+      {result.failed.length > 0 && (
+        <Row label="Failed to delete" ok={false}>
+          {result.failed.map((f) => (
+            <div key={f.id}>
+              <code>{f.id}</code>: {f.error}
+            </div>
+          ))}
+        </Row>
       )}
     </div>
   );

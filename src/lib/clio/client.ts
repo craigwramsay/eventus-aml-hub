@@ -7,6 +7,7 @@
 
 import type {
   ClioMatter,
+  ClioMattersPageResponse,
   ClioContact,
   ClioTokenResponse,
   ClioWebhookResponse,
@@ -96,6 +97,47 @@ export async function fetchClioMatter(
     accessToken
   );
   return data.data;
+}
+
+/**
+ * List Clio matters created since the given ISO timestamp.
+ *
+ * Returns matter records with embedded client {id, name, type}, so callers can
+ * call process_clio_webhook without per-matter contact lookups. Handles
+ * pagination via the cursor URL Clio returns in `meta.paging.next`.
+ *
+ * Caps results at `maxMatters` (default 500) to avoid runaway on firms with
+ * very large matter volumes; if you hit the cap, narrow the `sinceISO` window.
+ */
+export async function listClioMattersCreatedSince(
+  accessToken: string,
+  sinceISO: string,
+  maxMatters = 500
+): Promise<ClioMatter[]> {
+  const fields = 'id,etag,display_number,description,status,client{id,name,type}';
+  const matters: ClioMatter[] = [];
+
+  let nextUrl: string | null =
+    `/api/v4/matters.json?fields=${encodeURIComponent(fields)}` +
+    `&created_since=${encodeURIComponent(sinceISO)}` +
+    `&order=created_at(asc)` +
+    `&limit=200`;
+
+  while (nextUrl && matters.length < maxMatters) {
+    const page: ClioMattersPageResponse = await clioFetch(nextUrl, accessToken);
+    matters.push(...page.data);
+
+    // Clio returns next-page URL as an absolute URL — strip the base so clioFetch can prepend it
+    const baseUrl = getClioBaseUrl();
+    const rawNext = page.meta?.paging?.next ?? null;
+    if (rawNext && rawNext.startsWith(baseUrl)) {
+      nextUrl = rawNext.slice(baseUrl.length);
+    } else {
+      nextUrl = rawNext;
+    }
+  }
+
+  return matters.slice(0, maxMatters);
 }
 
 /**

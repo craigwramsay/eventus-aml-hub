@@ -100,6 +100,19 @@ export interface ClioFolderListResponse {
 }
 
 /**
+ * Page of matters as returned by GET /api/v4/matters.json.
+ * `meta.paging.next` is the absolute URL to the next page, or absent on the last page.
+ */
+export interface ClioMattersPageResponse {
+  data: ClioMatter[];
+  meta?: {
+    paging?: {
+      next?: string;
+    };
+  };
+}
+
+/**
  * Single webhook as returned by the list endpoint.
  * Note: list responses do NOT include `shared_secret` (only the create response does).
  * Field name for expiry has varied between `expires_at` and `expired_at` across Clio API versions —
