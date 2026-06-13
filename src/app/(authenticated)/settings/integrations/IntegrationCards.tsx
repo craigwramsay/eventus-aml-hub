@@ -18,6 +18,7 @@ import {
   backfillClioMatters,
   cleanupOrphanClioWebhooks,
   mergeClioImportedDuplicates,
+  inspectClientName,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -25,6 +26,7 @@ import type {
   BackfillClioMattersResult,
   CleanupClioWebhooksResult,
   MergeClioDuplicatesResult,
+  InspectClientResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -53,6 +55,8 @@ export function IntegrationCards({
   const [backfillResult, setBackfillResult] = useState<BackfillClioMattersResult | null>(null);
   const [cleanupResult, setCleanupResult] = useState<CleanupClioWebhooksResult | null>(null);
   const [mergeResult, setMergeResult] = useState<MergeClioDuplicatesResult | null>(null);
+  const [inspectQuery, setInspectQuery] = useState('');
+  const [inspectResult, setInspectResult] = useState<InspectClientResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -167,6 +171,25 @@ export function IntegrationCards({
         setError(result.error);
       } else {
         setMergeResult(result.result);
+      }
+    });
+  };
+
+  const handleInspectClient = () => {
+    setError(null);
+    setSuccess(null);
+    setInspectResult(null);
+    const name = inspectQuery.trim();
+    if (!name) {
+      setError('Enter a client name to inspect.');
+      return;
+    }
+    startTransition(async () => {
+      const result = await inspectClientName(name);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setInspectResult(result.result);
       }
     });
   };
@@ -300,6 +323,28 @@ export function IntegrationCards({
                 </button>
               </div>
               {mergeResult && <MergeResultPanel result={mergeResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <input
+                  type="text"
+                  className={styles.connectionTestInput}
+                  placeholder="Client name to inspect (case-insensitive contains match)"
+                  value={inspectQuery}
+                  onChange={(e) => setInspectQuery(e.target.value)}
+                  disabled={isPending}
+                />
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleInspectClient}
+                  disabled={isPending}
+                  title="Read-only DB inspection: surfaces clio_contact_id, clio_matter_id, and assessment count per matter — facts needed to plan a merge that the Hub UI doesn't show."
+                >
+                  {isPending ? 'Inspecting...' : 'Inspect Client Name'}
+                </button>
+              </div>
+              {inspectResult && <InspectResultPanel result={inspectResult} />}
             </div>
           </>
         ) : (
@@ -659,6 +704,81 @@ function MergeResultPanel({ result }: { result: MergeClioDuplicatesResult }) {
           </div>
         </details>
       )}
+    </div>
+  );
+}
+
+/** Result panel for inspectClientName — surfaces clio_contact_id, clio_matter_id, assessment counts. */
+function InspectResultPanel({ result }: { result: InspectClientResult }) {
+  if (result.totalClientsMatched === 0) {
+    return (
+      <div className={styles.connectionTestResult}>
+        <Row label="Matches" ok={false}>
+          No clients found containing <code>{result.query}</code>
+        </Row>
+      </div>
+    );
+  }
+  const fmtShort = (iso: string) => iso.split('T')[0];
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Query" ok={true}>
+        <code>{result.query}</code>
+      </Row>
+      <Row label="Clients matched" ok={true}>
+        {result.totalClientsMatched}
+      </Row>
+      {result.clients.map((c, idx) => (
+        <details
+          key={c.id}
+          className={styles.connectionTestDetails}
+          open={result.clients.length <= 3}
+        >
+          <summary>
+            #{idx + 1}: {c.name} — {c.clioContactId ? 'Clio-linked' : 'manual'} —{' '}
+            {c.matters.length} matter{c.matters.length === 1 ? '' : 's'} — created {fmtShort(c.createdAt)}
+          </summary>
+          <div className={styles.connectionTestResult}>
+            <Row label="Client ID" ok={true}>
+              <code>{c.id}</code>
+            </Row>
+            <Row label="clio_contact_id" ok={!!c.clioContactId}>
+              {c.clioContactId ? <code>{c.clioContactId}</code> : 'NULL (treated as manual)'}
+            </Row>
+            {c.matters.length === 0 && (
+              <Row label="Matters" ok={false}>
+                None
+              </Row>
+            )}
+            {c.matters.map((m, mi) => (
+              <details key={m.id} className={styles.connectionTestDetails} open>
+                <summary>
+                  Matter #{mi + 1}: <code>{m.reference}</code>
+                  {m.clioMatterId && ' — Clio-linked'}
+                  {m.assessmentCount > 0 && ` — ${m.assessmentCount} assessment${m.assessmentCount === 1 ? '' : 's'}`}
+                </summary>
+                <div className={styles.connectionTestResult}>
+                  <Row label="Matter ID" ok={true}>
+                    <code>{m.id}</code>
+                  </Row>
+                  <Row label="Description" ok={true}>
+                    {m.description || '(none)'}
+                  </Row>
+                  <Row label="clio_matter_id" ok={!!m.clioMatterId}>
+                    {m.clioMatterId ? <code>{m.clioMatterId}</code> : 'NULL (not Clio-linked)'}
+                  </Row>
+                  <Row label="Assessments" ok={true}>
+                    {m.assessmentCount}
+                  </Row>
+                  <Row label="Created" ok={true}>
+                    {fmtShort(m.createdAt)}
+                  </Row>
+                </div>
+              </details>
+            ))}
+          </div>
+        </details>
+      ))}
     </div>
   );
 }
