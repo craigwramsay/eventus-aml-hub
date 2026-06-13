@@ -1523,3 +1523,130 @@ export async function mergeClioImportedDuplicates(
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
+/**
+ * Inspect a client by name (case-insensitive contains match).
+ *
+ * Surfaces DB-level facts that aren't visible in the Hub UI but are needed to
+ * plan a manual merge for ambiguous duplicate cases — specifically the
+ * presence/absence of `clio_contact_id` on the client and `clio_matter_id`
+ * on each matter, plus the assessment count per matter (so we know what
+ * work is at stake before deleting anything).
+ *
+ * Read-only. RBAC: same as the other integration management actions.
+ */
+export interface InspectedMatter {
+  id: string;
+  reference: string;
+  description: string | null;
+  clioMatterId: string | null;
+  assessmentCount: number;
+  createdAt: string;
+}
+
+export interface InspectedClient {
+  id: string;
+  name: string;
+  clioContactId: string | null;
+  createdAt: string;
+  matters: InspectedMatter[];
+}
+
+export interface InspectClientResult {
+  query: string;
+  totalClientsMatched: number;
+  clients: InspectedClient[];
+}
+
+export async function inspectClientName(
+  clientName: string
+): Promise<{ success: true; result: InspectClientResult } | { success: false; error: string }> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const trimmed = clientName.trim();
+    if (!trimmed) {
+      return { success: false, error: 'Client name is required' };
+    }
+
+    // Case-insensitive contains; ilike to allow partial matches like "Energisation"
+    const { data: clients, error: clientsErr } = await supabase
+      .from('clients')
+      .select('id, name, clio_contact_id, created_at')
+      .eq('firm_id', profile.firm_id)
+      .ilike('name', `%${trimmed}%`)
+      .order('created_at', { ascending: true });
+    if (clientsErr) return { success: false, error: clientsErr.message };
+
+    type ClientRow = {
+      id: string;
+      name: string;
+      clio_contact_id: string | null;
+      created_at: string;
+    };
+    const clientRows = (clients || []) as ClientRow[];
+
+    const inspected: InspectedClient[] = [];
+    for (const c of clientRows) {
+      // Matters for this client
+      const { data: matters } = await supabase
+        .from('matters')
+        .select('id, reference, description, clio_matter_id, created_at')
+        .eq('firm_id', profile.firm_id)
+        .eq('client_id', c.id)
+        .order('created_at', { ascending: true });
+
+      type MatterRow = {
+        id: string;
+        reference: string;
+        description: string | null;
+        clio_matter_id: string | null;
+        created_at: string;
+      };
+      const matterRows = (matters || []) as MatterRow[];
+
+      const inspectedMatters: InspectedMatter[] = [];
+      for (const m of matterRows) {
+        const { count } = await supabase
+          .from('assessments')
+          .select('id', { count: 'exact', head: true })
+          .eq('firm_id', profile.firm_id)
+          .eq('matter_id', m.id);
+        inspectedMatters.push({
+          id: m.id,
+          reference: m.reference,
+          description: m.description,
+          clioMatterId: m.clio_matter_id,
+          assessmentCount: count ?? 0,
+          createdAt: m.created_at,
+        });
+      }
+
+      inspected.push({
+        id: c.id,
+        name: c.name,
+        clioContactId: c.clio_contact_id,
+        createdAt: c.created_at,
+        matters: inspectedMatters,
+      });
+    }
+
+    return {
+      success: true,
+      result: {
+        query: trimmed,
+        totalClientsMatched: inspected.length,
+        clients: inspected,
+      },
+    };
+  } catch (err) {
+    console.error('Error in inspectClientName:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
