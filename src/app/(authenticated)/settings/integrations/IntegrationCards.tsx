@@ -19,6 +19,8 @@ import {
   cleanupOrphanClioWebhooks,
   mergeClioImportedDuplicates,
   inspectClientName,
+  runTargetedClioMerges,
+  listUnlinkedClients,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -27,6 +29,8 @@ import type {
   CleanupClioWebhooksResult,
   MergeClioDuplicatesResult,
   InspectClientResult,
+  TargetedMergeResult,
+  ListUnlinkedClientsResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -57,6 +61,8 @@ export function IntegrationCards({
   const [mergeResult, setMergeResult] = useState<MergeClioDuplicatesResult | null>(null);
   const [inspectQuery, setInspectQuery] = useState('');
   const [inspectResult, setInspectResult] = useState<InspectClientResult | null>(null);
+  const [targetedMergeResult, setTargetedMergeResult] = useState<TargetedMergeResult | null>(null);
+  const [unlinkedResult, setUnlinkedResult] = useState<ListUnlinkedClientsResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -171,6 +177,42 @@ export function IntegrationCards({
         setError(result.error);
       } else {
         setMergeResult(result.result);
+      }
+    });
+  };
+
+  const handleRunTargetedMerges = () => {
+    setError(null);
+    setSuccess(null);
+    const ok = window.confirm(
+      'Run the two targeted merges (Morrison Community Care + Energisation Limited)?\n\n' +
+        '• Morrison: keeps Client 2, reparents the Clio-linked Retainer matter, deletes Client 1 + its duplicate Drafting NDS matter.\n' +
+        '• Energisation: keeps Client 2, moves clio_contact_id + clio_matter_id over from Client 3, deletes empty Clients 1 + 3.\n\n' +
+        'Each case is preconditioned on the exact DB state observed during Inspect. If the state has shifted, that case is skipped (no changes).'
+    );
+    if (!ok) return;
+    setTargetedMergeResult(null);
+    startTransition(async () => {
+      const result = await runTargetedClioMerges();
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setTargetedMergeResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
+  const handleListUnlinked = () => {
+    setError(null);
+    setSuccess(null);
+    setUnlinkedResult(null);
+    startTransition(async () => {
+      const result = await listUnlinkedClients();
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setUnlinkedResult(result.result);
       }
     });
   };
@@ -345,6 +387,30 @@ export function IntegrationCards({
                 </button>
               </div>
               {inspectResult && <InspectResultPanel result={inspectResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleRunTargetedMerges}
+                  disabled={isPending}
+                  title="One-shot merges for Morrison Community Care + Energisation Limited. Preconditioned on exact DB state — safely no-ops if already merged."
+                >
+                  {isPending ? 'Running...' : 'Run Targeted Merges'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleListUnlinked}
+                  disabled={isPending}
+                  title="Lists clients with clio_contact_id IS NULL — i.e. not linked to any Clio contact. After today's merges this shows the 'Hub-only' clients (manual entries, pre-integration data, test entries)."
+                >
+                  {isPending ? 'Listing...' : 'List Unlinked Clients'}
+                </button>
+              </div>
+              {targetedMergeResult && <TargetedMergeResultPanel result={targetedMergeResult} />}
+              {unlinkedResult && <UnlinkedClientsResultPanel result={unlinkedResult} />}
             </div>
           </>
         ) : (
@@ -779,6 +845,82 @@ function InspectResultPanel({ result }: { result: InspectClientResult }) {
           </div>
         </details>
       ))}
+    </div>
+  );
+}
+
+/** Per-case outcome panel for the two targeted merges. */
+function TargetedMergeResultPanel({ result }: { result: TargetedMergeResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      {result.outcomes.map((o) => (
+        <details
+          key={o.caseName}
+          className={styles.connectionTestDetails}
+          open
+        >
+          <summary>
+            {o.caseName} —{' '}
+            {o.status === 'merged' ? '✓ Merged'
+              : o.status === 'precondition_mismatch' ? '⚠ Skipped (state mismatch / already merged)'
+              : '✗ Error'}
+          </summary>
+          <div className={styles.connectionTestResult}>
+            <Row label="Status" ok={o.status === 'merged'}>
+              {o.status}
+            </Row>
+            {o.reason && (
+              <Row label="Reason" ok={o.status === 'merged'}>
+                {o.reason}
+              </Row>
+            )}
+            {o.steps && o.steps.length > 0 && (
+              <Row label="Steps" ok={true}>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                  {o.steps.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
+                </ol>
+              </Row>
+            )}
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+/** Result panel for listUnlinkedClients — shows clients with NULL clio_contact_id. */
+function UnlinkedClientsResultPanel({ result }: { result: ListUnlinkedClientsResult }) {
+  const linked = result.totalClients - result.totalUnlinked;
+  const fmtShort = (iso: string) => iso.split('T')[0];
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Total clients" ok={true}>
+        {result.totalClients}
+      </Row>
+      <Row label="Linked to Clio" ok={true}>
+        {linked}
+      </Row>
+      <Row label="Unlinked (Hub-only)" ok={true}>
+        {result.totalUnlinked}
+      </Row>
+      {result.clients.length > 0 && (
+        <details className={styles.connectionTestDetails} open={result.clients.length <= 10}>
+          <summary>Unlinked clients ({result.clients.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.clients.map((c) => (
+              <Row
+                key={c.id}
+                label={c.name}
+                ok={true}
+              >
+                <code>{c.id}</code> — {c.matterCount} matter{c.matterCount === 1 ? '' : 's'} — created {fmtShort(c.createdAt)}
+              </Row>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
