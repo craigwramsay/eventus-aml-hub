@@ -12,7 +12,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { createClient } from '@/lib/supabase/server';
-import { fetchClioMatter, fetchClioContact, registerClioWebhook, deleteClioWebhook } from '@/lib/clio';
+import {
+  fetchClioMatter,
+  fetchClioContact,
+  registerClioWebhook,
+  deleteClioWebhook,
+  findFeeVariantMain,
+} from '@/lib/clio';
 import type { ClioWebhookPayload } from '@/lib/clio';
 
 export async function POST(request: NextRequest) {
@@ -146,6 +152,34 @@ export async function POST(request: NextRequest) {
 
       // Fetch contact details for email etc.
       const contact = await fetchClioContact(matter.client.id, access_token);
+
+      // Fee-variant skip: if Clio is firing a matter.create for a sub-matter
+      // that's a fee/disbursement variant of a matter we already have under
+      // the same contact (e.g. "Group restructure 2025 - Interim Fee Note"
+      // when "Group restructure 2025" is already in the Hub), skip it. These
+      // sub-matters exist for fee tracking in Clio and have zero AML value.
+      if (matter.description) {
+        const { data: existingMatters } = await supabase
+          .from('matters')
+          .select('description, clients!matters_client_id_fkey!inner(clio_contact_id)')
+          .eq('firm_id', firm_id)
+          .eq('clients.clio_contact_id', String(contact.id));
+        type ExistingMatter = { description: string | null };
+        const existingDescriptions = ((existingMatters || []) as ExistingMatter[])
+          .map((m) => m.description?.trim() || '')
+          .filter(Boolean);
+        const mainDescription = findFeeVariantMain(matter.description, existingDescriptions);
+        if (mainDescription) {
+          console.log(
+            `Skipping Clio fee-variant matter "${matter.description}" (variant of "${mainDescription}")`
+          );
+          return NextResponse.json({
+            status: 'skipped',
+            reason: 'fee_variant',
+            main_description: mainDescription,
+          });
+        }
+      }
 
       // Process via SECURITY DEFINER RPC
       const { data: processResult, error: processErr } = await supabase

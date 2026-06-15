@@ -18,6 +18,7 @@ import {
   registerClioWebhook,
   refreshClioToken,
   normalizeClientName,
+  findFeeVariantMain,
   ClioError,
 } from '@/lib/clio';
 import { getClioAccessTokenForFirm } from '@/lib/clio/token';
@@ -880,6 +881,7 @@ export interface BackfillClioMatterOutcome {
     | 'already_linked'
     | 'manual_duplicate_candidate'
     | 'multiple_manual_candidates'
+    | 'fee_variant_skipped'
     | 'error';
   /** For manual_duplicate_candidate: the existing Hub matter id+reference that looks like a manual entry. */
   manualMatch?: { matterId: string; reference: string };
@@ -887,6 +889,8 @@ export interface BackfillClioMatterOutcome {
   adoptedClientId?: string;
   /** For multiple_manual_candidates: how many Hub clients matched. */
   candidateCount?: number;
+  /** For fee_variant_skipped: the main matter's description this is a variant of. */
+  feeVariantMain?: string;
   error?: string;
 }
 
@@ -899,6 +903,7 @@ export interface BackfillClioMattersResult {
   alreadyLinked: number;
   manualDuplicateCandidates: number;
   multipleManualCandidates: number;
+  feeVariantSkipped: number;
   errors: number;
   cappedAtMax: boolean;
   outcomes: BackfillClioMatterOutcome[];
@@ -969,15 +974,21 @@ export async function backfillClioMatters(
 
     const { data: hubMatters } = await supabase
       .from('matters')
-      .select('id, reference, clio_matter_id, client_id, clients!matters_client_id_fkey(name)')
+      .select(
+        'id, reference, description, clio_matter_id, client_id, clients!matters_client_id_fkey(name, clio_contact_id)'
+      )
       .eq('firm_id', profile.firm_id);
 
     type HubMatterRow = {
       id: string;
       reference: string | null;
+      description: string | null;
       clio_matter_id: string | null;
       client_id: string;
-      clients: { name: string | null } | { name: string | null }[] | null;
+      clients:
+        | { name: string | null; clio_contact_id: string | null }
+        | { name: string | null; clio_contact_id: string | null }[]
+        | null;
     };
     const hubMatterRows = (hubMatters || []) as HubMatterRow[];
 
@@ -999,6 +1010,7 @@ export async function backfillClioMatters(
     let alreadyLinked = 0;
     let manualDuplicateCandidates = 0;
     let multipleManualCandidates = 0;
+    let feeVariantSkipped = 0;
     let errors = 0;
 
     for (const matter of matters) {
@@ -1032,6 +1044,33 @@ export async function backfillClioMatters(
         });
         alreadyLinked++;
         continue;
+      }
+
+      // Fee-variant skip: if Clio is sending a sub-matter like
+      // "Group restructure 2025 - Interim Fee Note" when "Group restructure 2025"
+      // is already in the Hub under the same contact, skip it. Sub-matters exist
+      // for Clio's fee tracking and have zero AML value.
+      if (matter.description) {
+        const sameContactDescriptions = hubMatterRows
+          .filter((m) => {
+            const clientRel = Array.isArray(m.clients) ? m.clients[0] : m.clients;
+            return clientRel?.clio_contact_id === contactId;
+          })
+          .map((m) => m.description?.trim() || '')
+          .filter(Boolean);
+        const mainDesc = findFeeVariantMain(matter.description, sameContactDescriptions);
+        if (mainDesc) {
+          outcomes.push({
+            clioMatterId,
+            displayNumber,
+            contactName,
+            contactId,
+            status: 'fee_variant_skipped',
+            feeVariantMain: mainDesc,
+          });
+          feeVariantSkipped++;
+          continue;
+        }
       }
 
       // Likely-manual duplicate check: Hub matter with same reference AND same client name
@@ -1194,6 +1233,7 @@ export async function backfillClioMatters(
           already_linked: alreadyLinked,
           manual_duplicate_candidates: manualDuplicateCandidates,
           multiple_manual_candidates: multipleManualCandidates,
+          fee_variant_skipped: feeVariantSkipped,
           errors,
           capped_at_max: cappedAtMax,
           imported_client_ids: importedClientIds,
@@ -1215,6 +1255,7 @@ export async function backfillClioMatters(
         alreadyLinked,
         manualDuplicateCandidates,
         multipleManualCandidates,
+        feeVariantSkipped,
         errors,
         cappedAtMax,
         outcomes,
