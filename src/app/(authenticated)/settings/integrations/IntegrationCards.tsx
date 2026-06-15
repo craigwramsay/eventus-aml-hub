@@ -24,6 +24,7 @@ import {
   rollbackLastBackfill,
   cleanupPostBackfillDebris,
   mergeDuplicateMatterPairs,
+  deleteClioFeeVariantMatters,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -37,6 +38,7 @@ import type {
   RollbackBackfillResult,
   CleanupDebrisResult,
   MergeDuplicateMattersResult,
+  DeleteFeeVariantsResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -73,6 +75,7 @@ export function IntegrationCards({
   const [rollbackSince, setRollbackSince] = useState('');
   const [debrisResult, setDebrisResult] = useState<CleanupDebrisResult | null>(null);
   const [matterDupResult, setMatterDupResult] = useState<MergeDuplicateMattersResult | null>(null);
+  const [feeVariantResult, setFeeVariantResult] = useState<DeleteFeeVariantsResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -325,6 +328,44 @@ export function IntegrationCards({
       if (!result.success) setError(result.error);
       else {
         setMatterDupResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
+  const handlePreviewFeeVariants = () => {
+    setError(null);
+    setSuccess(null);
+    setFeeVariantResult(null);
+    startTransition(async () => {
+      const result = await deleteClioFeeVariantMatters({ dryRun: true });
+      if (!result.success) setError(result.error);
+      else setFeeVariantResult(result.result);
+    });
+  };
+
+  const handleExecuteFeeVariants = () => {
+    setError(null);
+    setSuccess(null);
+    const toDelete = feeVariantResult?.deleted ?? 0;
+    if (!toDelete) {
+      setError('No fee-variant matters ready to delete — run Preview first.');
+      return;
+    }
+    const ok = window.confirm(
+      `Delete ${toDelete} Clio fee-variant matter${toDelete === 1 ? '' : 's'}?\n\n` +
+        `These are sub-matters Clio creates for fee/disbursement tracking (e.g. "Group restructure 2025 - Interim Fee Note") ` +
+        `where the main matter ("Group restructure 2025") already exists for the same client. The variant matters are ` +
+        `empty (no assessments) and have no AML relevance.\n\n` +
+        `Anything with an assessment is skipped automatically.`
+    );
+    if (!ok) return;
+    setFeeVariantResult(null);
+    startTransition(async () => {
+      const result = await deleteClioFeeVariantMatters({ dryRun: false });
+      if (!result.success) setError(result.error);
+      else {
+        setFeeVariantResult(result.result);
         router.refresh();
       }
     });
@@ -602,6 +643,29 @@ export function IntegrationCards({
                 </button>
               </div>
               {matterDupResult && <MatterDuplicateResultPanel result={matterDupResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handlePreviewFeeVariants}
+                  disabled={isPending}
+                  title="Find Clio fee/disbursement sub-matters whose description is the main matter's description plus '- Interim Fee Note' etc."
+                >
+                  {isPending ? 'Scanning…' : 'Preview Fee-Variant Matters'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleExecuteFeeVariants}
+                  disabled={isPending || !feeVariantResult || feeVariantResult.deleted === 0}
+                  title="Delete each variant (skips any with assessments)."
+                >
+                  {isPending ? 'Deleting…' : 'Delete Fee-Variant Matters'}
+                </button>
+              </div>
+              {feeVariantResult && <FeeVariantResultPanel result={feeVariantResult} />}
             </div>
           </>
         ) : (
@@ -1316,6 +1380,56 @@ function MatterDuplicateResultPanel({ result }: { result: MergeDuplicateMattersR
                 )}
                 {o.status === 'skipped_ambiguous' && <>Ambiguous: {o.reason}</>}
                 {o.status === 'skipped_clio_has_assessments' && <>{o.reason}</>}
+                {o.status === 'error' && <>Error: {o.reason}</>}
+              </Row>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+/** Result panel for deleteClioFeeVariantMatters. */
+function FeeVariantResultPanel({ result }: { result: DeleteFeeVariantsResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Mode" ok={true}>
+        {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
+      </Row>
+      <Row label="Fee-variant matters detected" ok={true}>
+        {result.totalCandidates}
+      </Row>
+      <Row label={result.dryRun ? 'Ready to delete' : 'Deleted'} ok={true}>
+        {result.deleted}
+      </Row>
+      <Row label="Skipped — has assessments" ok={result.skippedHasAssessments === 0}>
+        {result.skippedHasAssessments}
+      </Row>
+      <Row label="Errors" ok={result.errors === 0}>
+        {result.errors}
+      </Row>
+      {result.outcomes.length > 0 && (
+        <details className={styles.connectionTestDetails} open>
+          <summary>Per-variant outcomes ({result.outcomes.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.outcomes.map((o) => (
+              <Row
+                key={o.variantId}
+                label={`${o.clientName} — ${o.variantDescription}`}
+                ok={o.status === 'deleted' || o.status === 'preview_delete'}
+              >
+                {o.status === 'preview_delete' && (
+                  <>
+                    Would delete (main: <code>{o.mainDescription}</code>)
+                  </>
+                )}
+                {o.status === 'deleted' && (
+                  <>
+                    Deleted (main: <code>{o.mainDescription}</code>)
+                  </>
+                )}
+                {o.status === 'skipped_has_assessments' && <>{o.reason}</>}
                 {o.status === 'error' && <>Error: {o.reason}</>}
               </Row>
             ))}
