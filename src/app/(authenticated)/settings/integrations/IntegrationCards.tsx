@@ -797,7 +797,7 @@ function RollbackResultPanel({ result }: { result: RollbackBackfillResult }) {
           {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
         </Row>
         <Row label="Status" ok={false}>
-          No backfill audit event found AND no time cutoff supplied — nothing to roll back.
+          No backfill audit event, no time cutoff supplied, and no Clio-linked clients to auto-detect — nothing to roll back.
         </Row>
         <Row label="clio_backfill_run audit events for this firm" ok={result.auditEventsFound > 0}>
           {result.auditEventsFound}
@@ -807,11 +807,6 @@ function RollbackResultPanel({ result }: { result: RollbackBackfillResult }) {
             <code>{result.auditQueryError}</code>
           </Row>
         )}
-        <Row label="Next step" ok={true}>
-          {result.auditEventsFound === 0
-            ? 'The backfill likely failed to write its audit event. Use the datetime input above to specify when the backfill ran, then Preview Rollback again.'
-            : 'Audit events exist but none were used — surface the diagnostic to Claude.'}
-        </Row>
       </div>
     );
   }
@@ -822,10 +817,15 @@ function RollbackResultPanel({ result }: { result: RollbackBackfillResult }) {
         {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
       </Row>
       <Row label="Rollback source" ok={true}>
-        {result.source === 'audit_event' ? (
-          <>Audit event from <code>{ts}</code></>
-        ) : (
+        {result.source === 'audit_event' && <>Audit event from <code>{ts}</code></>}
+        {result.source === 'time_window' && (
           <>Time window since <code>{result.sinceUsed?.split('T').join(' ').slice(0, 19)}</code></>
+        )}
+        {result.source === 'auto_detect' && (
+          <>
+            Auto-detected latest batch (5-min cluster ending at most recent
+            Clio-linked client; cutoff <code>{result.sinceUsed?.split('T').join(' ').slice(0, 19)}</code>)
+          </>
         )}
       </Row>
       {result.source === 'audit_event' && (

@@ -1249,9 +1249,9 @@ export async function backfillClioMatters(
  */
 export interface RollbackBackfillResult {
   dryRun: boolean;
-  source: 'audit_event' | 'time_window' | 'none';
+  source: 'audit_event' | 'time_window' | 'auto_detect' | 'none';
   backfillTimestamp: string | null;
-  /** When source = time_window, the cutoff used. */
+  /** When source = time_window or auto_detect, the cutoff used. */
   sinceUsed: string | null;
   trackedIds: boolean;
   /** How many clio_backfill_run audit events the firm has total — useful when none are found. */
@@ -1300,7 +1300,7 @@ export async function rollbackLastBackfill(
     };
     const audit = (allBackfills?.[0] as BackfillAudit | undefined) ?? null;
 
-    let source: 'audit_event' | 'time_window' | 'none' = 'none';
+    let source: 'audit_event' | 'time_window' | 'auto_detect' | 'none' = 'none';
     let backfillTimestamp: string | null = audit?.created_at ?? null;
     let sinceUsed: string | null = null;
     let importedMatterIds: string[] = [];
@@ -1361,6 +1361,49 @@ export async function rollbackLastBackfill(
         const windowMatterIds = ((windowMatters || []) as { id: string }[]).map((m) => m.id);
         importedMatterIds = windowMatterIds;
         importedClientIds = windowClientIds;
+      }
+    } else {
+      // No audit event, no caller-supplied cutoff — auto-detect the latest
+      // batch of Clio-linked client creations. Algorithm: take the most
+      // recently created Clio-linked client; treat every other one created
+      // within 5 minutes of it as part of the same batch.
+      //
+      // Safe because the wide backfill creates dozens of rows in seconds, but
+      // earlier backfills / merges happened hours apart — they won't overlap
+      // the 5-minute window.
+      const { data: latestClient } = await supabase
+        .from('clients')
+        .select('id, created_at')
+        .eq('firm_id', profile.firm_id)
+        .not('clio_contact_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const latest = latestClient as { id: string; created_at: string } | null;
+      if (latest) {
+        const cutoffMs = new Date(latest.created_at).getTime() - 5 * 60 * 1000;
+        const cutoffISO = new Date(cutoffMs).toISOString();
+        source = 'auto_detect';
+        sinceUsed = cutoffISO;
+        const { data: batchClients } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('firm_id', profile.firm_id)
+          .not('clio_contact_id', 'is', null)
+          .gte('created_at', cutoffISO);
+        const batchClientIds = ((batchClients || []) as { id: string }[]).map((c) => c.id);
+
+        if (batchClientIds.length > 0) {
+          const { data: batchMatters } = await supabase
+            .from('matters')
+            .select('id, client_id')
+            .eq('firm_id', profile.firm_id)
+            .in('client_id', batchClientIds);
+          const batchMatterIds = ((batchMatters || []) as { id: string }[]).map((m) => m.id);
+          importedMatterIds = batchMatterIds;
+          importedClientIds = batchClientIds;
+        }
       }
     }
 
