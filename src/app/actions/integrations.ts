@@ -3264,3 +3264,208 @@ export async function mergeDuplicateMatterPairs(
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
+/**
+ * Detect Clio fee/disbursement sub-matters and (optionally) delete them.
+ *
+ * Common Clio pattern: when an interim fee is posted on a matter, Clio
+ * creates a separate matter to track it. The main matter "Group restructure
+ * 2025" gets a companion "Group restructure 2025 - Interim Fee Note". These
+ * have their own clio_matter_id and so the backfill correctly imports them,
+ * but they have zero AML significance — the underlying work was already
+ * assessed under the main matter.
+ *
+ * Detection — for each pair of matters on the same client:
+ *   - main.description (case-insensitive) is a strict prefix of variant.description
+ *   - the suffix on variant starts with a dash/separator
+ *   - the suffix contains a fee/disbursement/note keyword
+ *
+ * Action — delete the variant if it has zero assessments. Main is kept as-is.
+ *
+ * Variant matters have their own Clio matter_id but no AML record value in
+ * the Hub. Deleting them simply removes the Hub-side noise; Clio still has
+ * them for fee tracking. (No webhook will re-create them since they were
+ * already imported — only NEW Clio matter.create events would.)
+ */
+export interface DeleteFeeVariantOutcome {
+  clientId: string;
+  clientName: string;
+  mainDescription: string;
+  variantId: string;
+  variantDescription: string;
+  variantReference: string;
+  status: 'deleted' | 'preview_delete' | 'skipped_has_assessments' | 'error';
+  reason?: string;
+}
+
+export interface DeleteFeeVariantsResult {
+  dryRun: boolean;
+  totalCandidates: number;
+  deleted: number;
+  skippedHasAssessments: number;
+  errors: number;
+  outcomes: DeleteFeeVariantOutcome[];
+}
+
+const FEE_VARIANT_SUFFIX_PATTERN =
+  /^[\s\-–—|:·]+(.*\b(interim|final|fee|fees|disbursement|disbursements|note|notes|invoice|payment|costs?)\b)/i;
+
+export async function deleteClioFeeVariantMatters(
+  options: { dryRun?: boolean } = {}
+): Promise<
+  { success: true; result: DeleteFeeVariantsResult } | { success: false; error: string }
+> {
+  const dryRun = options.dryRun ?? true;
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const { data: matters, error: mattersErr } = await supabase
+      .from('matters')
+      .select('id, client_id, reference, description')
+      .eq('firm_id', profile.firm_id);
+    if (mattersErr) return { success: false, error: mattersErr.message };
+
+    type MatterRow = { id: string; client_id: string; reference: string; description: string | null };
+    const rows = (matters || []) as MatterRow[];
+
+    // Group by client and detect pairs
+    const byClient = new Map<string, MatterRow[]>();
+    for (const m of rows) {
+      if (!m.description) continue;
+      const bucket = byClient.get(m.client_id) ?? [];
+      bucket.push(m);
+      byClient.set(m.client_id, bucket);
+    }
+
+    // Resolve client names
+    const clientIds = Array.from(byClient.keys());
+    const clientsById = new Map<string, string>();
+    if (clientIds.length > 0) {
+      const { data: clients } = await supabase
+        .from('clients')
+        .select('id, name')
+        .eq('firm_id', profile.firm_id)
+        .in('id', clientIds);
+      for (const c of (clients || []) as { id: string; name: string }[]) {
+        clientsById.set(c.id, c.name);
+      }
+    }
+
+    const outcomes: DeleteFeeVariantOutcome[] = [];
+
+    for (const [clientId, clientMatters] of byClient) {
+      const clientName = clientsById.get(clientId) ?? clientId;
+      for (const variant of clientMatters) {
+        const variantDesc = variant.description!.trim();
+        const variantLower = variantDesc.toLowerCase();
+        // Look for a "main" whose description is a prefix
+        const main = clientMatters.find((other) => {
+          if (other.id === variant.id) return false;
+          const otherDesc = (other.description ?? '').trim();
+          if (!otherDesc) return false;
+          const otherLower = otherDesc.toLowerCase();
+          if (otherLower.length >= variantLower.length) return false;
+          if (!variantLower.startsWith(otherLower)) return false;
+          const suffix = variantDesc.slice(otherDesc.length);
+          return FEE_VARIANT_SUFFIX_PATTERN.test(suffix);
+        });
+        if (!main) continue;
+
+        // Variant must have zero assessments to be safely deleted
+        const { count: assessmentCount } = await supabase
+          .from('assessments')
+          .select('id', { count: 'exact', head: true })
+          .eq('firm_id', profile.firm_id)
+          .eq('matter_id', variant.id);
+
+        if ((assessmentCount ?? 0) > 0) {
+          outcomes.push({
+            clientId,
+            clientName,
+            mainDescription: main.description!.trim(),
+            variantId: variant.id,
+            variantDescription: variantDesc,
+            variantReference: variant.reference,
+            status: 'skipped_has_assessments',
+            reason: `${assessmentCount} assessment(s) on this variant — manual review needed`,
+          });
+          continue;
+        }
+
+        if (dryRun) {
+          outcomes.push({
+            clientId,
+            clientName,
+            mainDescription: main.description!.trim(),
+            variantId: variant.id,
+            variantDescription: variantDesc,
+            variantReference: variant.reference,
+            status: 'preview_delete',
+          });
+          continue;
+        }
+
+        const { error: deleteErr } = await supabase
+          .from('matters')
+          .delete()
+          .eq('id', variant.id);
+        if (deleteErr) {
+          outcomes.push({
+            clientId,
+            clientName,
+            mainDescription: main.description!.trim(),
+            variantId: variant.id,
+            variantDescription: variantDesc,
+            variantReference: variant.reference,
+            status: 'error',
+            reason: `Delete failed (FK ref?): ${deleteErr.message}`,
+          });
+          continue;
+        }
+
+        await supabase.from('audit_events').insert({
+          firm_id: profile.firm_id,
+          entity_type: 'matter',
+          entity_id: variant.id,
+          action: 'clio_fee_variant_deleted',
+          metadata: {
+            main_matter_description: main.description!.trim(),
+            main_matter_id: main.id,
+            variant_description: variantDesc,
+            variant_reference: variant.reference,
+          },
+          created_by: user.id,
+        });
+
+        outcomes.push({
+          clientId,
+          clientName,
+          mainDescription: main.description!.trim(),
+          variantId: variant.id,
+          variantDescription: variantDesc,
+          variantReference: variant.reference,
+          status: 'deleted',
+        });
+      }
+    }
+
+    const totalCandidates = outcomes.length;
+    const deleted = outcomes.filter((o) => o.status === 'deleted' || o.status === 'preview_delete').length;
+    const skippedHasAssessments = outcomes.filter((o) => o.status === 'skipped_has_assessments').length;
+    const errors = outcomes.filter((o) => o.status === 'error').length;
+
+    return {
+      success: true,
+      result: { dryRun, totalCandidates, deleted, skippedHasAssessments, errors, outcomes },
+    };
+  } catch (err) {
+    console.error('Error in deleteClioFeeVariantMatters:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
