@@ -2589,3 +2589,295 @@ export async function listUnlinkedClients(): Promise<
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
+/**
+ * Post-backfill cleanup for the firm. Handles the residue from the v2 backfill
+ * the user opted into: 4 "not-actually-client" entries to bulk-delete, plus 3
+ * middle-name pairs to merge.
+ *
+ * Bulk delete (Clio-linked clients with these exact names; matters too):
+ *   - MILNE ACCOUNTING & BOOKKEEPING LTD (test data on Clio side)
+ *   - Craig Ramsay (user's own admin records on Clio)
+ *   - Donnie Munro (admin record)
+ *   - Client Account Float / Surplus (admin record)
+ *
+ * Targeted merge (keep manual, link to Clio's contact, reparent matter, delete imported):
+ *   - Andrew Goodwin (manual) ← Andrew John Goodwin (Clio)
+ *   - Ronald Duncan (manual) ← Ronald James Duncan (Clio)
+ *   - Richard Nixon (manual) ← Richard Karl Nixon (Clio)
+ *
+ * Each case is preconditioned on the current DB state — if anything has shifted
+ * (already run, names edited, assessments added to a matter we'd delete), that
+ * case is skipped with a clear reason. Cases are independent.
+ *
+ * Postgres FK constraints back up every delete — anything still referenced
+ * fails loud per case.
+ */
+
+const CLEANUP_DEBRIS_DELETE_NAMES = [
+  'MILNE ACCOUNTING & BOOKKEEPING LTD',
+  'Craig Ramsay',
+  'Donnie Munro',
+  'Client Account Float / Surplus',
+];
+
+const CLEANUP_DEBRIS_MERGE_PAIRS: Array<{ manualName: string; clioImportedName: string }> = [
+  { manualName: 'Andrew Goodwin', clioImportedName: 'Andrew John Goodwin' },
+  { manualName: 'Ronald Duncan', clioImportedName: 'Ronald James Duncan' },
+  { manualName: 'Richard Nixon', clioImportedName: 'Richard Karl Nixon' },
+];
+
+export interface CleanupDebrisCaseOutcome {
+  caseName: string;
+  caseType: 'bulk_delete' | 'merge_middle_name';
+  status: 'done' | 'nothing_to_do' | 'skipped' | 'error';
+  reason?: string;
+  steps?: string[];
+}
+
+export interface CleanupDebrisResult {
+  outcomes: CleanupDebrisCaseOutcome[];
+}
+
+async function bulkDeleteClioClientsByName(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string,
+  name: string
+): Promise<CleanupDebrisCaseOutcome> {
+  const steps: string[] = [];
+  const caseName = `Bulk delete: ${name}`;
+  const caseType: 'bulk_delete' = 'bulk_delete';
+
+  // Find ALL clients with this name in this firm where clio_contact_id IS NOT NULL.
+  // The clio_contact_id requirement ensures we only delete backfill-created
+  // records, never manual ones the user might have under the same name.
+  const { data: clientsData, error: clientsErr } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('name', name)
+    .not('clio_contact_id', 'is', null);
+  if (clientsErr) {
+    return { caseName, caseType, status: 'error', reason: clientsErr.message };
+  }
+  const clientIds = ((clientsData || []) as { id: string }[]).map((c) => c.id);
+  if (clientIds.length === 0) {
+    return { caseName, caseType, status: 'nothing_to_do', reason: 'No Clio-linked clients with this exact name' };
+  }
+
+  // Find their matters
+  const { data: mattersData } = await supabase
+    .from('matters')
+    .select('id, client_id')
+    .eq('firm_id', firmId)
+    .in('client_id', clientIds);
+  const matterRows = (mattersData || []) as { id: string; client_id: string }[];
+  const matterIds = matterRows.map((m) => m.id);
+
+  // Safety: any assessments on any of these matters?
+  if (matterIds.length > 0) {
+    const { count: assessmentCount } = await supabase
+      .from('assessments')
+      .select('id', { count: 'exact', head: true })
+      .eq('firm_id', firmId)
+      .in('matter_id', matterIds);
+    if ((assessmentCount ?? 0) > 0) {
+      return {
+        caseName,
+        caseType,
+        status: 'skipped',
+        reason: `${assessmentCount} assessment(s) found on these matters — manual review needed`,
+      };
+    }
+  }
+
+  // Delete matters first
+  for (const mid of matterIds) {
+    const { error: e } = await supabase.from('matters').delete().eq('id', mid);
+    if (e) {
+      return { caseName, caseType, status: 'error', reason: `Delete matter ${mid} failed: ${e.message}`, steps };
+    }
+  }
+  if (matterIds.length > 0) steps.push(`Deleted ${matterIds.length} matter(s)`);
+
+  // Delete clients
+  for (const cid of clientIds) {
+    const { error: e } = await supabase.from('clients').delete().eq('id', cid);
+    if (e) {
+      return { caseName, caseType, status: 'error', reason: `Delete client ${cid} failed: ${e.message}`, steps };
+    }
+  }
+  steps.push(`Deleted ${clientIds.length} client(s)`);
+
+  await supabase.from('audit_events').insert({
+    firm_id: firmId,
+    entity_type: 'integration',
+    entity_id: 'clio',
+    action: 'clio_cleanup_bulk_delete',
+    metadata: { name, client_ids: clientIds, matter_ids: matterIds },
+    created_by: userId,
+  });
+
+  return { caseName, caseType, status: 'done', steps };
+}
+
+async function mergeMiddleNamePair(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string,
+  pair: { manualName: string; clioImportedName: string }
+): Promise<CleanupDebrisCaseOutcome> {
+  const steps: string[] = [];
+  const caseName = `Merge: ${pair.manualName} ← ${pair.clioImportedName}`;
+  const caseType: 'merge_middle_name' = 'merge_middle_name';
+
+  // Find the manual client (NULL clio_contact_id)
+  const { data: manualClients } = await supabase
+    .from('clients')
+    .select('id, clio_contact_id')
+    .eq('firm_id', firmId)
+    .eq('name', pair.manualName)
+    .is('clio_contact_id', null);
+  const manuals = (manualClients || []) as { id: string; clio_contact_id: string | null }[];
+
+  // Find the Clio-imported client (NOT NULL clio_contact_id)
+  const { data: clioClients } = await supabase
+    .from('clients')
+    .select('id, clio_contact_id')
+    .eq('firm_id', firmId)
+    .eq('name', pair.clioImportedName)
+    .not('clio_contact_id', 'is', null);
+  const clios = (clioClients || []) as { id: string; clio_contact_id: string }[];
+
+  if (manuals.length === 0 && clios.length === 0) {
+    return { caseName, caseType, status: 'nothing_to_do', reason: 'Neither client found — likely already merged' };
+  }
+  if (manuals.length !== 1 || clios.length !== 1) {
+    return {
+      caseName,
+      caseType,
+      status: 'skipped',
+      reason: `Expected 1 manual + 1 Clio-imported, found ${manuals.length} manual + ${clios.length} Clio-imported`,
+    };
+  }
+
+  const manualClient = manuals[0];
+  const clioClient = clios[0];
+  const clioContactId = clioClient.clio_contact_id;
+
+  // Find the Clio-imported client's matter(s)
+  const { data: clioMatters } = await supabase
+    .from('matters')
+    .select('id, clio_matter_id')
+    .eq('firm_id', firmId)
+    .eq('client_id', clioClient.id);
+  const clioMatterRows = (clioMatters || []) as { id: string; clio_matter_id: string | null }[];
+
+  // Safety: no assessments on the Clio-imported client's matters (we're reparenting, not deleting,
+  // but if any matter has an assessment with a different client_id link it could break — defensive)
+  if (clioMatterRows.length > 0) {
+    const { count: aCount } = await supabase
+      .from('assessments')
+      .select('id', { count: 'exact', head: true })
+      .eq('firm_id', firmId)
+      .in('matter_id', clioMatterRows.map((m) => m.id));
+    if ((aCount ?? 0) > 0) {
+      return {
+        caseName,
+        caseType,
+        status: 'skipped',
+        reason: `${aCount} assessment(s) on Clio-imported matters — manual review needed before reparenting`,
+      };
+    }
+  }
+
+  // Step 1: Reparent all Clio-imported matters to manual client
+  for (const m of clioMatterRows) {
+    const { error: e } = await supabase
+      .from('matters')
+      .update({ client_id: manualClient.id })
+      .eq('id', m.id);
+    if (e) {
+      return { caseName, caseType, status: 'error', reason: `Reparent matter ${m.id} failed: ${e.message}`, steps };
+    }
+  }
+  steps.push(`Reparented ${clioMatterRows.length} matter(s) to manual client`);
+
+  // Step 2: NULL clio_contact_id on the Clio-imported client (free for transfer)
+  const { error: e2 } = await supabase
+    .from('clients')
+    .update({ clio_contact_id: null })
+    .eq('id', clioClient.id);
+  if (e2) {
+    return { caseName, caseType, status: 'error', reason: `Free clio_contact_id failed: ${e2.message}`, steps };
+  }
+
+  // Step 3: SET clio_contact_id on manual client
+  const { error: e3 } = await supabase
+    .from('clients')
+    .update({ clio_contact_id: clioContactId })
+    .eq('id', manualClient.id);
+  if (e3) {
+    return { caseName, caseType, status: 'error', reason: `Set clio_contact_id on manual failed: ${e3.message}`, steps };
+  }
+  steps.push(`Moved clio_contact_id=${clioContactId} to manual client`);
+
+  // Step 4: Repoint any audit events from the Clio-imported client to manual
+  await supabase
+    .from('audit_events')
+    .update({ entity_id: manualClient.id })
+    .eq('firm_id', firmId)
+    .eq('entity_type', 'client')
+    .eq('entity_id', clioClient.id);
+
+  // Step 5: Delete the now-empty Clio-imported client
+  const { error: e5 } = await supabase.from('clients').delete().eq('id', clioClient.id);
+  if (e5) {
+    return { caseName, caseType, status: 'error', reason: `Delete Clio-imported client failed: ${e5.message}`, steps };
+  }
+  steps.push(`Deleted Clio-imported client (${pair.clioImportedName})`);
+
+  await supabase.from('audit_events').insert({
+    firm_id: firmId,
+    entity_type: 'client',
+    entity_id: manualClient.id,
+    action: 'clio_cleanup_merge_middle_name',
+    metadata: {
+      manual_name: pair.manualName,
+      clio_imported_name: pair.clioImportedName,
+      deleted_clio_client_id: clioClient.id,
+      adopted_clio_contact_id: clioContactId,
+      reparented_matter_count: clioMatterRows.length,
+    },
+    created_by: userId,
+  });
+
+  return { caseName, caseType, status: 'done', steps };
+}
+
+export async function cleanupPostBackfillDebris(): Promise<
+  { success: true; result: CleanupDebrisResult } | { success: false; error: string }
+> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) return { success: false, error: error || 'Not authenticated' };
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const outcomes: CleanupDebrisCaseOutcome[] = [];
+
+    for (const name of CLEANUP_DEBRIS_DELETE_NAMES) {
+      outcomes.push(await bulkDeleteClioClientsByName(supabase, profile.firm_id, user.id, name));
+    }
+    for (const pair of CLEANUP_DEBRIS_MERGE_PAIRS) {
+      outcomes.push(await mergeMiddleNamePair(supabase, profile.firm_id, user.id, pair));
+    }
+
+    return { success: true, result: { outcomes } };
+  } catch (err) {
+    console.error('Error in cleanupPostBackfillDebris:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
