@@ -9,6 +9,7 @@ import { getUserProfile } from '@/lib/supabase/server';
 import { canDeleteEntities } from '@/lib/auth/roles';
 import { DeleteClientButton } from './DeleteClientButton';
 import { ClientNameEditor } from './ClientNameEditor';
+import { ClientClioLinker } from './ClientClioLinker';
 import styles from '../clients.module.css';
 
 interface ClientDetailPageProps {
@@ -87,6 +88,17 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                     year: 'numeric',
                   })
                 : 'Not recorded'}
+            </div>
+          </div>
+          <div className={styles.detailField}>
+            <div className={styles.detailLabel}>Clio Link</div>
+            <div className={styles.detailValue}>
+              <ClientClioLinker
+                clientId={client.id}
+                clientName={client.name}
+                clioContactId={client.clio_contact_id ?? null}
+                canEdit={canRename}
+              />
             </div>
           </div>
         </div>
