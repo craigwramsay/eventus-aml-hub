@@ -2627,6 +2627,17 @@ const CLEANUP_DEBRIS_MERGE_PAIRS: Array<{ manualName: string; clioImportedName: 
   { manualName: 'Richard Nixon', clioImportedName: 'Richard Karl Nixon' },
 ];
 
+/**
+ * Same-person merges where the Clio-linked client pre-dates the manual one
+ * (so we keep the Clio-linked record and reparent the manual's matters onto
+ * it). Inverse direction of CLEANUP_DEBRIS_MERGE_PAIRS, used when the user
+ * manually re-created a client that already existed as Clio-linked from an
+ * earlier webhook event.
+ */
+const CLEANUP_DEBRIS_KEEP_CLIO_PAIRS: Array<{ keepClioName: string; deleteManualName: string }> = [
+  { keepClioName: 'Norman William Innes', deleteManualName: 'Norman Innes' },
+];
+
 export interface CleanupDebrisCaseOutcome {
   caseName: string;
   caseType: 'bulk_delete' | 'merge_middle_name';
@@ -2856,6 +2867,103 @@ async function mergeMiddleNamePair(
   return { caseName, caseType, status: 'done', steps };
 }
 
+async function mergeKeepClioLinked(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string,
+  pair: { keepClioName: string; deleteManualName: string }
+): Promise<CleanupDebrisCaseOutcome> {
+  const steps: string[] = [];
+  const caseName = `Merge (keep Clio-linked): ${pair.keepClioName} ← ${pair.deleteManualName}`;
+  const caseType: 'merge_middle_name' = 'merge_middle_name';
+
+  // Find the manual client to delete (NULL clio_contact_id)
+  const { data: manualClients } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('name', pair.deleteManualName)
+    .is('clio_contact_id', null);
+  const manuals = (manualClients || []) as { id: string }[];
+
+  // Find the Clio-linked client to keep (NOT NULL clio_contact_id)
+  const { data: clioClients } = await supabase
+    .from('clients')
+    .select('id, clio_contact_id')
+    .eq('firm_id', firmId)
+    .eq('name', pair.keepClioName)
+    .not('clio_contact_id', 'is', null);
+  const clios = (clioClients || []) as { id: string; clio_contact_id: string }[];
+
+  if (manuals.length === 0 && clios.length === 1) {
+    return { caseName, caseType, status: 'nothing_to_do', reason: 'Manual client already absent — likely already merged' };
+  }
+  if (manuals.length !== 1 || clios.length !== 1) {
+    return {
+      caseName,
+      caseType,
+      status: 'skipped',
+      reason: `Expected 1 manual + 1 Clio-linked, found ${manuals.length} manual + ${clios.length} Clio-linked`,
+    };
+  }
+
+  const manualClient = manuals[0];
+  const clioClient = clios[0];
+
+  // Reparent the manual client's matters to the Clio-linked client
+  const { data: manualMatters } = await supabase
+    .from('matters')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('client_id', manualClient.id);
+  const matterIds = ((manualMatters || []) as { id: string }[]).map((m) => m.id);
+
+  for (const mid of matterIds) {
+    const { error: e } = await supabase
+      .from('matters')
+      .update({ client_id: clioClient.id })
+      .eq('id', mid);
+    if (e) {
+      return { caseName, caseType, status: 'error', reason: `Reparent matter ${mid} failed: ${e.message}`, steps };
+    }
+  }
+  if (matterIds.length > 0) {
+    steps.push(`Reparented ${matterIds.length} matter(s) onto Clio-linked client`);
+  }
+
+  // Repoint any audit_events from the manual client onto the Clio-linked one
+  await supabase
+    .from('audit_events')
+    .update({ entity_id: clioClient.id })
+    .eq('firm_id', firmId)
+    .eq('entity_type', 'client')
+    .eq('entity_id', manualClient.id);
+
+  // Delete the manual client
+  const { error: delErr } = await supabase.from('clients').delete().eq('id', manualClient.id);
+  if (delErr) {
+    return { caseName, caseType, status: 'error', reason: `Delete manual client failed: ${delErr.message}`, steps };
+  }
+  steps.push(`Deleted manual client (${pair.deleteManualName})`);
+
+  await supabase.from('audit_events').insert({
+    firm_id: firmId,
+    entity_type: 'client',
+    entity_id: clioClient.id,
+    action: 'clio_cleanup_merge_keep_clio',
+    metadata: {
+      kept_clio_name: pair.keepClioName,
+      kept_clio_client_id: clioClient.id,
+      deleted_manual_name: pair.deleteManualName,
+      deleted_manual_client_id: manualClient.id,
+      reparented_matter_count: matterIds.length,
+    },
+    created_by: userId,
+  });
+
+  return { caseName, caseType, status: 'done', steps };
+}
+
 export async function cleanupPostBackfillDebris(): Promise<
   { success: true; result: CleanupDebrisResult } | { success: false; error: string }
 > {
@@ -2873,6 +2981,9 @@ export async function cleanupPostBackfillDebris(): Promise<
     }
     for (const pair of CLEANUP_DEBRIS_MERGE_PAIRS) {
       outcomes.push(await mergeMiddleNamePair(supabase, profile.firm_id, user.id, pair));
+    }
+    for (const pair of CLEANUP_DEBRIS_KEEP_CLIO_PAIRS) {
+      outcomes.push(await mergeKeepClioLinked(supabase, profile.firm_id, user.id, pair));
     }
 
     return { success: true, result: { outcomes } };
