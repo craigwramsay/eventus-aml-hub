@@ -824,7 +824,7 @@ function RollbackResultPanel({ result }: { result: RollbackBackfillResult }) {
         {result.source === 'auto_detect' && (
           <>
             Auto-detected latest batch (5-min cluster ending at most recent
-            Clio-linked client; cutoff <code>{result.sinceUsed?.split('T').join(' ').slice(0, 19)}</code>)
+            Clio-linked matter; cutoff <code>{result.sinceUsed?.split('T').join(' ').slice(0, 19)}</code>)
           </>
         )}
       </Row>

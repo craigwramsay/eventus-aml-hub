@@ -1340,70 +1340,68 @@ export async function rollbackLastBackfill(
         }
       }
     } else if (sinceISOInput) {
-      // No audit event found, but caller supplied a cutoff — find every client
-      // with clio_contact_id created at/after that time, and their matters.
       source = 'time_window';
       sinceUsed = sinceISOInput;
-      const { data: windowClients } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('firm_id', profile.firm_id)
-        .not('clio_contact_id', 'is', null)
-        .gte('created_at', sinceISOInput);
-      const windowClientIds = ((windowClients || []) as { id: string }[]).map((c) => c.id);
-
-      if (windowClientIds.length > 0) {
-        const { data: windowMatters } = await supabase
-          .from('matters')
-          .select('id, client_id')
-          .eq('firm_id', profile.firm_id)
-          .in('client_id', windowClientIds);
-        const windowMatterIds = ((windowMatters || []) as { id: string }[]).map((m) => m.id);
-        importedMatterIds = windowMatterIds;
-        importedClientIds = windowClientIds;
-      }
     } else {
-      // No audit event, no caller-supplied cutoff — auto-detect the latest
-      // batch of Clio-linked client creations. Algorithm: take the most
-      // recently created Clio-linked client; treat every other one created
-      // within 5 minutes of it as part of the same batch.
-      //
-      // Safe because the wide backfill creates dozens of rows in seconds, but
-      // earlier backfills / merges happened hours apart — they won't overlap
-      // the 5-minute window.
-      const { data: latestClient } = await supabase
-        .from('clients')
+      // Auto-detect: take the most recently created Clio-LINKED MATTER, treat
+      // every matter (with clio_matter_id) created within 5 minutes of it as
+      // the rollback batch. Matter-based detection catches matters that landed
+      // under EXISTING clients (e.g. Morrison's 17 new retainer matters that
+      // got added to its already-merged Client 2), which client-based detection
+      // would miss.
+      const { data: latestMatter } = await supabase
+        .from('matters')
         .select('id, created_at')
         .eq('firm_id', profile.firm_id)
-        .not('clio_contact_id', 'is', null)
+        .not('clio_matter_id', 'is', null)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      const latest = latestClient as { id: string; created_at: string } | null;
+      const latest = latestMatter as { id: string; created_at: string } | null;
       if (latest) {
         const cutoffMs = new Date(latest.created_at).getTime() - 5 * 60 * 1000;
-        const cutoffISO = new Date(cutoffMs).toISOString();
+        sinceUsed = new Date(cutoffMs).toISOString();
         source = 'auto_detect';
-        sinceUsed = cutoffISO;
-        const { data: batchClients } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('firm_id', profile.firm_id)
-          .not('clio_contact_id', 'is', null)
-          .gte('created_at', cutoffISO);
-        const batchClientIds = ((batchClients || []) as { id: string }[]).map((c) => c.id);
+      }
+    }
 
-        if (batchClientIds.length > 0) {
-          const { data: batchMatters } = await supabase
-            .from('matters')
-            .select('id, client_id')
-            .eq('firm_id', profile.firm_id)
-            .in('client_id', batchClientIds);
-          const batchMatterIds = ((batchMatters || []) as { id: string }[]).map((m) => m.id);
-          importedMatterIds = batchMatterIds;
-          importedClientIds = batchClientIds;
+    // For time_window and auto_detect, populate matter + client IDs from sinceUsed.
+    // Query matters with clio_matter_id (rather than clients with clio_contact_id)
+    // so we catch matters that landed under existing clients.
+    if ((source === 'time_window' || source === 'auto_detect') && sinceUsed) {
+      const { data: batchMatters } = await supabase
+        .from('matters')
+        .select('id, client_id')
+        .eq('firm_id', profile.firm_id)
+        .not('clio_matter_id', 'is', null)
+        .gte('created_at', sinceUsed);
+      type BatchMatter = { id: string; client_id: string };
+      const batch = (batchMatters || []) as BatchMatter[];
+      importedMatterIds = batch.map((m) => m.id);
+
+      // A client is "fully imported" — and therefore safe to delete — only if
+      // ALL its matters are in this rollback batch. If it has matters from
+      // before the cutoff (pre-existing Hub work), we leave the client alone
+      // and only delete the batch matters.
+      const clientIdsInBatch = Array.from(new Set(batch.map((m) => m.client_id)));
+      if (clientIdsInBatch.length > 0) {
+        const { data: allMattersForClients } = await supabase
+          .from('matters')
+          .select('id, client_id')
+          .eq('firm_id', profile.firm_id)
+          .in('client_id', clientIdsInBatch);
+        const allByClient = new Map<string, number>();
+        for (const m of (allMattersForClients || []) as BatchMatter[]) {
+          allByClient.set(m.client_id, (allByClient.get(m.client_id) ?? 0) + 1);
         }
+        const batchByClient = new Map<string, number>();
+        for (const m of batch) {
+          batchByClient.set(m.client_id, (batchByClient.get(m.client_id) ?? 0) + 1);
+        }
+        importedClientIds = clientIdsInBatch.filter(
+          (cid) => allByClient.get(cid) === batchByClient.get(cid)
+        );
       }
     }
 
@@ -1457,14 +1455,23 @@ export async function rollbackLastBackfill(
       }
     }
 
-    // Delete imported clients (only if no matter still references them)
+    // Delete imported clients (only if no matter still references them after
+    // the rollback's matter deletes). In dry-run, matters haven't actually
+    // been deleted, so subtract the matters we'd delete from the live count.
+    const wouldDeleteMatterSet = new Set(deletedMatterIds);
     for (const clientId of importedClientIds) {
-      const { count } = await supabase
+      const { data: refMatters } = await supabase
         .from('matters')
-        .select('id', { count: 'exact', head: true })
+        .select('id')
         .eq('client_id', clientId);
-      if (count && count > 0) {
-        skipped.push({ id: clientId, type: 'client', reason: `${count} matter(s) still reference this client` });
+      const refIds = ((refMatters || []) as { id: string }[]).map((m) => m.id);
+      const remaining = refIds.filter((id) => !wouldDeleteMatterSet.has(id));
+      if (remaining.length > 0) {
+        skipped.push({
+          id: clientId,
+          type: 'client',
+          reason: `${remaining.length} matter(s) still reference this client`,
+        });
         continue;
       }
       if (!dryRun) {
