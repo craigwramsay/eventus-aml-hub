@@ -13,6 +13,7 @@ import { deleteClient } from '@/app/actions/clients';
 import styles from './clients.module.css';
 
 type TypeFilter = 'all' | 'individual' | 'corporate';
+type ClioFilter = 'all' | 'linked' | 'unlinked';
 
 interface ClientsListProps {
   clients: Client[];
@@ -30,9 +31,12 @@ function formatDate(dateString: string): string {
 export function ClientsList({ clients, canDelete }: ClientsListProps) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [clioFilter, setClioFilter] = useState<ClioFilter>('all');
 
   const filtered = clients.filter((client) => {
     if (typeFilter !== 'all' && client.client_type !== typeFilter) return false;
+    if (clioFilter === 'linked' && !client.clio_contact_id) return false;
+    if (clioFilter === 'unlinked' && client.clio_contact_id) return false;
     if (search) {
       const term = search.toLowerCase();
       return (
@@ -45,6 +49,8 @@ export function ClientsList({ clients, canDelete }: ClientsListProps) {
 
   const individualCount = clients.filter((c) => c.client_type === 'individual').length;
   const corporateCount = clients.filter((c) => c.client_type === 'corporate').length;
+  const linkedCount = clients.filter((c) => c.clio_contact_id).length;
+  const unlinkedCount = clients.length - linkedCount;
 
   const columns: ColumnConfig<Client>[] = [
     {
@@ -53,9 +59,19 @@ export function ClientsList({ clients, canDelete }: ClientsListProps) {
       sortable: true,
       sortValue: (row) => row.name.toLowerCase(),
       render: (row) => (
-        <Link href={`/clients/${row.id}`} className={styles.tableLink}>
-          {row.name}
-        </Link>
+        <span className={styles.clientNameCell}>
+          <Link href={`/clients/${row.id}`} className={styles.tableLink}>
+            {row.name}
+          </Link>
+          {row.clio_contact_id && (
+            <span
+              className={styles.clioBadge}
+              title={`Linked to Clio contact ID ${row.clio_contact_id}`}
+            >
+              Clio
+            </span>
+          )}
+        </span>
       ),
     },
     {
@@ -132,6 +148,23 @@ export function ClientsList({ clients, canDelete }: ClientsListProps) {
           onClick={() => setTypeFilter('corporate')}
         >
           Corporate ({corporateCount})
+        </button>
+        <span className={styles.filterDivider} aria-hidden />
+        <button
+          type="button"
+          className={`${styles.filterButton} ${clioFilter === 'linked' ? styles.filterButtonActive : ''}`}
+          onClick={() => setClioFilter(clioFilter === 'linked' ? 'all' : 'linked')}
+          title="Show only clients linked to a Clio contact"
+        >
+          Clio-linked ({linkedCount})
+        </button>
+        <button
+          type="button"
+          className={`${styles.filterButton} ${clioFilter === 'unlinked' ? styles.filterButtonActive : ''}`}
+          onClick={() => setClioFilter(clioFilter === 'unlinked' ? 'all' : 'unlinked')}
+          title="Show only clients NOT linked to any Clio contact"
+        >
+          Not linked ({unlinkedCount})
         </button>
       </div>
 
