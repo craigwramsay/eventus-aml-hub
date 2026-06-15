@@ -23,6 +23,7 @@ import {
   listUnlinkedClients,
   rollbackLastBackfill,
   cleanupPostBackfillDebris,
+  mergeDuplicateMatterPairs,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -35,6 +36,7 @@ import type {
   ListUnlinkedClientsResult,
   RollbackBackfillResult,
   CleanupDebrisResult,
+  MergeDuplicateMattersResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -70,6 +72,7 @@ export function IntegrationCards({
   const [rollbackResult, setRollbackResult] = useState<RollbackBackfillResult | null>(null);
   const [rollbackSince, setRollbackSince] = useState('');
   const [debrisResult, setDebrisResult] = useState<CleanupDebrisResult | null>(null);
+  const [matterDupResult, setMatterDupResult] = useState<MergeDuplicateMattersResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -283,6 +286,45 @@ export function IntegrationCards({
         setError(result.error);
       } else {
         setDebrisResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
+  const handlePreviewMatterDuplicates = () => {
+    setError(null);
+    setSuccess(null);
+    setMatterDupResult(null);
+    startTransition(async () => {
+      const result = await mergeDuplicateMatterPairs({ dryRun: true });
+      if (!result.success) setError(result.error);
+      else setMatterDupResult(result.result);
+    });
+  };
+
+  const handleExecuteMatterDuplicates = () => {
+    setError(null);
+    setSuccess(null);
+    const toMerge = matterDupResult?.merged ?? 0;
+    if (!toMerge) {
+      setError('No pairs ready to merge — run Preview first.');
+      return;
+    }
+    const ok = window.confirm(
+      `Merge ${toMerge} duplicate matter pair${toMerge === 1 ? '' : 's'}?\n\n` +
+        `For each pair, this will:\n` +
+        `  • Move clio_matter_id from the empty Clio-imported matter onto the manual one\n` +
+        `  • Repoint audit events onto the manual matter\n` +
+        `  • DELETE the empty Clio-imported matter\n\n` +
+        `Pairs where the Clio-imported matter has any assessment are skipped.`
+    );
+    if (!ok) return;
+    setMatterDupResult(null);
+    startTransition(async () => {
+      const result = await mergeDuplicateMatterPairs({ dryRun: false });
+      if (!result.success) setError(result.error);
+      else {
+        setMatterDupResult(result.result);
         router.refresh();
       }
     });
@@ -537,6 +579,29 @@ export function IntegrationCards({
                 </button>
               </div>
               {debrisResult && <DebrisCleanupResultPanel result={debrisResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handlePreviewMatterDuplicates}
+                  disabled={isPending}
+                  title="Find pairs where the user's manual matter (NULL clio_matter_id) and a Clio-imported matter (with clio_matter_id) share the same client + description. No DB changes."
+                >
+                  {isPending ? 'Scanning…' : 'Preview Duplicate Matters'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleExecuteMatterDuplicates}
+                  disabled={isPending || !matterDupResult || matterDupResult.merged === 0}
+                  title="Merge each pair: move clio_matter_id onto the manual matter (preserving assessment work), delete the empty Clio-imported matter."
+                >
+                  {isPending ? 'Merging…' : 'Merge Duplicate Matters'}
+                </button>
+              </div>
+              {matterDupResult && <MatterDuplicateResultPanel result={matterDupResult} />}
             </div>
           </>
         ) : (
@@ -1198,6 +1263,65 @@ function DebrisCleanupResultPanel({ result }: { result: CleanupDebrisResult }) {
           </div>
         </details>
       ))}
+    </div>
+  );
+}
+
+/** Result panel for mergeDuplicateMatterPairs. */
+function MatterDuplicateResultPanel({ result }: { result: MergeDuplicateMattersResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Mode" ok={true}>
+        {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
+      </Row>
+      <Row label="Duplicate pairs found" ok={true}>
+        {result.pairsFound}
+      </Row>
+      <Row label={result.dryRun ? 'Ready to merge' : 'Merged'} ok={true}>
+        {result.merged}
+      </Row>
+      <Row label="Skipped — ambiguous" ok={result.skippedAmbiguous === 0}>
+        {result.skippedAmbiguous}
+      </Row>
+      <Row label="Skipped — Clio matter has assessments" ok={result.skippedHasAssessments === 0}>
+        {result.skippedHasAssessments}
+        {result.skippedHasAssessments > 0 && ' — both matters have work, manual review needed'}
+      </Row>
+      <Row label="Errors" ok={result.errors === 0}>
+        {result.errors}
+      </Row>
+      {result.outcomes.length > 0 && (
+        <details className={styles.connectionTestDetails} open>
+          <summary>Per-pair outcomes ({result.outcomes.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.outcomes.map((o, i) => (
+              <Row
+                key={`${o.manualMatterId || ''}-${i}`}
+                label={`${o.clientName} — ${o.description}`}
+                ok={o.status === 'merged' || o.status === 'preview_merged'}
+              >
+                {o.status === 'preview_merged' && (
+                  <>
+                    Would move <code>clio_matter_id={o.adoptedClioMatterId}</code> onto manual
+                    matter <code>{o.manualMatterReference}</code> and delete empty{' '}
+                    <code>{o.clioMatterReference}</code>
+                  </>
+                )}
+                {o.status === 'merged' && (
+                  <>
+                    Linked <code>{o.manualMatterReference}</code> to Clio matter{' '}
+                    <code>{o.adoptedClioMatterId}</code>; deleted empty{' '}
+                    <code>{o.clioMatterReference}</code>
+                  </>
+                )}
+                {o.status === 'skipped_ambiguous' && <>Ambiguous: {o.reason}</>}
+                {o.status === 'skipped_clio_has_assessments' && <>{o.reason}</>}
+                {o.status === 'error' && <>Error: {o.reason}</>}
+              </Row>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
