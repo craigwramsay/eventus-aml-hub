@@ -2636,6 +2636,10 @@ const CLEANUP_DEBRIS_MERGE_PAIRS: Array<{ manualName: string; clioImportedName: 
  */
 const CLEANUP_DEBRIS_KEEP_CLIO_PAIRS: Array<{ keepClioName: string; deleteManualName: string }> = [
   { keepClioName: 'Norman William Innes', deleteManualName: 'Norman Innes' },
+  // FWA (Scotland) Limited was auto-linked via v2 backfill (Clio matter 00015 "Loan
+  // arrangements with Wright Investments"); the manual entry has a typo ("Limtied")
+  // so the normaliser didn't catch the pair.
+  { keepClioName: 'FWA (Scotland) Limited', deleteManualName: 'FWA (Scotland) Limtied' },
 ];
 
 export interface CleanupDebrisCaseOutcome {
