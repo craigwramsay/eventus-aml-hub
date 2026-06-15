@@ -6,8 +6,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientAction, lookupCompanyForClient } from '@/app/actions/clients';
-import type { CompanyLookupForClientResult } from '@/app/actions/clients';
+import {
+  createClientAction,
+  lookupCompanyForClient,
+  findMatchingClioContacts,
+} from '@/app/actions/clients';
+import type {
+  CompanyLookupForClientResult,
+  ClioContactMatch,
+} from '@/app/actions/clients';
 import sectorMapping from '@/config/eventus/rules/sector_mapping.json';
 import styles from '../clients.module.css';
 
@@ -31,6 +38,13 @@ export function NewClientForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [lastCddVerifiedAt, setLastCddVerifiedAt] = useState('');
+
+  // Clio contact search state — debounced on `name`, surfaces matches inline
+  const [clioMatches, setClioMatches] = useState<ClioContactMatch[]>([]);
+  const [clioSearching, setClioSearching] = useState(false);
+  const [linkedClioContactId, setLinkedClioContactId] = useState<string | null>(null);
+  const [linkedClioName, setLinkedClioName] = useState<string | null>(null);
+  const clioSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Companies House lookup state
   const [registeredNumber, setRegisteredNumber] = useState('');
@@ -81,6 +95,52 @@ export function NewClientForm() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [registeredNumber, isCorporate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced Clio contact search as user types the name. Silently no-ops if
+  // Clio isn't connected or the search fails — never blocks the form.
+  useEffect(() => {
+    const trimmed = name.trim();
+    // If the typed name already matches the linked Clio name, keep showing
+    // the link badge but skip a fresh search.
+    if (linkedClioContactId && linkedClioName && trimmed === linkedClioName) {
+      setClioMatches([]);
+      return;
+    }
+    // Clear the link if the user has edited the name away from the Clio name
+    if (linkedClioContactId && linkedClioName && trimmed !== linkedClioName) {
+      setLinkedClioContactId(null);
+      setLinkedClioName(null);
+    }
+    if (trimmed.length < 2) {
+      setClioMatches([]);
+      return;
+    }
+    if (clioSearchDebounceRef.current) clearTimeout(clioSearchDebounceRef.current);
+    clioSearchDebounceRef.current = setTimeout(async () => {
+      setClioSearching(true);
+      try {
+        const result = await findMatchingClioContacts(trimmed);
+        if (result.success) setClioMatches(result.matches);
+      } finally {
+        setClioSearching(false);
+      }
+    }, 400);
+    return () => {
+      if (clioSearchDebounceRef.current) clearTimeout(clioSearchDebounceRef.current);
+    };
+  }, [name, linkedClioContactId, linkedClioName]);
+
+  function handleUseClioContact(match: ClioContactMatch) {
+    setName(match.name);
+    setLinkedClioContactId(match.clioContactId);
+    setLinkedClioName(match.name);
+    setClioMatches([]);
+  }
+
+  function handleUnlinkClioContact() {
+    setLinkedClioContactId(null);
+    setLinkedClioName(null);
+  }
 
   // Flatten sector options from config
   const sectorOptions = Object.values(sectorMapping.categories).flat();
@@ -149,6 +209,7 @@ export function NewClientForm() {
         name,
         entity_type: entityType,
         sector,
+        clio_contact_id: linkedClioContactId,
         registered_number: isCorporate && registeredNumber ? registeredNumber.trim().toUpperCase() : null,
         registered_address: isCorporate && registeredAddress ? registeredAddress : null,
         last_cdd_verified_at: lastCddVerifiedAt || null,
@@ -156,6 +217,10 @@ export function NewClientForm() {
 
       if (result.success) {
         router.push(`/clients/${result.client.id}`);
+      } else if (result.existingClientId) {
+        // Duplicate-guard: an existing Hub client is already linked to this
+        // Clio contact. Take the user there instead of creating a duplicate.
+        router.push(`/clients/${result.existingClientId}`);
       } else {
         setError(result.error);
       }
@@ -188,6 +253,70 @@ export function NewClientForm() {
           required
           disabled={isSubmitting}
         />
+        {linkedClioContactId && linkedClioName && (
+          <div className={styles.clioLinkedBadge}>
+            <span>
+              Linked to Clio contact <strong>{linkedClioName}</strong> (ID {linkedClioContactId})
+            </span>
+            <button
+              type="button"
+              className={styles.clioUnlinkButton}
+              onClick={handleUnlinkClioContact}
+              disabled={isSubmitting}
+            >
+              Unlink
+            </button>
+          </div>
+        )}
+        {!linkedClioContactId && (clioSearching || clioMatches.length > 0) && (
+          <div className={styles.clioMatchesPanel}>
+            {clioSearching && clioMatches.length === 0 && (
+              <div className={styles.clioMatchesHint}>Searching Clio…</div>
+            )}
+            {clioMatches.length > 0 && (
+              <>
+                <div className={styles.clioMatchesHint}>
+                  Possible matches in Clio — pick one to avoid creating a duplicate:
+                </div>
+                <ul className={styles.clioMatchesList}>
+                  {clioMatches.map((m) => (
+                    <li key={m.clioContactId} className={styles.clioMatchRow}>
+                      <div className={styles.clioMatchInfo}>
+                        <span className={styles.clioMatchName}>
+                          {m.name}
+                          {m.exactMatch && <em className={styles.clioMatchExact}> (exact match)</em>}
+                        </span>
+                        <span className={styles.clioMatchMeta}>
+                          {m.type}
+                          {m.alreadyInHub && ' · already in Hub'}
+                        </span>
+                      </div>
+                      {m.alreadyInHub && m.hubClientId ? (
+                        <button
+                          type="button"
+                          className={styles.clioMatchButton}
+                          onClick={() => router.push(`/clients/${m.hubClientId}`)}
+                          disabled={isSubmitting}
+                        >
+                          Open existing
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.clioMatchButton}
+                          onClick={() => handleUseClioContact(m)}
+                          disabled={isSubmitting}
+                        >
+                          Use this contact
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <div className={styles.field}>

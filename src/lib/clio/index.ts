@@ -11,6 +11,7 @@ export {
   fetchClioMatter,
   listClioMattersCreatedSince,
   fetchClioContact,
+  searchClioContacts,
   exchangeClioCode,
   refreshClioToken,
   registerClioWebhook,
