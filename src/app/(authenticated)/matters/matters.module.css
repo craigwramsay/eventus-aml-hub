@@ -434,3 +434,161 @@
 .staleBannerLink:hover {
   background-color: var(--accent-hover);
 }
+
+/* ── Matter Parties (primary + co-clients) ── */
+
+.partyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.partyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.partyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.partyMeta {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.partyPrimaryBadge {
+  flex-shrink: 0;
+  padding: 0.125rem 0.625rem;
+  background-color: var(--accent-light, #e0e7ff);
+  color: var(--accent-text, #3730a3);
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.partyRemoveButton {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  background-color: transparent;
+  color: var(--status-high-text);
+  border: 1px solid var(--status-high-border);
+  border-radius: var(--radius-button);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.partyRemoveButton:hover:not(:disabled) {
+  background-color: var(--status-high-bg);
+}
+
+.partyRemoveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.partyError {
+  margin-bottom: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--status-high-bg);
+  color: var(--status-high-text);
+  border: 1px solid var(--status-high-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.partyCddNote {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-2) var(--space-3);
+  background-color: #fef3c7;
+  color: #92400e;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+}
+
+.partyPicker {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.partyPickerRow {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.partyPickerInput {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.partyPickerInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.partyCancelButton {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-4);
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.partyCancelButton:hover:not(:disabled) {
+  background-color: var(--border);
+  color: var(--text-primary);
+}
+
+.partyPickerHint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.partyPickerResults {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.partyPickerResultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
