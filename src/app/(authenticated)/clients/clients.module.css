@@ -533,3 +533,121 @@
   font-size: 0.8125rem;
   padding: var(--space-1) 0;
 }
+
+/* ── Clio contact search on new-client form ── */
+
+.clioMatchesPanel {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.clioMatchesHint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.clioMatchesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.clioMatchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.clioMatchInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.clioMatchName {
+  font-weight: 500;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.clioMatchExact {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  margin-left: 0.25rem;
+}
+
+.clioMatchMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.125rem;
+}
+
+.clioMatchButton {
+  flex-shrink: 0;
+  padding: 0.375rem var(--space-3);
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clioMatchButton:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+
+.clioMatchButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clioLinkedBadge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.clioUnlinkButton {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  background-color: transparent;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-button);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clioUnlinkButton:hover:not(:disabled) {
+  background-color: #bbf7d0;
+}
+
+.clioUnlinkButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

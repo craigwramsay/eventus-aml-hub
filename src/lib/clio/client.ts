@@ -100,6 +100,32 @@ export async function fetchClioMatter(
 }
 
 /**
+ * Search Clio contacts by name. Uses Clio's `query` parameter (substring
+ * match on contact name). Returns up to `limit` results (default 10).
+ * Used by the new-client form to surface potential Clio matches and prevent
+ * the user from creating a duplicate Hub client when one exists in Clio.
+ */
+export async function searchClioContacts(
+  query: string,
+  accessToken: string,
+  limit = 10
+): Promise<ClioContact[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+  const fields = 'id,etag,name,type,first_name,last_name,email_addresses';
+  const params = new URLSearchParams({
+    fields,
+    query: trimmed,
+    limit: String(limit),
+  });
+  const data = await clioFetch<{ data: ClioContact[] }>(
+    `/api/v4/contacts.json?${params.toString()}`,
+    accessToken
+  );
+  return data.data;
+}
+
+/**
  * List Clio matters created since the given ISO timestamp.
  *
  * Returns matter records with embedded client {id, name, type}, so callers can

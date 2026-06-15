@@ -14,6 +14,8 @@ import {
   isValidCompanyNumber,
   CompaniesHouseError,
 } from '@/lib/companies-house/client';
+import { searchClioContacts, normalizeClientName } from '@/lib/clio';
+import { getClioAccessTokenForFirm } from '@/lib/clio/token';
 
 /** Input for creating a client */
 export interface CreateClientInput {
@@ -31,7 +33,7 @@ export interface CreateClientInput {
 /** Result of creating a client */
 export type CreateClientResult =
   | { success: true; client: Client }
-  | { success: false; error: string };
+  | { success: false; error: string; existingClientId?: string };
 
 /**
  * Fetch authenticated user + firm profile
@@ -96,6 +98,26 @@ export async function createClientAction(
 
     if (!entity_type || !entity_type.trim()) {
       return { success: false, error: 'Client type is required' };
+    }
+
+    // If a Clio contact id is supplied, guard against creating a duplicate
+    // Hub client for the same Clio contact (handles double-clicks / race
+    // conditions / form refreshes after auto-link).
+    if (clio_contact_id) {
+      const { data: existing } = await supabase
+        .from('clients')
+        .select('id, name')
+        .eq('firm_id', profile.firm_id)
+        .eq('clio_contact_id', clio_contact_id)
+        .maybeSingle();
+      const existingRow = existing as { id: string; name: string } | null;
+      if (existingRow) {
+        return {
+          success: false,
+          error: `A client linked to this Clio contact already exists: "${existingRow.name}".`,
+          existingClientId: existingRow.id,
+        };
+      }
     }
 
     // Derive client_type
@@ -305,6 +327,111 @@ export async function getClientChildCounts(
     return { matterCount, assessmentCount: count ?? 0 };
   } catch {
     return { matterCount: 0, assessmentCount: 0 };
+  }
+}
+
+/**
+ * A potential match from Clio when the user is typing a new client name.
+ * `alreadyInHub` flags contacts that are already linked to an existing Hub
+ * client — for those, the user should open the existing client rather than
+ * create a duplicate.
+ */
+export interface ClioContactMatch {
+  clioContactId: string;
+  name: string;
+  type: string;
+  alreadyInHub: boolean;
+  hubClientId: string | null;
+  hubClientName: string | null;
+  /** True if the normaliser considers this an exact match to the typed name. */
+  exactMatch: boolean;
+}
+
+export type FindMatchingClioContactsResult =
+  | { success: true; matches: ClioContactMatch[]; clioConnected: boolean }
+  | { success: false; error: string };
+
+/**
+ * Find Clio contacts that match a typed client name. Non-blocking from the
+ * form's perspective — if Clio isn't connected or the API call fails, we
+ * return an empty list rather than erroring out (the user can still create
+ * the client manually). When matches exist, the form surfaces them so the
+ * user can either reuse a Clio contact (gets `clio_contact_id`) or open an
+ * existing Hub client that's already linked.
+ */
+export async function findMatchingClioContacts(
+  name: string
+): Promise<FindMatchingClioContactsResult> {
+  try {
+    const { supabase, profile, error } = await getUserAndProfile();
+    if (error || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+
+    const trimmed = (name ?? '').trim();
+    if (trimmed.length < 2) {
+      return { success: true, matches: [], clioConnected: true };
+    }
+
+    const tokenResult = await getClioAccessTokenForFirm(supabase, profile.firm_id);
+    if (!tokenResult) {
+      return { success: true, matches: [], clioConnected: false };
+    }
+
+    let contacts;
+    try {
+      contacts = await searchClioContacts(trimmed, tokenResult.accessToken, 10);
+    } catch (err) {
+      console.warn('Clio contact search failed (non-fatal):', err);
+      return { success: true, matches: [], clioConnected: true };
+    }
+
+    if (contacts.length === 0) {
+      return { success: true, matches: [], clioConnected: true };
+    }
+
+    // For each match, see if a Hub client with that clio_contact_id already exists
+    const clioContactIds = contacts.map((c) => String(c.id));
+    const { data: linkedHubClients } = await supabase
+      .from('clients')
+      .select('id, name, clio_contact_id')
+      .eq('firm_id', profile.firm_id)
+      .in('clio_contact_id', clioContactIds);
+    type LinkedRow = { id: string; name: string; clio_contact_id: string | null };
+    const byClioId = new Map<string, LinkedRow>();
+    for (const row of (linkedHubClients || []) as LinkedRow[]) {
+      if (row.clio_contact_id) byClioId.set(row.clio_contact_id, row);
+    }
+
+    const normalisedTyped = normalizeClientName(trimmed);
+    const matches: ClioContactMatch[] = contacts.map((c) => {
+      const id = String(c.id);
+      const linked = byClioId.get(id);
+      return {
+        clioContactId: id,
+        name: c.name,
+        type: c.type,
+        alreadyInHub: !!linked,
+        hubClientId: linked?.id ?? null,
+        hubClientName: linked?.name ?? null,
+        exactMatch: normalizeClientName(c.name) === normalisedTyped,
+      };
+    });
+
+    // Sort: exact matches first, then alphabetically
+    matches.sort((a, b) => {
+      if (a.exactMatch && !b.exactMatch) return -1;
+      if (!a.exactMatch && b.exactMatch) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    return { success: true, matches, clioConnected: true };
+  } catch (err) {
+    console.error('Error in findMatchingClioContacts:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
   }
 }
 
