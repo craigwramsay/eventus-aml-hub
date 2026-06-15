@@ -920,6 +920,11 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
         {result.multipleManualCandidates > 0 &&
           ' — two or more manual Hub clients share the normalised name; resolve manually'}
       </Row>
+      <Row label="Fee-variant sub-matters skipped" ok={true}>
+        {result.feeVariantSkipped}
+        {result.feeVariantSkipped > 0 &&
+          ' — Clio fee/disbursement sub-matters silently skipped; main matter already in Hub'}
+      </Row>
       <Row label="Errors" ok={result.errors === 0}>
         {result.errors}
       </Row>
@@ -952,6 +957,9 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
                 )}
                 {o.status === 'multiple_manual_candidates' && (
                   <>Ambiguous — {o.candidateCount} manual Hub clients match this name</>
+                )}
+                {o.status === 'fee_variant_skipped' && (
+                  <>Clio fee-variant of <code>{o.feeVariantMain}</code> — skipped</>
                 )}
                 {o.status === 'error' && <>Error: {o.error}</>}
               </Row>
