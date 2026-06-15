@@ -21,6 +21,7 @@ import {
   inspectClientName,
   runTargetedClioMerges,
   listUnlinkedClients,
+  rollbackLastBackfill,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -31,6 +32,7 @@ import type {
   InspectClientResult,
   TargetedMergeResult,
   ListUnlinkedClientsResult,
+  RollbackBackfillResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -63,6 +65,7 @@ export function IntegrationCards({
   const [inspectResult, setInspectResult] = useState<InspectClientResult | null>(null);
   const [targetedMergeResult, setTargetedMergeResult] = useState<TargetedMergeResult | null>(null);
   const [unlinkedResult, setUnlinkedResult] = useState<ListUnlinkedClientsResult | null>(null);
+  const [rollbackResult, setRollbackResult] = useState<RollbackBackfillResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -134,7 +137,7 @@ export function IntegrationCards({
     });
   };
 
-  const handleBackfillClioMatters = () => {
+  const handleBackfillClioMatters = (mode: 'dryRun' | 'execute') => {
     setError(null);
     setSuccess(null);
     setBackfillResult(null);
@@ -143,12 +146,38 @@ export function IntegrationCards({
       ? new Date(`${backfillSince}T00:00:00.000Z`).toISOString()
       : undefined;
     startTransition(async () => {
-      const result = await backfillClioMatters(sinceISO);
+      const result = await backfillClioMatters(sinceISO, { dryRun: mode === 'dryRun' });
       if (!result.success) {
         setError(result.error);
       } else {
         setBackfillResult(result.result);
-        router.refresh();
+        if (mode === 'execute') router.refresh();
+      }
+    });
+  };
+
+  const handleRollbackBackfill = (mode: 'preview' | 'execute') => {
+    setError(null);
+    setSuccess(null);
+    if (mode === 'execute') {
+      const ok = window.confirm(
+        'Roll back the most recent backfill?\n\n' +
+          'This will:\n' +
+          '  • DELETE matters created by that backfill (skipping any with assessments)\n' +
+          '  • DELETE clients created by that backfill (skipping any still referenced)\n' +
+          '  • NULL clio_contact_id on existing manual clients that were auto-linked\n\n' +
+          'Postgres FK constraints will reject anything unsafe — no risk of orphaned data.'
+      );
+      if (!ok) return;
+    }
+    setRollbackResult(null);
+    startTransition(async () => {
+      const result = await rollbackLastBackfill({ dryRun: mode === 'preview' });
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setRollbackResult(result.result);
+        if (mode === 'execute') router.refresh();
       }
     });
   };
@@ -320,14 +349,46 @@ export function IntegrationCards({
                 <button
                   type="button"
                   className={styles.testConnectionButton}
-                  onClick={handleBackfillClioMatters}
+                  onClick={() => handleBackfillClioMatters('dryRun')}
                   disabled={isPending}
-                  title="Pull any matters created in Clio since the date above (default: Clio connection date). Skips ones already in the Hub."
+                  title="Predict what the backfill would do without making changes. Recommended before running for real."
+                >
+                  {isPending ? 'Previewing...' : 'Preview Backfill'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={() => handleBackfillClioMatters('execute')}
+                  disabled={isPending}
+                  title="Pull any matters created in Clio since the date above. v2 matcher: auto-links manual Hub clients with matching normalised name instead of creating duplicates."
                 >
                   {isPending ? 'Backfilling...' : 'Backfill Matters'}
                 </button>
               </div>
               {backfillResult && <BackfillResultPanel result={backfillResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={() => handleRollbackBackfill('preview')}
+                  disabled={isPending}
+                  title="Show what would be deleted / unlinked by rolling back the most recent backfill. No DB changes."
+                >
+                  {isPending ? 'Previewing...' : 'Preview Rollback'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={() => handleRollbackBackfill('execute')}
+                  disabled={isPending}
+                  title="Roll back the most recent backfill: delete the imported matters/clients, unlink any auto-linked existing clients."
+                >
+                  {isPending ? 'Rolling back...' : 'Roll Back Last Backfill'}
+                </button>
+              </div>
+              {rollbackResult && <RollbackResultPanel result={rollbackResult} />}
             </div>
             <div className={styles.connectionTestBlock}>
               <div className={styles.connectionTestRow}>
@@ -629,6 +690,9 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
   const sinceShort = result.sinceISO.split('T')[0];
   return (
     <div className={styles.connectionTestResult}>
+      <Row label="Mode" ok={true}>
+        {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
+      </Row>
       <Row label="Backfill window" ok={true}>
         Since <code>{sinceShort}</code>
       </Row>
@@ -636,18 +700,31 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
         {result.totalFromClio}
         {result.cappedAtMax && ' (capped at 500 — narrow the date range to see more)'}
       </Row>
-      <Row label="Imported" ok={true}>
+      <Row label={result.dryRun ? 'Would import as new' : 'Imported as new'} ok={true}>
         {result.imported}
+      </Row>
+      <Row
+        label={result.dryRun ? 'Would link to existing manual client' : 'Linked to existing manual client'}
+        ok={true}
+      >
+        {result.importedToExistingClient}
       </Row>
       <Row label="Already linked (skipped)" ok={true}>
         {result.alreadyLinked}
       </Row>
       <Row
-        label="Likely manual duplicates (NOT imported)"
+        label="Manual duplicates by reference (NOT imported)"
         ok={result.manualDuplicateCandidates === 0}
       >
         {result.manualDuplicateCandidates}
-        {result.manualDuplicateCandidates > 0 && ' — review below and link manually if appropriate'}
+      </Row>
+      <Row
+        label="Multiple manual candidates (ambiguous, skipped)"
+        ok={result.multipleManualCandidates === 0}
+      >
+        {result.multipleManualCandidates}
+        {result.multipleManualCandidates > 0 &&
+          ' — two or more manual Hub clients share the normalised name; resolve manually'}
       </Row>
       <Row label="Errors" ok={result.errors === 0}>
         {result.errors}
@@ -660,9 +737,18 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
               <Row
                 key={o.clioMatterId}
                 label={`${o.displayNumber} — ${o.contactName || '(no contact)'}`}
-                ok={o.status === 'imported' || o.status === 'already_linked'}
+                ok={
+                  o.status === 'imported' ||
+                  o.status === 'imported_to_existing_client' ||
+                  o.status === 'already_linked'
+                }
               >
-                {o.status === 'imported' && 'Imported'}
+                {o.status === 'imported' && 'Imported as new'}
+                {o.status === 'imported_to_existing_client' && (
+                  <>
+                    Linked to existing manual client <code>{o.adoptedClientId}</code>
+                  </>
+                )}
                 {o.status === 'already_linked' && 'Already linked'}
                 {o.status === 'manual_duplicate_candidate' && (
                   <>
@@ -670,7 +756,66 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
                     <code>{o.manualMatch?.reference || o.manualMatch?.matterId}</code>
                   </>
                 )}
+                {o.status === 'multiple_manual_candidates' && (
+                  <>Ambiguous — {o.candidateCount} manual Hub clients match this name</>
+                )}
                 {o.status === 'error' && <>Error: {o.error}</>}
+              </Row>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+/** Result panel for rollbackLastBackfill — shows what was/would be deleted + unlinked. */
+function RollbackResultPanel({ result }: { result: RollbackBackfillResult }) {
+  if (!result.backfillTimestamp) {
+    return (
+      <div className={styles.connectionTestResult}>
+        <Row label="Status" ok={false}>
+          No backfill audit event found — nothing to roll back.
+        </Row>
+      </div>
+    );
+  }
+  const ts = result.backfillTimestamp.split('T').join(' ').slice(0, 19);
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Mode" ok={true}>
+        {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
+      </Row>
+      <Row label="Target backfill" ok={true}>
+        Run at <code>{ts}</code>
+      </Row>
+      <Row label="ID tracking" ok={result.trackedIds}>
+        {result.trackedIds
+          ? 'Backfill recorded exact imported IDs — surgical rollback'
+          : 'Backfill predates ID tracking — used 1-minute heuristic window'}
+      </Row>
+      <Row label={result.dryRun ? 'Would delete matters' : 'Deleted matters'} ok={true}>
+        {result.deletedMatterIds.length}
+      </Row>
+      <Row label={result.dryRun ? 'Would delete clients' : 'Deleted clients'} ok={true}>
+        {result.deletedClientIds.length}
+      </Row>
+      <Row
+        label={result.dryRun ? 'Would unlink auto-linked clients' : 'Unlinked auto-linked clients'}
+        ok={true}
+      >
+        {result.unlinkedClientIds.length}
+      </Row>
+      <Row label="Skipped (assessments / FK refs)" ok={result.skipped.length === 0}>
+        {result.skipped.length}
+      </Row>
+      {result.skipped.length > 0 && (
+        <details className={styles.connectionTestDetails} open>
+          <summary>Skipped ({result.skipped.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.skipped.map((s, i) => (
+              <Row key={`${s.id}-${i}`} label={`${s.type} ${s.id}`} ok={false}>
+                {s.reason}
               </Row>
             ))}
           </div>
