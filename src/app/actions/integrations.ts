@@ -1650,3 +1650,471 @@ export async function inspectClientName(
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
+/**
+ * Targeted one-shot merges for two specific cases identified via Inspect:
+ *
+ *   1. Morrison Community Care (Holdco) Limited — Client 1 is Clio-linked
+ *      (older, no assessments). Client 2 has 2 finalised assessments. Plan:
+ *      reparent Client 1's "Retainer - Andover" matter (which carries a
+ *      clio_matter_id) onto Client 2, move clio_contact_id onto Client 2,
+ *      delete Client 1's empty duplicate "Drafting NDS" matter, delete Client 1.
+ *
+ *   2. Energisation Limited — three clients: Client 1 (empty), Client 2 (1
+ *      finalised assessment, no Clio link), Client 3 (today's backfill copy
+ *      with the Clio link). Plan: move Client 3's clio_matter_id onto Client 2's
+ *      matter (same work, both labelled "Investment in Victoria Properties"),
+ *      move clio_contact_id onto Client 2, repoint audits, delete Clients 1 + 3
+ *      and their matters.
+ *
+ * Each case has a precondition check up front: if the state doesn't match
+ * exactly what Inspect showed at the time of writing, the case is skipped
+ * with a clear reason. Re-running after partial execution is safe — the
+ * precondition check will see the state has shifted and skip cleanly.
+ * Cases are independent; one failing doesn't stop the other.
+ *
+ * Firm-specific IDs are hardcoded. If a different firm somehow runs this,
+ * the preconditions won't match and both cases will be reported as
+ * `precondition_mismatch`. After both cases are complete, this action becomes
+ * a no-op for everyone — safe to leave in the codebase.
+ */
+
+interface MorrisonExpected {
+  client1Id: 'cb8f005b-2e8d-476f-a2a7-62fb3536a1c8';
+  client2Id: 'a4c8766a-92ae-4707-952a-c4b6d7ad841d';
+  client1ClioContactId: '20469964';
+  retainerMatterId: '79705b03-9839-410a-bb4f-68a70fbdfb29';
+  retainerClioMatterId: '15328433';
+  draftingNdsToDeleteId: '7740f40e-07f6-4786-ae68-8f0b6cdef27f';
+  draftingNdsToKeepId: '85ec6f62-4a87-4931-962e-9b720bb1f355';
+}
+
+const MORRISON: MorrisonExpected = {
+  client1Id: 'cb8f005b-2e8d-476f-a2a7-62fb3536a1c8',
+  client2Id: 'a4c8766a-92ae-4707-952a-c4b6d7ad841d',
+  client1ClioContactId: '20469964',
+  retainerMatterId: '79705b03-9839-410a-bb4f-68a70fbdfb29',
+  retainerClioMatterId: '15328433',
+  draftingNdsToDeleteId: '7740f40e-07f6-4786-ae68-8f0b6cdef27f',
+  draftingNdsToKeepId: '85ec6f62-4a87-4931-962e-9b720bb1f355',
+};
+
+interface EnergisationExpected {
+  client1Id: 'eef65bde-75c2-4c5d-85dc-bcb1c282171c';
+  client1MatterId: 'f77c9433-ecc5-4169-b738-94ced6d3508a';
+  client2Id: '967a6bd6-a9eb-4b0a-85ae-37a315d442d9';
+  client2MatterId: '7a1d3dfa-a8c9-4ab7-a58c-9f5d28c7cf7b';
+  client3Id: '8eb4f2b7-4213-4214-bf4e-7364d7633bae';
+  client3MatterId: '9a174db5-b19f-4e20-a9fa-f2250903734e';
+  client3ClioContactId: '24386564';
+  client3ClioMatterId: '15863894';
+}
+
+const ENERGISATION: EnergisationExpected = {
+  client1Id: 'eef65bde-75c2-4c5d-85dc-bcb1c282171c',
+  client1MatterId: 'f77c9433-ecc5-4169-b738-94ced6d3508a',
+  client2Id: '967a6bd6-a9eb-4b0a-85ae-37a315d442d9',
+  client2MatterId: '7a1d3dfa-a8c9-4ab7-a58c-9f5d28c7cf7b',
+  client3Id: '8eb4f2b7-4213-4214-bf4e-7364d7633bae',
+  client3MatterId: '9a174db5-b19f-4e20-a9fa-f2250903734e',
+  client3ClioContactId: '24386564',
+  client3ClioMatterId: '15863894',
+};
+
+export interface TargetedMergeCaseOutcome {
+  caseName: 'Morrison Community Care (Holdco) Limited' | 'Energisation Limited';
+  status: 'merged' | 'precondition_mismatch' | 'error';
+  reason?: string;
+  steps?: string[];
+}
+
+export interface TargetedMergeResult {
+  outcomes: TargetedMergeCaseOutcome[];
+}
+
+type SupabaseInst = Awaited<ReturnType<typeof createClient>>;
+
+async function executeMorrisonMerge(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string
+): Promise<TargetedMergeCaseOutcome> {
+  const caseName = 'Morrison Community Care (Holdco) Limited' as const;
+  const steps: string[] = [];
+
+  // Precondition check
+  const { data: client1 } = await supabase
+    .from('clients')
+    .select('id, clio_contact_id, firm_id')
+    .eq('id', MORRISON.client1Id)
+    .maybeSingle();
+  const { data: client2 } = await supabase
+    .from('clients')
+    .select('id, clio_contact_id, firm_id')
+    .eq('id', MORRISON.client2Id)
+    .maybeSingle();
+  const { data: retainerMatter } = await supabase
+    .from('matters')
+    .select('id, client_id, clio_matter_id')
+    .eq('id', MORRISON.retainerMatterId)
+    .maybeSingle();
+  const { data: draftingToDelete } = await supabase
+    .from('matters')
+    .select('id, client_id, clio_matter_id')
+    .eq('id', MORRISON.draftingNdsToDeleteId)
+    .maybeSingle();
+
+  const c1 = client1 as { clio_contact_id: string | null; firm_id: string } | null;
+  const c2 = client2 as { clio_contact_id: string | null; firm_id: string } | null;
+  const rm = retainerMatter as { client_id: string; clio_matter_id: string | null } | null;
+  const dd = draftingToDelete as { client_id: string; clio_matter_id: string | null } | null;
+
+  // Already-merged check: Client 1 doesn't exist any more
+  if (!c1) {
+    return { caseName, status: 'precondition_mismatch', reason: 'Client 1 no longer exists — likely already merged' };
+  }
+
+  // Fresh-state check
+  if (
+    c1.firm_id !== firmId ||
+    c1.clio_contact_id !== MORRISON.client1ClioContactId ||
+    !c2 ||
+    c2.firm_id !== firmId ||
+    c2.clio_contact_id !== null ||
+    !rm ||
+    rm.client_id !== MORRISON.client1Id ||
+    rm.clio_matter_id !== MORRISON.retainerClioMatterId ||
+    !dd ||
+    dd.client_id !== MORRISON.client1Id ||
+    dd.clio_matter_id !== null
+  ) {
+    return {
+      caseName,
+      status: 'precondition_mismatch',
+      reason:
+        'State does not match what was observed during Inspect. Re-run Inspect to see current state and re-plan.',
+    };
+  }
+
+  // Safety: confirm 0 assessments on matters we're deleting
+  const { count: ddAssessmentCount } = await supabase
+    .from('assessments')
+    .select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId)
+    .eq('matter_id', MORRISON.draftingNdsToDeleteId);
+  if ((ddAssessmentCount ?? 0) !== 0) {
+    return {
+      caseName,
+      status: 'precondition_mismatch',
+      reason: `Drafting NDS matter to delete now has ${ddAssessmentCount} assessments — was 0 at plan time. Re-Inspect.`,
+    };
+  }
+
+  // Execute
+  try {
+    // 1. Reparent Retainer matter to Client 2
+    const { error: e1 } = await supabase
+      .from('matters')
+      .update({ client_id: MORRISON.client2Id })
+      .eq('id', MORRISON.retainerMatterId);
+    if (e1) return { caseName, status: 'error', reason: `Reparent Retainer matter failed: ${e1.message}`, steps };
+    steps.push('Reparented "Retainer - Andover" matter to Client 2');
+
+    // 2. NULL Client 1's clio_contact_id (clients has no unique index but defensive)
+    const { error: e2 } = await supabase
+      .from('clients')
+      .update({ clio_contact_id: null })
+      .eq('id', MORRISON.client1Id);
+    if (e2) return { caseName, status: 'error', reason: `Clear Client 1 clio_contact_id failed: ${e2.message}`, steps };
+    steps.push('Cleared clio_contact_id from Client 1');
+
+    // 3. SET Client 2.clio_contact_id
+    const { error: e3 } = await supabase
+      .from('clients')
+      .update({ clio_contact_id: MORRISON.client1ClioContactId })
+      .eq('id', MORRISON.client2Id);
+    if (e3) return { caseName, status: 'error', reason: `Set Client 2 clio_contact_id failed: ${e3.message}`, steps };
+    steps.push(`Set clio_contact_id=${MORRISON.client1ClioContactId} on Client 2`);
+
+    // 4. Repoint audit events
+    await supabase
+      .from('audit_events')
+      .update({ entity_id: MORRISON.client2Id })
+      .eq('firm_id', firmId)
+      .eq('entity_type', 'client')
+      .eq('entity_id', MORRISON.client1Id);
+    await supabase
+      .from('audit_events')
+      .update({ entity_id: MORRISON.draftingNdsToKeepId })
+      .eq('firm_id', firmId)
+      .eq('entity_type', 'matter')
+      .eq('entity_id', MORRISON.draftingNdsToDeleteId);
+    steps.push('Repointed audit events from Client 1 / dup matter onto survivors');
+
+    // 5. Delete duplicate Drafting NDS matter
+    const { error: e5 } = await supabase
+      .from('matters')
+      .delete()
+      .eq('id', MORRISON.draftingNdsToDeleteId);
+    if (e5) return { caseName, status: 'error', reason: `Delete dup matter failed (likely FK ref): ${e5.message}`, steps };
+    steps.push('Deleted duplicate Drafting NDS matter');
+
+    // 6. Delete Client 1
+    const { error: e6 } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', MORRISON.client1Id);
+    if (e6) return { caseName, status: 'error', reason: `Delete Client 1 failed (likely FK ref): ${e6.message}`, steps };
+    steps.push('Deleted Client 1');
+
+    // Audit
+    await supabase.from('audit_events').insert({
+      firm_id: firmId,
+      entity_type: 'client',
+      entity_id: MORRISON.client2Id,
+      action: 'clio_targeted_merge_morrison',
+      metadata: MORRISON,
+      created_by: userId,
+    });
+
+    return { caseName, status: 'merged', steps };
+  } catch (err) {
+    return {
+      caseName,
+      status: 'error',
+      reason: err instanceof Error ? err.message : 'Unknown error',
+      steps,
+    };
+  }
+}
+
+async function executeEnergisationMerge(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string
+): Promise<TargetedMergeCaseOutcome> {
+  const caseName = 'Energisation Limited' as const;
+  const steps: string[] = [];
+
+  // Precondition check
+  const { data: client1 } = await supabase
+    .from('clients').select('id, clio_contact_id, firm_id').eq('id', ENERGISATION.client1Id).maybeSingle();
+  const { data: client2 } = await supabase
+    .from('clients').select('id, clio_contact_id, firm_id').eq('id', ENERGISATION.client2Id).maybeSingle();
+  const { data: client3 } = await supabase
+    .from('clients').select('id, clio_contact_id, firm_id').eq('id', ENERGISATION.client3Id).maybeSingle();
+  const { data: matter1 } = await supabase
+    .from('matters').select('id, client_id, clio_matter_id').eq('id', ENERGISATION.client1MatterId).maybeSingle();
+  const { data: matter2 } = await supabase
+    .from('matters').select('id, client_id, clio_matter_id').eq('id', ENERGISATION.client2MatterId).maybeSingle();
+  const { data: matter3 } = await supabase
+    .from('matters').select('id, client_id, clio_matter_id').eq('id', ENERGISATION.client3MatterId).maybeSingle();
+
+  const c1 = client1 as { clio_contact_id: string | null; firm_id: string } | null;
+  const c2 = client2 as { clio_contact_id: string | null; firm_id: string } | null;
+  const c3 = client3 as { clio_contact_id: string | null; firm_id: string } | null;
+  const m1 = matter1 as { client_id: string; clio_matter_id: string | null } | null;
+  const m2 = matter2 as { client_id: string; clio_matter_id: string | null } | null;
+  const m3 = matter3 as { client_id: string; clio_matter_id: string | null } | null;
+
+  if (!c1 || !c3) {
+    return {
+      caseName,
+      status: 'precondition_mismatch',
+      reason: `${!c1 ? 'Client 1' : 'Client 3'} no longer exists — likely already merged`,
+    };
+  }
+
+  if (
+    c1.firm_id !== firmId || c1.clio_contact_id !== null ||
+    !c2 || c2.firm_id !== firmId || c2.clio_contact_id !== null ||
+    c3.firm_id !== firmId || c3.clio_contact_id !== ENERGISATION.client3ClioContactId ||
+    !m1 || m1.client_id !== ENERGISATION.client1Id || m1.clio_matter_id !== null ||
+    !m2 || m2.client_id !== ENERGISATION.client2Id || m2.clio_matter_id !== null ||
+    !m3 || m3.client_id !== ENERGISATION.client3Id || m3.clio_matter_id !== ENERGISATION.client3ClioMatterId
+  ) {
+    return {
+      caseName,
+      status: 'precondition_mismatch',
+      reason:
+        'State does not match what was observed during Inspect. Re-run Inspect to see current state and re-plan.',
+    };
+  }
+
+  // Safety: matters being deleted must have 0 assessments
+  const { count: m1Assessments } = await supabase
+    .from('assessments').select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId).eq('matter_id', ENERGISATION.client1MatterId);
+  const { count: m3Assessments } = await supabase
+    .from('assessments').select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId).eq('matter_id', ENERGISATION.client3MatterId);
+  if ((m1Assessments ?? 0) !== 0 || (m3Assessments ?? 0) !== 0) {
+    return {
+      caseName,
+      status: 'precondition_mismatch',
+      reason: `Matters to delete now have assessments (m1=${m1Assessments}, m3=${m3Assessments}) — was 0 at plan time.`,
+    };
+  }
+
+  try {
+    // 1. Free Client 3's matter clio_matter_id (release unique constraint)
+    const { error: e1 } = await supabase
+      .from('matters').update({ clio_matter_id: null }).eq('id', ENERGISATION.client3MatterId);
+    if (e1) return { caseName, status: 'error', reason: `Free clio_matter_id failed: ${e1.message}`, steps };
+    steps.push("Cleared clio_matter_id from Client 3's matter");
+
+    // 2. Set on Client 2's matter
+    const { error: e2 } = await supabase
+      .from('matters').update({ clio_matter_id: ENERGISATION.client3ClioMatterId }).eq('id', ENERGISATION.client2MatterId);
+    if (e2) return { caseName, status: 'error', reason: `Set clio_matter_id on m2 failed: ${e2.message}`, steps };
+    steps.push(`Set clio_matter_id=${ENERGISATION.client3ClioMatterId} on Client 2's matter`);
+
+    // 3. Move clio_contact_id Client 3 → Client 2
+    await supabase.from('clients').update({ clio_contact_id: null }).eq('id', ENERGISATION.client3Id);
+    const { error: e3b } = await supabase
+      .from('clients').update({ clio_contact_id: ENERGISATION.client3ClioContactId }).eq('id', ENERGISATION.client2Id);
+    if (e3b) return { caseName, status: 'error', reason: `Set clio_contact_id on Client 2 failed: ${e3b.message}`, steps };
+    steps.push(`Set clio_contact_id=${ENERGISATION.client3ClioContactId} on Client 2`);
+
+    // 4. Repoint audit events from Clients 1 + 3 → Client 2; from m1 + m3 → m2
+    for (const fromId of [ENERGISATION.client1Id, ENERGISATION.client3Id]) {
+      await supabase.from('audit_events')
+        .update({ entity_id: ENERGISATION.client2Id })
+        .eq('firm_id', firmId).eq('entity_type', 'client').eq('entity_id', fromId);
+    }
+    for (const fromId of [ENERGISATION.client1MatterId, ENERGISATION.client3MatterId]) {
+      await supabase.from('audit_events')
+        .update({ entity_id: ENERGISATION.client2MatterId })
+        .eq('firm_id', firmId).eq('entity_type', 'matter').eq('entity_id', fromId);
+    }
+    steps.push('Repointed audit events from Clients 1+3 and their matters onto Client 2 / its matter');
+
+    // 5. Delete matters (in order: 1 then 3; each will reject if FK exists)
+    const { error: e5a } = await supabase.from('matters').delete().eq('id', ENERGISATION.client1MatterId);
+    if (e5a) return { caseName, status: 'error', reason: `Delete m1 failed (likely FK): ${e5a.message}`, steps };
+    steps.push("Deleted Client 1's matter");
+
+    const { error: e5b } = await supabase.from('matters').delete().eq('id', ENERGISATION.client3MatterId);
+    if (e5b) return { caseName, status: 'error', reason: `Delete m3 failed (likely FK): ${e5b.message}`, steps };
+    steps.push("Deleted Client 3's matter");
+
+    // 6. Delete clients
+    const { error: e6a } = await supabase.from('clients').delete().eq('id', ENERGISATION.client1Id);
+    if (e6a) return { caseName, status: 'error', reason: `Delete Client 1 failed: ${e6a.message}`, steps };
+    steps.push('Deleted Client 1');
+    const { error: e6b } = await supabase.from('clients').delete().eq('id', ENERGISATION.client3Id);
+    if (e6b) return { caseName, status: 'error', reason: `Delete Client 3 failed: ${e6b.message}`, steps };
+    steps.push('Deleted Client 3');
+
+    await supabase.from('audit_events').insert({
+      firm_id: firmId,
+      entity_type: 'client',
+      entity_id: ENERGISATION.client2Id,
+      action: 'clio_targeted_merge_energisation',
+      metadata: ENERGISATION,
+      created_by: userId,
+    });
+
+    return { caseName, status: 'merged', steps };
+  } catch (err) {
+    return {
+      caseName,
+      status: 'error',
+      reason: err instanceof Error ? err.message : 'Unknown error',
+      steps,
+    };
+  }
+}
+
+export async function runTargetedClioMerges(): Promise<
+  { success: true; result: TargetedMergeResult } | { success: false; error: string }
+> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) return { success: false, error: error || 'Not authenticated' };
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const morrison = await executeMorrisonMerge(supabase, profile.firm_id, user.id);
+    const energisation = await executeEnergisationMerge(supabase, profile.firm_id, user.id);
+
+    return { success: true, result: { outcomes: [morrison, energisation] } };
+  } catch (err) {
+    console.error('Error in runTargetedClioMerges:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Count + list clients that have no Clio link. Useful after merges to see how
+ * many "Hub-only" clients exist (likely created before Clio integration was
+ * set up, or test/demo entries, or onboarded by someone without Clio access).
+ */
+export interface UnlinkedClient {
+  id: string;
+  name: string;
+  createdAt: string;
+  matterCount: number;
+}
+
+export interface ListUnlinkedClientsResult {
+  totalUnlinked: number;
+  totalClients: number;
+  clients: UnlinkedClient[];
+}
+
+export async function listUnlinkedClients(): Promise<
+  { success: true; result: ListUnlinkedClientsResult } | { success: false; error: string }
+> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) return { success: false, error: error || 'Not authenticated' };
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const { count: totalClients } = await supabase
+      .from('clients')
+      .select('id', { count: 'exact', head: true })
+      .eq('firm_id', profile.firm_id);
+
+    const { data: unlinked, error: queryErr } = await supabase
+      .from('clients')
+      .select('id, name, created_at')
+      .eq('firm_id', profile.firm_id)
+      .is('clio_contact_id', null)
+      .order('created_at', { ascending: true });
+    if (queryErr) return { success: false, error: queryErr.message };
+
+    type ClientRow = { id: string; name: string; created_at: string };
+    const rows = (unlinked || []) as ClientRow[];
+
+    const clients: UnlinkedClient[] = [];
+    for (const c of rows) {
+      const { count: matterCount } = await supabase
+        .from('matters')
+        .select('id', { count: 'exact', head: true })
+        .eq('firm_id', profile.firm_id)
+        .eq('client_id', c.id);
+      clients.push({
+        id: c.id,
+        name: c.name,
+        createdAt: c.created_at,
+        matterCount: matterCount ?? 0,
+      });
+    }
+
+    return {
+      success: true,
+      result: {
+        totalUnlinked: clients.length,
+        totalClients: totalClients ?? 0,
+        clients,
+      },
+    };
+  } catch (err) {
+    console.error('Error in listUnlinkedClients:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
