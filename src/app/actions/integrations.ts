@@ -1249,8 +1249,15 @@ export async function backfillClioMatters(
  */
 export interface RollbackBackfillResult {
   dryRun: boolean;
+  source: 'audit_event' | 'time_window' | 'none';
   backfillTimestamp: string | null;
+  /** When source = time_window, the cutoff used. */
+  sinceUsed: string | null;
   trackedIds: boolean;
+  /** How many clio_backfill_run audit events the firm has total — useful when none are found. */
+  auditEventsFound: number;
+  /** Any error from the audit_events query. Surface RLS / permission issues. */
+  auditQueryError: string | null;
   deletedMatterIds: string[];
   deletedClientIds: string[];
   unlinkedClientIds: string[];
@@ -1258,9 +1265,10 @@ export interface RollbackBackfillResult {
 }
 
 export async function rollbackLastBackfill(
-  options: { dryRun?: boolean } = {}
+  options: { dryRun?: boolean; sinceISO?: string } = {}
 ): Promise<{ success: true; result: RollbackBackfillResult } | { success: false; error: string }> {
   const dryRun = options.dryRun ?? false;
+  const sinceISOInput = options.sinceISO?.trim() || null;
   try {
     const { supabase, user, profile, error } = await getUserAndProfile();
     if (error || !user || !profile) {
@@ -1270,15 +1278,16 @@ export async function rollbackLastBackfill(
       return { success: false, error: 'Insufficient permissions' };
     }
 
-    // Find the most recent backfill run
-    const { data: latestBackfill } = await supabase
+    // Find all backfill audit events for this firm so we can report the count even when none match
+    const { data: allBackfills, error: auditQueryError } = await supabase
       .from('audit_events')
       .select('id, created_at, metadata')
       .eq('firm_id', profile.firm_id)
       .eq('action', 'clio_backfill_run')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .order('created_at', { ascending: false });
+
+    const auditEventsFound = (allBackfills || []).length;
+    const auditQueryErrorMsg = auditQueryError?.message ?? null;
 
     type BackfillAudit = {
       id: string;
@@ -1289,53 +1298,90 @@ export async function rollbackLastBackfill(
         auto_linked_client_ids?: string[];
       } | null;
     };
-    const audit = latestBackfill as BackfillAudit | null;
+    const audit = (allBackfills?.[0] as BackfillAudit | undefined) ?? null;
 
-    if (!audit) {
+    let source: 'audit_event' | 'time_window' | 'none' = 'none';
+    let backfillTimestamp: string | null = audit?.created_at ?? null;
+    let sinceUsed: string | null = null;
+    let importedMatterIds: string[] = [];
+    let importedClientIds: string[] = [];
+    const autoLinkedClientIds: string[] = audit?.metadata?.auto_linked_client_ids ?? [];
+    let trackedIds = false;
+
+    if (audit) {
+      source = 'audit_event';
+      importedMatterIds = [...(audit.metadata?.imported_matter_ids ?? [])];
+      importedClientIds = [...(audit.metadata?.imported_client_ids ?? [])];
+      trackedIds = importedMatterIds.length > 0 || importedClientIds.length > 0 || autoLinkedClientIds.length > 0;
+
+      if (!trackedIds) {
+        // v1 backfill — fall back to heuristic. Conservative: find clients with
+        // clio_contact_id created within 1 minute after the backfill audit event.
+        const startISO = audit.created_at;
+        const endISO = new Date(new Date(audit.created_at).getTime() + 60 * 1000).toISOString();
+        const { data: heuristicClients } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('firm_id', profile.firm_id)
+          .not('clio_contact_id', 'is', null)
+          .gte('created_at', startISO)
+          .lte('created_at', endISO);
+        const heuristicClientIds = ((heuristicClients || []) as { id: string }[]).map((c) => c.id);
+
+        if (heuristicClientIds.length > 0) {
+          const { data: heuristicMatters } = await supabase
+            .from('matters')
+            .select('id, client_id')
+            .eq('firm_id', profile.firm_id)
+            .in('client_id', heuristicClientIds);
+          const heuristicMatterIds = ((heuristicMatters || []) as { id: string }[]).map((m) => m.id);
+          importedMatterIds.push(...heuristicMatterIds);
+          importedClientIds.push(...heuristicClientIds);
+        }
+      }
+    } else if (sinceISOInput) {
+      // No audit event found, but caller supplied a cutoff — find every client
+      // with clio_contact_id created at/after that time, and their matters.
+      source = 'time_window';
+      sinceUsed = sinceISOInput;
+      const { data: windowClients } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('firm_id', profile.firm_id)
+        .not('clio_contact_id', 'is', null)
+        .gte('created_at', sinceISOInput);
+      const windowClientIds = ((windowClients || []) as { id: string }[]).map((c) => c.id);
+
+      if (windowClientIds.length > 0) {
+        const { data: windowMatters } = await supabase
+          .from('matters')
+          .select('id, client_id')
+          .eq('firm_id', profile.firm_id)
+          .in('client_id', windowClientIds);
+        const windowMatterIds = ((windowMatters || []) as { id: string }[]).map((m) => m.id);
+        importedMatterIds = windowMatterIds;
+        importedClientIds = windowClientIds;
+      }
+    }
+
+    // If we have no audit event AND no time-window cutoff, return diagnostic
+    if (source === 'none') {
       return {
         success: true,
         result: {
           dryRun,
-          backfillTimestamp: null,
+          source,
+          backfillTimestamp,
+          sinceUsed,
           trackedIds: false,
+          auditEventsFound,
+          auditQueryError: auditQueryErrorMsg,
           deletedMatterIds: [],
           deletedClientIds: [],
           unlinkedClientIds: [],
           skipped: [],
         },
       };
-    }
-
-    const importedMatterIds = audit.metadata?.imported_matter_ids ?? [];
-    const importedClientIds = audit.metadata?.imported_client_ids ?? [];
-    const autoLinkedClientIds = audit.metadata?.auto_linked_client_ids ?? [];
-
-    const trackedIds = importedMatterIds.length > 0 || importedClientIds.length > 0 || autoLinkedClientIds.length > 0;
-
-    if (!trackedIds) {
-      // v1 backfill — fall back to heuristic. Conservative: find clients with
-      // clio_contact_id created within 1 minute after the backfill audit event.
-      const startISO = audit.created_at;
-      const endISO = new Date(new Date(audit.created_at).getTime() + 60 * 1000).toISOString();
-      const { data: heuristicClients } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('firm_id', profile.firm_id)
-        .not('clio_contact_id', 'is', null)
-        .gte('created_at', startISO)
-        .lte('created_at', endISO);
-      const heuristicClientIds = ((heuristicClients || []) as { id: string }[]).map((c) => c.id);
-
-      if (heuristicClientIds.length > 0) {
-        const { data: heuristicMatters } = await supabase
-          .from('matters')
-          .select('id, client_id')
-          .eq('firm_id', profile.firm_id)
-          .in('client_id', heuristicClientIds);
-        const heuristicMatterIds = ((heuristicMatters || []) as { id: string }[]).map((m) => m.id);
-        importedMatterIds.push(...heuristicMatterIds);
-        importedClientIds.push(...heuristicClientIds);
-      }
     }
 
     const deletedMatterIds: string[] = [];
@@ -1410,8 +1456,10 @@ export async function rollbackLastBackfill(
         entity_id: 'clio',
         action: 'clio_backfill_rolled_back',
         metadata: {
-          rolled_back_audit_id: audit.id,
-          backfill_timestamp: audit.created_at,
+          source,
+          rolled_back_audit_id: audit?.id ?? null,
+          backfill_timestamp: backfillTimestamp,
+          since_used: sinceUsed,
           deleted_matter_ids: deletedMatterIds,
           deleted_client_ids: deletedClientIds,
           unlinked_client_ids: unlinkedClientIds,
@@ -1425,8 +1473,12 @@ export async function rollbackLastBackfill(
       success: true,
       result: {
         dryRun,
-        backfillTimestamp: audit.created_at,
+        source,
+        backfillTimestamp,
+        sinceUsed,
         trackedIds,
+        auditEventsFound,
+        auditQueryError: auditQueryErrorMsg,
         deletedMatterIds,
         deletedClientIds,
         unlinkedClientIds,
