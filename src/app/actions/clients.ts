@@ -308,6 +308,86 @@ export async function getClientChildCounts(
   }
 }
 
+/** Result of renaming a client */
+export type RenameClientResult =
+  | { success: true; oldName: string; newName: string }
+  | { success: false; error: string };
+
+/**
+ * Rename a client (MLRO / platform_admin only — same level as deletion).
+ *
+ * Trims + validates, no-ops if the trimmed new name equals the current name,
+ * audit-logs the before/after. Does not touch any related records (matters,
+ * assessments) — only the client.name field changes.
+ */
+export async function renameClient(
+  clientId: string,
+  newName: string
+): Promise<RenameClientResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+
+    if (!canDeleteEntities(profile.role as UserRole)) {
+      return { success: false, error: 'Only MLRO / platform_admin can rename clients' };
+    }
+
+    const trimmed = (newName ?? '').trim();
+    if (!trimmed) {
+      return { success: false, error: 'Client name cannot be empty' };
+    }
+    if (trimmed.length > 250) {
+      return { success: false, error: 'Client name is too long (max 250 chars)' };
+    }
+
+    // Fetch + firm-ownership check
+    const { data: client, error: fetchErr } = await supabase
+      .from('clients')
+      .select('id, firm_id, name')
+      .eq('id', clientId)
+      .single();
+    if (fetchErr || !client) {
+      return { success: false, error: 'Client not found or access denied' };
+    }
+    if (client.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Client does not belong to your firm' };
+    }
+
+    const oldName = client.name as string;
+    if (oldName === trimmed) {
+      return { success: true, oldName, newName: trimmed };
+    }
+
+    const { error: updateErr } = await supabase
+      .from('clients')
+      .update({ name: trimmed, updated_at: new Date().toISOString() })
+      .eq('id', clientId);
+    if (updateErr) {
+      console.error('Failed to rename client:', updateErr);
+      return { success: false, error: 'Failed to rename client' };
+    }
+
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'client',
+      entity_id: clientId,
+      action: 'client_renamed',
+      metadata: { old_name: oldName, new_name: trimmed },
+      created_by: user.id,
+    });
+
+    return { success: true, oldName, newName: trimmed };
+  } catch (err) {
+    console.error('Error in renameClient:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
 /** Result of deleting a client */
 export type DeleteClientResult =
   | { success: true }

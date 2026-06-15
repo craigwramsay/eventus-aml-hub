@@ -8,6 +8,7 @@ import { getClient, getMattersForClient, getClientChildCounts } from '@/app/acti
 import { getUserProfile } from '@/lib/supabase/server';
 import { canDeleteEntities } from '@/lib/auth/roles';
 import { DeleteClientButton } from './DeleteClientButton';
+import { ClientNameEditor } from './ClientNameEditor';
 import styles from '../clients.module.css';
 
 interface ClientDetailPageProps {
@@ -31,11 +32,17 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
   ]);
 
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
+  // Same permission as delete — MLRO / platform_admin only
+  const canRename = canDelete;
 
   return (
     <>
       <div className={styles.header}>
-        <h1 className={styles.title}>{client.name}</h1>
+        <ClientNameEditor
+          clientId={client.id}
+          initialName={client.name}
+          canEdit={canRename}
+        />
         <span
           className={`${styles.badge} ${
             client.client_type === 'individual'
