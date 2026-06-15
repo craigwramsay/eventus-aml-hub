@@ -66,6 +66,7 @@ export function IntegrationCards({
   const [targetedMergeResult, setTargetedMergeResult] = useState<TargetedMergeResult | null>(null);
   const [unlinkedResult, setUnlinkedResult] = useState<ListUnlinkedClientsResult | null>(null);
   const [rollbackResult, setRollbackResult] = useState<RollbackBackfillResult | null>(null);
+  const [rollbackSince, setRollbackSince] = useState('');
 
   const handleDisconnect = () => {
     setError(null);
@@ -159,12 +160,21 @@ export function IntegrationCards({
   const handleRollbackBackfill = (mode: 'preview' | 'execute') => {
     setError(null);
     setSuccess(null);
+    // datetime-local input format → ISO; empty means "use audit_events only"
+    const sinceISO = rollbackSince.trim()
+      ? new Date(rollbackSince).toISOString()
+      : undefined;
     if (mode === 'execute') {
+      const usingFallback = !!sinceISO;
       const ok = window.confirm(
-        'Roll back the most recent backfill?\n\n' +
+        'Roll back ' +
+          (usingFallback
+            ? `every Clio-linked client created since ${rollbackSince}`
+            : 'the most recent backfill (via audit event)') +
+          '?\n\n' +
           'This will:\n' +
-          '  • DELETE matters created by that backfill (skipping any with assessments)\n' +
-          '  • DELETE clients created by that backfill (skipping any still referenced)\n' +
+          '  • DELETE matters in scope (skipping any with assessments)\n' +
+          '  • DELETE clients in scope (skipping any still referenced)\n' +
           '  • NULL clio_contact_id on existing manual clients that were auto-linked\n\n' +
           'Postgres FK constraints will reject anything unsafe — no risk of orphaned data.'
       );
@@ -172,7 +182,7 @@ export function IntegrationCards({
     }
     setRollbackResult(null);
     startTransition(async () => {
-      const result = await rollbackLastBackfill({ dryRun: mode === 'preview' });
+      const result = await rollbackLastBackfill({ dryRun: mode === 'preview', sinceISO });
       if (!result.success) {
         setError(result.error);
       } else {
@@ -369,12 +379,21 @@ export function IntegrationCards({
             </div>
             <div className={styles.connectionTestBlock}>
               <div className={styles.connectionTestRow}>
+                <input
+                  type="datetime-local"
+                  className={styles.connectionTestInput}
+                  value={rollbackSince}
+                  onChange={(e) => setRollbackSince(e.target.value)}
+                  disabled={isPending}
+                  aria-label="Rollback fallback cutoff (used if no backfill audit event found)"
+                  title="Optional. If no clio_backfill_run audit event exists, use this cutoff instead — roll back any Clio-linked client created at or after this time. Leave blank to use audit events only."
+                />
                 <button
                   type="button"
                   className={styles.testConnectionButton}
                   onClick={() => handleRollbackBackfill('preview')}
                   disabled={isPending}
-                  title="Show what would be deleted / unlinked by rolling back the most recent backfill. No DB changes."
+                  title="Show what would be deleted / unlinked. No DB changes. If no backfill audit event exists, falls back to the datetime above."
                 >
                   {isPending ? 'Previewing...' : 'Preview Rollback'}
                 </button>
@@ -383,7 +402,7 @@ export function IntegrationCards({
                   className={styles.testConnectionButton}
                   onClick={() => handleRollbackBackfill('execute')}
                   disabled={isPending}
-                  title="Roll back the most recent backfill: delete the imported matters/clients, unlink any auto-linked existing clients."
+                  title="Roll back the most recent backfill (via audit event), or every Clio-linked client created after the datetime above."
                 >
                   {isPending ? 'Rolling back...' : 'Roll Back Last Backfill'}
                 </button>
@@ -769,31 +788,53 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
   );
 }
 
-/** Result panel for rollbackLastBackfill — shows what was/would be deleted + unlinked. */
+/** Result panel for rollbackLastBackfill — shows source, diagnostics, what was/would be deleted. */
 function RollbackResultPanel({ result }: { result: RollbackBackfillResult }) {
-  if (!result.backfillTimestamp) {
+  if (result.source === 'none') {
     return (
       <div className={styles.connectionTestResult}>
+        <Row label="Mode" ok={true}>
+          {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
+        </Row>
         <Row label="Status" ok={false}>
-          No backfill audit event found — nothing to roll back.
+          No backfill audit event found AND no time cutoff supplied — nothing to roll back.
+        </Row>
+        <Row label="clio_backfill_run audit events for this firm" ok={result.auditEventsFound > 0}>
+          {result.auditEventsFound}
+        </Row>
+        {result.auditQueryError && (
+          <Row label="Audit query error" ok={false}>
+            <code>{result.auditQueryError}</code>
+          </Row>
+        )}
+        <Row label="Next step" ok={true}>
+          {result.auditEventsFound === 0
+            ? 'The backfill likely failed to write its audit event. Use the datetime input above to specify when the backfill ran, then Preview Rollback again.'
+            : 'Audit events exist but none were used — surface the diagnostic to Claude.'}
         </Row>
       </div>
     );
   }
-  const ts = result.backfillTimestamp.split('T').join(' ').slice(0, 19);
+  const ts = result.backfillTimestamp?.split('T').join(' ').slice(0, 19);
   return (
     <div className={styles.connectionTestResult}>
       <Row label="Mode" ok={true}>
         {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
       </Row>
-      <Row label="Target backfill" ok={true}>
-        Run at <code>{ts}</code>
+      <Row label="Rollback source" ok={true}>
+        {result.source === 'audit_event' ? (
+          <>Audit event from <code>{ts}</code></>
+        ) : (
+          <>Time window since <code>{result.sinceUsed?.split('T').join(' ').slice(0, 19)}</code></>
+        )}
       </Row>
-      <Row label="ID tracking" ok={result.trackedIds}>
-        {result.trackedIds
-          ? 'Backfill recorded exact imported IDs — surgical rollback'
-          : 'Backfill predates ID tracking — used 1-minute heuristic window'}
-      </Row>
+      {result.source === 'audit_event' && (
+        <Row label="ID tracking" ok={result.trackedIds}>
+          {result.trackedIds
+            ? 'Backfill recorded exact imported IDs — surgical rollback'
+            : 'Backfill predates ID tracking — used 1-minute heuristic window'}
+        </Row>
+      )}
       <Row label={result.dryRun ? 'Would delete matters' : 'Deleted matters'} ok={true}>
         {result.deletedMatterIds.length}
       </Row>
