@@ -100,7 +100,7 @@ export async function getMatterForAssessment(matterId: string): Promise<MatterWi
 
     const { data, error: fetchErr } = await supabase
       .from('matters')
-      .select('*, client:clients(*)')
+      .select('*, client:clients!matters_client_id_fkey(*)')
       .eq('id', matterId)
       .single();
 
@@ -144,7 +144,7 @@ export async function submitAssessment(
     // Fetch matter + client
     const { data: matterWithClient, error: matterErr } = await supabase
       .from('matters')
-      .select('*, client:clients(*)')
+      .select('*, client:clients!matters_client_id_fkey(*)')
       .eq('id', matter_id)
       .single();
 

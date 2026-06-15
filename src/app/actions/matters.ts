@@ -146,7 +146,7 @@ export async function getMatters(): Promise<MatterWithClient[]> {
 
     const { data, error: fetchErr } = await supabase
       .from('matters')
-      .select('*, client:clients(*)')
+      .select('*, client:clients!matters_client_id_fkey(*)')
       .order('created_at', { ascending: false });
 
     if (fetchErr || !data) {
@@ -173,7 +173,7 @@ export async function getMatter(matterId: string): Promise<MatterWithClient | nu
 
     const { data, error: fetchErr } = await supabase
       .from('matters')
-      .select('*, client:clients(*)')
+      .select('*, client:clients!matters_client_id_fkey(*)')
       .eq('id', matterId)
       .single();
 

@@ -969,7 +969,7 @@ export async function backfillClioMatters(
 
     const { data: hubMatters } = await supabase
       .from('matters')
-      .select('id, reference, clio_matter_id, client_id, clients(name)')
+      .select('id, reference, clio_matter_id, client_id, clients!matters_client_id_fkey(name)')
       .eq('firm_id', profile.firm_id);
 
     type HubMatterRow = {
