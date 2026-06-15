@@ -96,6 +96,13 @@ export interface AuditEvent {
   created_by: string;
 }
 
+export interface MatterCoClient {
+  matter_id: string;
+  client_id: string;
+  created_at: string;
+  created_by: string | null;
+}
+
 export interface UserInvitation {
   id: string;
   firm_id: string;
@@ -313,6 +320,11 @@ export interface Database {
         Row: Matter;
         Insert: Partial<Matter> & Pick<Matter, 'firm_id' | 'client_id' | 'reference'>;
         Update: Partial<Matter>;
+      };
+      matter_co_clients: {
+        Row: MatterCoClient;
+        Insert: Pick<MatterCoClient, 'matter_id' | 'client_id'> & Partial<Pick<MatterCoClient, 'created_by'>>;
+        Update: never;
       };
       assessments: {
         Row: Assessment;

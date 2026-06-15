@@ -4,12 +4,18 @@
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getMatter, getAssessmentsForMatter, getLatestFinalisedAssessmentForClient } from '@/app/actions/matters';
+import {
+  getMatter,
+  getAssessmentsForMatter,
+  getLatestFinalisedAssessmentForClient,
+  getMatterParties,
+} from '@/app/actions/matters';
 import { getUserProfile } from '@/lib/supabase/server';
 import { canDeleteEntities } from '@/lib/auth/roles';
 import { DeleteMatterButton } from './DeleteMatterButton';
 import { AssessmentStaleBanner } from './AssessmentStaleBanner';
 import { CddLongstopBanner } from './CddLongstopBanner';
+import { MatterParties } from './MatterParties';
 import styles from '../matters.module.css';
 
 interface MatterDetailPageProps {
@@ -27,11 +33,14 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
     notFound();
   }
 
-  const [assessments, latestFinalised] = await Promise.all([
+  const [assessments, latestFinalised, parties] = await Promise.all([
     getAssessmentsForMatter(id),
     getLatestFinalisedAssessmentForClient(matter.client_id),
+    getMatterParties(id),
   ]);
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
+  // Same role can manage co-clients (mlro / platform_admin).
+  const canEditParties = canDelete;
 
   return (
     <>
@@ -72,21 +81,6 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
             <div className={styles.detailValue}>{matter.reference}</div>
           </div>
           <div className={styles.detailField}>
-            <div className={styles.detailLabel}>Client</div>
-            <div className={styles.detailValue}>
-              <Link
-                href={`/clients/${matter.client.id}`}
-                className={styles.tableLink}
-              >
-                {matter.client.name}
-              </Link>
-            </div>
-          </div>
-          <div className={styles.detailField}>
-            <div className={styles.detailLabel}>Client Type</div>
-            <div className={styles.detailValue}>{matter.client.client_type.charAt(0).toUpperCase() + matter.client.client_type.slice(1)}</div>
-          </div>
-          <div className={styles.detailField}>
             <div className={styles.detailLabel}>Status</div>
             <div className={styles.detailValue}>{matter.status}</div>
           </div>
@@ -102,6 +96,12 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
           </div>
         </div>
       </div>
+
+      <MatterParties
+        matterId={matter.id}
+        parties={parties}
+        canEdit={canEditParties}
+      />
 
       <div className={styles.section}>
         <div className={styles.sectionHeader}>

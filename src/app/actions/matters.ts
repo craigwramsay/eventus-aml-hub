@@ -415,3 +415,272 @@ export async function deleteMatter(
     };
   }
 }
+
+/**
+ * A party (primary or co-) on a matter. The matter's primary client comes
+ * from matters.client_id (Clio-sourced); co-clients come from the
+ * matter_co_clients join table.
+ */
+export interface MatterParty {
+  client: Client;
+  role: 'primary' | 'co_client';
+  addedAt: string | null;
+  addedBy: string | null;
+}
+
+export type AddCoClientResult =
+  | { success: true; clientId: string }
+  | { success: false; error: string };
+
+export type RemoveCoClientResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Fetch the full party list for a matter — primary + co-clients — in a
+ * single response with full Client objects. Primary is always first.
+ */
+export async function getMatterParties(matterId: string): Promise<MatterParty[]> {
+  try {
+    if (!matterId) return [];
+    const { supabase, error } = await getUserAndProfile();
+    if (error) return [];
+
+    // Matter + primary client
+    const { data: matter } = await supabase
+      .from('matters')
+      .select('client_id, client:clients!matters_client_id_fkey(*)')
+      .eq('id', matterId)
+      .single();
+    type MatterRow = { client_id: string; client: Client | Client[] | null };
+    const matterRow = matter as MatterRow | null;
+    if (!matterRow) return [];
+
+    const primaryClient = Array.isArray(matterRow.client) ? matterRow.client[0] : matterRow.client;
+
+    // Co-clients (with their full client rows)
+    const { data: coRows } = await supabase
+      .from('matter_co_clients')
+      .select('client_id, created_at, created_by, client:clients!matter_co_clients_client_id_fkey(*)')
+      .eq('matter_id', matterId)
+      .order('created_at', { ascending: true });
+
+    type CoRow = {
+      client_id: string;
+      created_at: string;
+      created_by: string | null;
+      client: Client | Client[] | null;
+    };
+    const coClients = (coRows || []) as CoRow[];
+
+    const parties: MatterParty[] = [];
+    if (primaryClient) {
+      parties.push({ client: primaryClient, role: 'primary', addedAt: null, addedBy: null });
+    }
+    for (const row of coClients) {
+      const c = Array.isArray(row.client) ? row.client[0] : row.client;
+      if (!c) continue;
+      // Defensive: don't list the primary again as a co-client if the join
+      // table somehow contains it.
+      if (primaryClient && c.id === primaryClient.id) continue;
+      parties.push({
+        client: c,
+        role: 'co_client',
+        addedAt: row.created_at,
+        addedBy: row.created_by,
+      });
+    }
+    return parties;
+  } catch (err) {
+    console.error('Error in getMatterParties:', err);
+    return [];
+  }
+}
+
+/**
+ * Add a co-client to a matter. Co-clients are additional parties on the
+ * matter for AML purposes (joint sellers, co-applicants, etc.) — Clio still
+ * only knows about the primary.
+ *
+ * Guards:
+ *   - Matter and client both belong to the user's firm
+ *   - Can't add the primary client as a co-client (the join would be redundant)
+ *   - Duplicate adds are a no-op (returns success with the existing client_id)
+ */
+export async function addCoClientToMatter(
+  matterId: string,
+  clientId: string
+): Promise<AddCoClientResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+
+    if (!matterId || !clientId) {
+      return { success: false, error: 'matterId and clientId are required' };
+    }
+
+    // Verify matter
+    const { data: matter, error: matterErr } = await supabase
+      .from('matters')
+      .select('id, firm_id, client_id')
+      .eq('id', matterId)
+      .single();
+    if (matterErr || !matter) {
+      return { success: false, error: 'Matter not found or access denied' };
+    }
+    if (matter.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Matter does not belong to your firm' };
+    }
+    if (matter.client_id === clientId) {
+      return { success: false, error: 'This client is already the primary on this matter' };
+    }
+
+    // Verify client
+    const { data: client, error: clientErr } = await supabase
+      .from('clients')
+      .select('id, firm_id')
+      .eq('id', clientId)
+      .single();
+    if (clientErr || !client) {
+      return { success: false, error: 'Client not found or access denied' };
+    }
+    if (client.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Client does not belong to your firm' };
+    }
+
+    // Check existing
+    const { data: existing } = await supabase
+      .from('matter_co_clients')
+      .select('matter_id')
+      .eq('matter_id', matterId)
+      .eq('client_id', clientId)
+      .maybeSingle();
+    if (existing) {
+      return { success: true, clientId };
+    }
+
+    const { error: insertErr } = await supabase
+      .from('matter_co_clients')
+      .insert({ matter_id: matterId, client_id: clientId, created_by: user.id });
+    if (insertErr) {
+      console.error('Failed to add co-client:', insertErr);
+      return { success: false, error: 'Failed to add co-client' };
+    }
+
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'matter',
+      entity_id: matterId,
+      action: 'co_client_added',
+      metadata: { client_id: clientId },
+      created_by: user.id,
+    });
+
+    return { success: true, clientId };
+  } catch (err) {
+    console.error('Error in addCoClientToMatter:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Remove a co-client from a matter. Does NOT delete the client record itself —
+ * only the matter↔client join. The client may still be primary or co-client on
+ * other matters.
+ */
+export async function removeCoClientFromMatter(
+  matterId: string,
+  clientId: string
+): Promise<RemoveCoClientResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+
+    // Firm-ownership check via matter
+    const { data: matter, error: matterErr } = await supabase
+      .from('matters')
+      .select('id, firm_id')
+      .eq('id', matterId)
+      .single();
+    if (matterErr || !matter) {
+      return { success: false, error: 'Matter not found or access denied' };
+    }
+    if (matter.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Matter does not belong to your firm' };
+    }
+
+    const { error: deleteErr } = await supabase
+      .from('matter_co_clients')
+      .delete()
+      .eq('matter_id', matterId)
+      .eq('client_id', clientId);
+    if (deleteErr) {
+      console.error('Failed to remove co-client:', deleteErr);
+      return { success: false, error: 'Failed to remove co-client' };
+    }
+
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'matter',
+      entity_id: matterId,
+      action: 'co_client_removed',
+      metadata: { client_id: clientId },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error in removeCoClientFromMatter:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Search Hub clients in the firm by name (case-insensitive contains).
+ * Used by the co-client picker on the matter detail page so the user can
+ * find existing Hub clients without leaving the page.
+ *
+ * Excludes the primary client of the matter and any clients already on
+ * the co-client list (caller supplies excludeClientIds).
+ */
+export async function searchHubClientsByName(
+  query: string,
+  excludeClientIds: string[] = [],
+  limit = 10
+): Promise<Client[]> {
+  try {
+    const trimmed = (query ?? '').trim();
+    if (trimmed.length < 2) return [];
+
+    const { supabase, profile, error } = await getUserAndProfile();
+    if (error || !profile) return [];
+
+    let q = supabase
+      .from('clients')
+      .select('*')
+      .eq('firm_id', profile.firm_id)
+      .ilike('name', `%${trimmed}%`)
+      .order('name')
+      .limit(limit);
+
+    if (excludeClientIds.length > 0) {
+      q = q.not('id', 'in', `(${excludeClientIds.map((id) => `"${id}"`).join(',')})`);
+    }
+
+    const { data } = await q;
+    return (data || []) as Client[];
+  } catch (err) {
+    console.error('Error in searchHubClientsByName:', err);
+    return [];
+  }
+}
