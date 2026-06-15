@@ -22,6 +22,7 @@ import {
   runTargetedClioMerges,
   listUnlinkedClients,
   rollbackLastBackfill,
+  cleanupPostBackfillDebris,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -33,6 +34,7 @@ import type {
   TargetedMergeResult,
   ListUnlinkedClientsResult,
   RollbackBackfillResult,
+  CleanupDebrisResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -67,6 +69,7 @@ export function IntegrationCards({
   const [unlinkedResult, setUnlinkedResult] = useState<ListUnlinkedClientsResult | null>(null);
   const [rollbackResult, setRollbackResult] = useState<RollbackBackfillResult | null>(null);
   const [rollbackSince, setRollbackSince] = useState('');
+  const [debrisResult, setDebrisResult] = useState<CleanupDebrisResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -252,6 +255,35 @@ export function IntegrationCards({
         setError(result.error);
       } else {
         setUnlinkedResult(result.result);
+      }
+    });
+  };
+
+  const handleCleanupDebris = () => {
+    setError(null);
+    setSuccess(null);
+    const ok = window.confirm(
+      'Clean up post-backfill debris?\n\n' +
+        'BULK DELETE (Clio-linked clients with these exact names):\n' +
+        '  • MILNE ACCOUNTING & BOOKKEEPING LTD\n' +
+        '  • Craig Ramsay\n' +
+        '  • Donnie Munro\n' +
+        '  • Client Account Float / Surplus\n\n' +
+        'MERGE (keep manual, link Clio, delete imported):\n' +
+        '  • Andrew Goodwin ← Andrew John Goodwin\n' +
+        '  • Ronald Duncan ← Ronald James Duncan\n' +
+        '  • Richard Nixon ← Richard Karl Nixon\n\n' +
+        'Each case skipped if state has shifted or any matter has an assessment.'
+    );
+    if (!ok) return;
+    setDebrisResult(null);
+    startTransition(async () => {
+      const result = await cleanupPostBackfillDebris();
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setDebrisResult(result.result);
+        router.refresh();
       }
     });
   };
@@ -491,6 +523,20 @@ export function IntegrationCards({
               </div>
               {targetedMergeResult && <TargetedMergeResultPanel result={targetedMergeResult} />}
               {unlinkedResult && <UnlinkedClientsResultPanel result={unlinkedResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleCleanupDebris}
+                  disabled={isPending}
+                  title="One-shot: bulk-delete the 4 non-client entries (MILNE test data, Craig Ramsay, Donnie Munro, Client Account Float) + merge the 3 middle-name pairs (Andrew/Ronald/Richard)."
+                >
+                  {isPending ? 'Cleaning...' : 'Clean Up Backfill Debris'}
+                </button>
+              </div>
+              {debrisResult && <DebrisCleanupResultPanel result={debrisResult} />}
             </div>
           </>
         ) : (
@@ -1107,6 +1153,51 @@ function UnlinkedClientsResultPanel({ result }: { result: ListUnlinkedClientsRes
           </div>
         </details>
       )}
+    </div>
+  );
+}
+
+/** Result panel for cleanupPostBackfillDebris — per-case outcomes. */
+function DebrisCleanupResultPanel({ result }: { result: CleanupDebrisResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      {result.outcomes.map((o, i) => (
+        <details
+          key={`${o.caseName}-${i}`}
+          className={styles.connectionTestDetails}
+          open
+        >
+          <summary>
+            {o.caseName} —{' '}
+            {o.status === 'done' && '✓ Done'}
+            {o.status === 'nothing_to_do' && '— Nothing to do (already done?)'}
+            {o.status === 'skipped' && '⚠ Skipped'}
+            {o.status === 'error' && '✗ Error'}
+          </summary>
+          <div className={styles.connectionTestResult}>
+            <Row label="Type" ok={true}>
+              {o.caseType === 'bulk_delete' ? 'Bulk delete' : 'Middle-name merge'}
+            </Row>
+            <Row label="Status" ok={o.status === 'done' || o.status === 'nothing_to_do'}>
+              {o.status}
+            </Row>
+            {o.reason && (
+              <Row label="Reason" ok={o.status === 'done' || o.status === 'nothing_to_do'}>
+                {o.reason}
+              </Row>
+            )}
+            {o.steps && o.steps.length > 0 && (
+              <Row label="Steps" ok={true}>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                  {o.steps.map((step, j) => (
+                    <li key={j}>{step}</li>
+                  ))}
+                </ol>
+              </Row>
+            )}
+          </div>
+        </details>
+      ))}
     </div>
   );
 }
