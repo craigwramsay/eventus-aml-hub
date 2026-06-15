@@ -651,3 +651,113 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ── Clio link on client detail page ── */
+
+.clioLinkDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.clioLinkedLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+}
+
+.clioLinkedDot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #16a34a;
+  border-radius: 50%;
+}
+
+.clioLinkedLabel code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  background-color: var(--surface-secondary);
+  padding: 0.0625rem 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+.clioUnlinkedLabel {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.clioLinkAction {
+  padding: 0.25rem 0.625rem;
+  background-color: transparent;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.clioLinkAction:hover:not(:disabled) {
+  background-color: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.clioLinkAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clioLinkError {
+  flex-basis: 100%;
+  color: #991b1b;
+  font-size: 0.8125rem;
+}
+
+.clioLinkSearch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.clioLinkSearchRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.clioLinkSearchRow .input {
+  flex: 1;
+}
+
+.clioLinkConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+}
+
+.clioLinkConfirmRow {
+  margin-top: 0.25rem;
+}
+
+.clioRenameOption {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.clioLinkConfirmActions {
+  display: flex;
+  gap: var(--space-2);
+}

@@ -435,6 +435,197 @@ export async function findMatchingClioContacts(
   }
 }
 
+/** Result of linking / unlinking a client to a Clio contact. */
+export type LinkClientToClioResult =
+  | { success: true; clioContactId: string; renamed: boolean; newName: string }
+  | { success: false; error: string; existingClientId?: string };
+
+export type UnlinkClientFromClioResult =
+  | { success: true; previousClioContactId: string | null }
+  | { success: false; error: string };
+
+/**
+ * Manually link an existing Hub client to a Clio contact. Optionally rename
+ * the Hub client to the Clio canonical name in the same operation (most users
+ * want this so the Hub name matches Clio going forward).
+ *
+ * RBAC: same as rename (canDeleteEntities — MLRO / platform_admin).
+ *
+ * Guards:
+ *   - Target Hub client must belong to user's firm and have NULL clio_contact_id
+ *     (a client that's already linked can't be re-linked without unlinking first)
+ *   - The supplied clio_contact_id must not already be in use by a different
+ *     Hub client. Returns existingClientId on conflict so the UI can navigate.
+ */
+export async function linkClientToClio(
+  clientId: string,
+  clioContactId: string,
+  options: { renameToName?: string } = {}
+): Promise<LinkClientToClioResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+    if (!canDeleteEntities(profile.role as UserRole)) {
+      return { success: false, error: 'Only MLRO / platform_admin can link clients to Clio' };
+    }
+
+    const trimmedContactId = (clioContactId ?? '').trim();
+    if (!trimmedContactId) {
+      return { success: false, error: 'Clio contact ID is required' };
+    }
+    const renameToName = options.renameToName?.trim();
+    if (renameToName !== undefined && renameToName.length === 0) {
+      return { success: false, error: 'Replacement name cannot be empty' };
+    }
+    if (renameToName && renameToName.length > 250) {
+      return { success: false, error: 'Replacement name is too long (max 250 chars)' };
+    }
+
+    // Verify Hub client exists, belongs to firm, is unlinked
+    const { data: client, error: fetchErr } = await supabase
+      .from('clients')
+      .select('id, firm_id, name, clio_contact_id')
+      .eq('id', clientId)
+      .single();
+    if (fetchErr || !client) {
+      return { success: false, error: 'Client not found or access denied' };
+    }
+    if (client.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Client does not belong to your firm' };
+    }
+    if (client.clio_contact_id) {
+      return {
+        success: false,
+        error: `This Hub client is already linked to Clio contact ${client.clio_contact_id}. Unlink first.`,
+      };
+    }
+
+    // Check the target Clio contact isn't already linked elsewhere in this firm
+    const { data: conflict } = await supabase
+      .from('clients')
+      .select('id, name')
+      .eq('firm_id', profile.firm_id)
+      .eq('clio_contact_id', trimmedContactId)
+      .maybeSingle();
+    const conflictRow = conflict as { id: string; name: string } | null;
+    if (conflictRow && conflictRow.id !== clientId) {
+      return {
+        success: false,
+        error: `Clio contact ${trimmedContactId} is already linked to another Hub client: "${conflictRow.name}".`,
+        existingClientId: conflictRow.id,
+      };
+    }
+
+    // Update — and rename in the same statement if requested
+    const update: { clio_contact_id: string; updated_at: string; name?: string } = {
+      clio_contact_id: trimmedContactId,
+      updated_at: new Date().toISOString(),
+    };
+    const willRename = renameToName !== undefined && renameToName !== client.name;
+    if (willRename) update.name = renameToName;
+
+    const { error: updateErr } = await supabase
+      .from('clients')
+      .update(update)
+      .eq('id', clientId);
+    if (updateErr) {
+      console.error('Failed to link client to Clio:', updateErr);
+      return { success: false, error: 'Failed to link client to Clio' };
+    }
+
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'client',
+      entity_id: clientId,
+      action: 'client_linked_to_clio',
+      metadata: {
+        clio_contact_id: trimmedContactId,
+        renamed: willRename,
+        old_name: client.name,
+        new_name: willRename ? renameToName : client.name,
+      },
+      created_by: user.id,
+    });
+
+    return {
+      success: true,
+      clioContactId: trimmedContactId,
+      renamed: willRename,
+      newName: willRename ? (renameToName as string) : (client.name as string),
+    };
+  } catch (err) {
+    console.error('Error in linkClientToClio:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Remove a Clio link from a Hub client (sets clio_contact_id to null).
+ * Useful when a link was made in error. Does NOT touch matters or any of
+ * the matters' clio_matter_ids — those remain whatever they are.
+ *
+ * RBAC: same as link / rename (canDeleteEntities).
+ */
+export async function unlinkClientFromClio(
+  clientId: string
+): Promise<UnlinkClientFromClioResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+    if (!canDeleteEntities(profile.role as UserRole)) {
+      return { success: false, error: 'Only MLRO / platform_admin can unlink clients from Clio' };
+    }
+
+    const { data: client, error: fetchErr } = await supabase
+      .from('clients')
+      .select('id, firm_id, clio_contact_id')
+      .eq('id', clientId)
+      .single();
+    if (fetchErr || !client) {
+      return { success: false, error: 'Client not found or access denied' };
+    }
+    if (client.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Client does not belong to your firm' };
+    }
+    const previousClioContactId = client.clio_contact_id as string | null;
+    if (!previousClioContactId) {
+      return { success: true, previousClioContactId: null };
+    }
+
+    const { error: updateErr } = await supabase
+      .from('clients')
+      .update({ clio_contact_id: null, updated_at: new Date().toISOString() })
+      .eq('id', clientId);
+    if (updateErr) {
+      return { success: false, error: 'Failed to unlink client from Clio' };
+    }
+
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'client',
+      entity_id: clientId,
+      action: 'client_unlinked_from_clio',
+      metadata: { previous_clio_contact_id: previousClioContactId },
+      created_by: user.id,
+    });
+
+    return { success: true, previousClioContactId };
+  } catch (err) {
+    console.error('Error in unlinkClientFromClio:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
 /** Result of renaming a client */
 export type RenameClientResult =
   | { success: true; oldName: string; newName: string }
