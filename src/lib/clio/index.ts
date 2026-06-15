@@ -40,5 +40,7 @@ export type {
 
 export { getClioAccessTokenForFirm } from './token';
 
+export { normalizeClientName } from './name-normaliser';
+
 export { generateSowHtml, generateSofHtml } from './sow-sof-html';
 export type { SowHtmlParams, SofHtmlParams } from './sow-sof-html';

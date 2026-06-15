@@ -17,6 +17,7 @@ import {
   listClioMattersCreatedSince,
   registerClioWebhook,
   refreshClioToken,
+  normalizeClientName,
   ClioError,
 } from '@/lib/clio';
 import { getClioAccessTokenForFirm } from '@/lib/clio/token';
@@ -839,43 +840,75 @@ export async function testClioConnection(): Promise<
  * Backfill clients/matters from Clio that were created while the webhook was
  * broken (or before it existed).
  *
- * For each matter created in Clio since `sinceISO`, one of four outcomes:
- *   - imported: process_clio_webhook ran and created the client+matter
- *   - already_linked: a Hub matter with the same clio_matter_id already exists
- *     (either a prior backfill, or an event-synced record)
- *   - manual_duplicate_candidate: there's a Hub matter whose reference matches
- *     this Clio matter's display_number AND whose client name matches the Clio
- *     contact name, but its clio_matter_id is NULL — the user likely created
- *     it manually. We DO NOT import, to avoid duplicates. User should link manually.
- *   - error: the RPC or fetch failed (with reason)
+ * v2 matcher: for each Clio matter, before letting the RPC create a fresh
+ * client, we look for an existing Hub client with the same NORMALISED name
+ * (case-insensitive, Ltd ↔ Limited, trimmed). If exactly one such manual
+ * client exists, we set `clio_contact_id` on it so the RPC finds and reuses
+ * it instead of creating a duplicate. This avoids the duplicate-client
+ * explosion the v1 matcher caused, where every manual client got a parallel
+ * Clio-imported copy because matter references didn't match.
  *
- * Idempotent: safe to re-run; nothing already-linked gets touched twice.
+ * Per-matter outcomes:
+ *   - imported: fresh client + matter created (no existing Hub client matched)
+ *   - imported_to_existing_client: an existing manual Hub client matched by
+ *     normalised name; we set its clio_contact_id and the RPC then created
+ *     the new matter under it. No duplicate client created.
+ *   - already_linked: a Hub matter with this clio_matter_id already exists
+ *   - manual_duplicate_candidate: a Hub matter's reference exactly equals
+ *     this Clio matter's display_number AND the client names match — the
+ *     user already manually entered this exact matter. Skip; user reviews.
+ *   - multiple_manual_candidates: multiple manual Hub clients match by
+ *     normalised name; ambiguous, skip
+ *   - error: the RPC or fetch failed
+ *
+ * dryRun = true returns what WOULD happen without modifying anything —
+ * useful for sanity-checking before running for real.
+ *
+ * For rollback safety: stores `imported_client_ids`, `imported_matter_ids`,
+ * and `auto_linked_client_ids` in the audit_events metadata so
+ * rollbackLastBackfill can undo precisely what this run did, even if other
+ * activity (live webhook events, manual edits) happens in between.
  */
 export interface BackfillClioMatterOutcome {
   clioMatterId: string;
   displayNumber: string;
   contactName: string;
   contactId: string;
-  status: 'imported' | 'already_linked' | 'manual_duplicate_candidate' | 'error';
+  status:
+    | 'imported'
+    | 'imported_to_existing_client'
+    | 'already_linked'
+    | 'manual_duplicate_candidate'
+    | 'multiple_manual_candidates'
+    | 'error';
   /** For manual_duplicate_candidate: the existing Hub matter id+reference that looks like a manual entry. */
   manualMatch?: { matterId: string; reference: string };
+  /** For imported_to_existing_client: the existing Hub client id we adopted. */
+  adoptedClientId?: string;
+  /** For multiple_manual_candidates: how many Hub clients matched. */
+  candidateCount?: number;
   error?: string;
 }
 
 export interface BackfillClioMattersResult {
+  dryRun: boolean;
   sinceISO: string;
   totalFromClio: number;
   imported: number;
+  importedToExistingClient: number;
   alreadyLinked: number;
   manualDuplicateCandidates: number;
+  multipleManualCandidates: number;
   errors: number;
   cappedAtMax: boolean;
   outcomes: BackfillClioMatterOutcome[];
 }
 
 export async function backfillClioMatters(
-  sinceISO?: string
+  sinceISO?: string,
+  options: { dryRun?: boolean } = {}
 ): Promise<{ success: true; result: BackfillClioMattersResult } | { success: false; error: string }> {
+  const dryRun = options.dryRun ?? false;
   try {
     const { supabase, user, profile, error } = await getUserAndProfile();
     if (error || !user || !profile) {
@@ -914,7 +947,26 @@ export async function backfillClioMatters(
     );
     const cappedAtMax = matters.length >= MAX_MATTERS;
 
-    // Preload Hub matters for this firm so we can dedup without N+1 queries
+    // Preload all Hub clients + matters for normalised-name and clio_matter_id lookups
+    const { data: hubClients } = await supabase
+      .from('clients')
+      .select('id, name, clio_contact_id')
+      .eq('firm_id', profile.firm_id);
+
+    type HubClientRow = { id: string; name: string; clio_contact_id: string | null };
+    const clientRows = (hubClients || []) as HubClientRow[];
+
+    // Index manual (NULL clio_contact_id) Hub clients by normalised name
+    const manualClientsByNormName = new Map<string, HubClientRow[]>();
+    for (const c of clientRows) {
+      if (c.clio_contact_id) continue;
+      const key = normalizeClientName(c.name);
+      if (!key) continue;
+      const bucket = manualClientsByNormName.get(key) ?? [];
+      bucket.push(c);
+      manualClientsByNormName.set(key, bucket);
+    }
+
     const { data: hubMatters } = await supabase
       .from('matters')
       .select('id, reference, clio_matter_id, client_id, clients(name)')
@@ -933,10 +985,20 @@ export async function backfillClioMatters(
       hubMatterRows.filter((m) => m.clio_matter_id).map((m) => m.clio_matter_id as string)
     );
 
+    // Snapshot existing client IDs so we can identify NEWLY created ones after backfill
+    const preExistingClientIds = new Set(clientRows.map((c) => c.id));
+
+    // Track for audit / rollback
+    const autoLinkedClientIds: string[] = [];
+    const importedClientIds: string[] = [];
+    const importedMatterIds: string[] = [];
+
     const outcomes: BackfillClioMatterOutcome[] = [];
     let imported = 0;
+    let importedToExistingClient = 0;
     let alreadyLinked = 0;
     let manualDuplicateCandidates = 0;
+    let multipleManualCandidates = 0;
     let errors = 0;
 
     for (const matter of matters) {
@@ -997,8 +1059,80 @@ export async function backfillClioMatters(
         continue;
       }
 
+      // v2: normalised-name lookup against manual Hub clients
+      const normalisedKey = normalizeClientName(contactName);
+      const manualCandidates = manualClientsByNormName.get(normalisedKey) ?? [];
+
+      if (manualCandidates.length > 1) {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName,
+          contactId,
+          status: 'multiple_manual_candidates',
+          candidateCount: manualCandidates.length,
+        });
+        multipleManualCandidates++;
+        continue;
+      }
+
+      let adoptedClientId: string | undefined;
+
+      if (manualCandidates.length === 1) {
+        const target = manualCandidates[0];
+        adoptedClientId = target.id;
+
+        if (!dryRun) {
+          // Set clio_contact_id on the existing manual client. Now the RPC's
+          // lookup-by-clio_contact_id will find this client and skip creation.
+          const { error: linkErr } = await supabase
+            .from('clients')
+            .update({ clio_contact_id: contactId })
+            .eq('id', target.id);
+          if (linkErr) {
+            outcomes.push({
+              clioMatterId,
+              displayNumber,
+              contactName,
+              contactId,
+              status: 'error',
+              error: `Auto-link failed: ${linkErr.message}`,
+            });
+            errors++;
+            continue;
+          }
+          autoLinkedClientIds.push(target.id);
+          // Update in-memory index so a subsequent matter for the same contact
+          // doesn't trigger another auto-link attempt
+          target.clio_contact_id = contactId;
+          const bucket = manualClientsByNormName.get(normalisedKey);
+          if (bucket) {
+            const remaining = bucket.filter((c) => c.id !== target.id);
+            if (remaining.length === 0) {
+              manualClientsByNormName.delete(normalisedKey);
+            } else {
+              manualClientsByNormName.set(normalisedKey, remaining);
+            }
+          }
+        }
+      }
+
+      if (dryRun) {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName,
+          contactId,
+          status: adoptedClientId ? 'imported_to_existing_client' : 'imported',
+          adoptedClientId,
+        });
+        if (adoptedClientId) importedToExistingClient++;
+        else imported++;
+        continue;
+      }
+
       // Import via the same RPC the webhook uses
-      const { error: rpcErr } = await supabase.rpc('process_clio_webhook', {
+      const { data: rpcData, error: rpcErr } = await supabase.rpc('process_clio_webhook', {
         p_firm_id: profile.firm_id,
         p_clio_matter_id: clioMatterId,
         p_matter_display_number: displayNumber,
@@ -1019,46 +1153,68 @@ export async function backfillClioMatters(
           error: rpcErr.message,
         });
         errors++;
-      } else {
-        outcomes.push({
-          clioMatterId,
-          displayNumber,
-          contactName,
-          contactId,
-          status: 'imported',
-        });
-        imported++;
-        // Add to linked set so a subsequent duplicate within the same run is treated as already-linked
-        linkedClioMatterIds.add(clioMatterId);
+        continue;
       }
+
+      const rpcResult = rpcData as { client_id?: string; matter_id?: string } | null;
+      const createdClientId = rpcResult?.client_id;
+      const createdMatterId = rpcResult?.matter_id;
+
+      if (createdMatterId) importedMatterIds.push(createdMatterId);
+      if (createdClientId && !preExistingClientIds.has(createdClientId)) {
+        importedClientIds.push(createdClientId);
+        preExistingClientIds.add(createdClientId);
+      }
+
+      outcomes.push({
+        clioMatterId,
+        displayNumber,
+        contactName,
+        contactId,
+        status: adoptedClientId ? 'imported_to_existing_client' : 'imported',
+        adoptedClientId,
+      });
+      if (adoptedClientId) importedToExistingClient++;
+      else imported++;
+      // Add to linked set so a subsequent duplicate within the same run is treated as already-linked
+      linkedClioMatterIds.add(clioMatterId);
     }
 
-    // Audit log — one entry for the whole pass
-    await supabase.from('audit_events').insert({
-      firm_id: profile.firm_id,
-      entity_type: 'integration',
-      entity_id: 'clio',
-      action: 'clio_backfill_run',
-      metadata: {
-        since_iso: resolvedSince,
-        total_from_clio: matters.length,
-        imported,
-        already_linked: alreadyLinked,
-        manual_duplicate_candidates: manualDuplicateCandidates,
-        errors,
-        capped_at_max: cappedAtMax,
-      },
-      created_by: user.id,
-    });
+    if (!dryRun) {
+      await supabase.from('audit_events').insert({
+        firm_id: profile.firm_id,
+        entity_type: 'integration',
+        entity_id: 'clio',
+        action: 'clio_backfill_run',
+        metadata: {
+          since_iso: resolvedSince,
+          total_from_clio: matters.length,
+          imported,
+          imported_to_existing_client: importedToExistingClient,
+          already_linked: alreadyLinked,
+          manual_duplicate_candidates: manualDuplicateCandidates,
+          multiple_manual_candidates: multipleManualCandidates,
+          errors,
+          capped_at_max: cappedAtMax,
+          imported_client_ids: importedClientIds,
+          imported_matter_ids: importedMatterIds,
+          auto_linked_client_ids: autoLinkedClientIds,
+        },
+        created_by: user.id,
+      });
+    }
 
     return {
       success: true,
       result: {
+        dryRun,
         sinceISO: resolvedSince,
         totalFromClio: matters.length,
         imported,
+        importedToExistingClient,
         alreadyLinked,
         manualDuplicateCandidates,
+        multipleManualCandidates,
         errors,
         cappedAtMax,
         outcomes,
@@ -1066,6 +1222,219 @@ export async function backfillClioMatters(
     };
   } catch (err) {
     console.error('Error in backfillClioMatters:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Roll back the most recent backfill run for this firm.
+ *
+ * Reads the latest `clio_backfill_run` audit_event for the firm, which
+ * (for v2 backfills) records the exact IDs of imported clients, imported
+ * matters, and auto-linked existing clients. Then:
+ *
+ *   1. Delete the imported matters (Postgres FK constraints will reject if
+ *      any assessment/evidence/etc. references them — load-bearing safety).
+ *   2. Delete the imported clients.
+ *   3. NULL out clio_contact_id on the auto-linked existing clients
+ *      (restoring them to their pre-backfill manual state).
+ *
+ * For older (v1) backfill audit events that didn't track IDs, falls back
+ * to a heuristic: delete clients with clio_contact_id IS NOT NULL created
+ * within a 1-minute window after the audit timestamp and with zero
+ * assessments anywhere. The user is shown what would happen and asked to
+ * confirm before destructive operations run.
+ *
+ * Idempotent: re-running after a successful rollback finds nothing to do.
+ */
+export interface RollbackBackfillResult {
+  dryRun: boolean;
+  backfillTimestamp: string | null;
+  trackedIds: boolean;
+  deletedMatterIds: string[];
+  deletedClientIds: string[];
+  unlinkedClientIds: string[];
+  skipped: Array<{ id: string; type: 'client' | 'matter'; reason: string }>;
+}
+
+export async function rollbackLastBackfill(
+  options: { dryRun?: boolean } = {}
+): Promise<{ success: true; result: RollbackBackfillResult } | { success: false; error: string }> {
+  const dryRun = options.dryRun ?? false;
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    // Find the most recent backfill run
+    const { data: latestBackfill } = await supabase
+      .from('audit_events')
+      .select('id, created_at, metadata')
+      .eq('firm_id', profile.firm_id)
+      .eq('action', 'clio_backfill_run')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    type BackfillAudit = {
+      id: string;
+      created_at: string;
+      metadata: {
+        imported_client_ids?: string[];
+        imported_matter_ids?: string[];
+        auto_linked_client_ids?: string[];
+      } | null;
+    };
+    const audit = latestBackfill as BackfillAudit | null;
+
+    if (!audit) {
+      return {
+        success: true,
+        result: {
+          dryRun,
+          backfillTimestamp: null,
+          trackedIds: false,
+          deletedMatterIds: [],
+          deletedClientIds: [],
+          unlinkedClientIds: [],
+          skipped: [],
+        },
+      };
+    }
+
+    const importedMatterIds = audit.metadata?.imported_matter_ids ?? [];
+    const importedClientIds = audit.metadata?.imported_client_ids ?? [];
+    const autoLinkedClientIds = audit.metadata?.auto_linked_client_ids ?? [];
+
+    const trackedIds = importedMatterIds.length > 0 || importedClientIds.length > 0 || autoLinkedClientIds.length > 0;
+
+    if (!trackedIds) {
+      // v1 backfill — fall back to heuristic. Conservative: find clients with
+      // clio_contact_id created within 1 minute after the backfill audit event.
+      const startISO = audit.created_at;
+      const endISO = new Date(new Date(audit.created_at).getTime() + 60 * 1000).toISOString();
+      const { data: heuristicClients } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('firm_id', profile.firm_id)
+        .not('clio_contact_id', 'is', null)
+        .gte('created_at', startISO)
+        .lte('created_at', endISO);
+      const heuristicClientIds = ((heuristicClients || []) as { id: string }[]).map((c) => c.id);
+
+      if (heuristicClientIds.length > 0) {
+        const { data: heuristicMatters } = await supabase
+          .from('matters')
+          .select('id, client_id')
+          .eq('firm_id', profile.firm_id)
+          .in('client_id', heuristicClientIds);
+        const heuristicMatterIds = ((heuristicMatters || []) as { id: string }[]).map((m) => m.id);
+        importedMatterIds.push(...heuristicMatterIds);
+        importedClientIds.push(...heuristicClientIds);
+      }
+    }
+
+    const deletedMatterIds: string[] = [];
+    const deletedClientIds: string[] = [];
+    const unlinkedClientIds: string[] = [];
+    const skipped: Array<{ id: string; type: 'client' | 'matter'; reason: string }> = [];
+
+    // Pre-check: assessments on any of the matters we're about to delete
+    if (importedMatterIds.length > 0) {
+      const { data: blockedAssessments } = await supabase
+        .from('assessments')
+        .select('matter_id')
+        .eq('firm_id', profile.firm_id)
+        .in('matter_id', importedMatterIds);
+      const blockedSet = new Set(((blockedAssessments || []) as { matter_id: string }[]).map((a) => a.matter_id));
+
+      for (const matterId of importedMatterIds) {
+        if (blockedSet.has(matterId)) {
+          skipped.push({ id: matterId, type: 'matter', reason: 'Has assessments — rollback would lose work' });
+          continue;
+        }
+        if (!dryRun) {
+          const { error: delErr } = await supabase.from('matters').delete().eq('id', matterId);
+          if (delErr) {
+            skipped.push({ id: matterId, type: 'matter', reason: `Delete failed: ${delErr.message}` });
+            continue;
+          }
+        }
+        deletedMatterIds.push(matterId);
+      }
+    }
+
+    // Delete imported clients (only if no matter still references them)
+    for (const clientId of importedClientIds) {
+      const { count } = await supabase
+        .from('matters')
+        .select('id', { count: 'exact', head: true })
+        .eq('client_id', clientId);
+      if (count && count > 0) {
+        skipped.push({ id: clientId, type: 'client', reason: `${count} matter(s) still reference this client` });
+        continue;
+      }
+      if (!dryRun) {
+        const { error: delErr } = await supabase.from('clients').delete().eq('id', clientId);
+        if (delErr) {
+          skipped.push({ id: clientId, type: 'client', reason: `Delete failed: ${delErr.message}` });
+          continue;
+        }
+      }
+      deletedClientIds.push(clientId);
+    }
+
+    // Unlink auto-linked existing clients (restore to pre-backfill manual state)
+    for (const clientId of autoLinkedClientIds) {
+      if (!dryRun) {
+        const { error: updErr } = await supabase
+          .from('clients')
+          .update({ clio_contact_id: null })
+          .eq('id', clientId);
+        if (updErr) {
+          skipped.push({ id: clientId, type: 'client', reason: `Unlink failed: ${updErr.message}` });
+          continue;
+        }
+      }
+      unlinkedClientIds.push(clientId);
+    }
+
+    if (!dryRun) {
+      await supabase.from('audit_events').insert({
+        firm_id: profile.firm_id,
+        entity_type: 'integration',
+        entity_id: 'clio',
+        action: 'clio_backfill_rolled_back',
+        metadata: {
+          rolled_back_audit_id: audit.id,
+          backfill_timestamp: audit.created_at,
+          deleted_matter_ids: deletedMatterIds,
+          deleted_client_ids: deletedClientIds,
+          unlinked_client_ids: unlinkedClientIds,
+          skipped,
+        },
+        created_by: user.id,
+      });
+    }
+
+    return {
+      success: true,
+      result: {
+        dryRun,
+        backfillTimestamp: audit.created_at,
+        trackedIds,
+        deletedMatterIds,
+        deletedClientIds,
+        unlinkedClientIds,
+        skipped,
+      },
+    };
+  } catch (err) {
+    console.error('Error in rollbackLastBackfill:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
