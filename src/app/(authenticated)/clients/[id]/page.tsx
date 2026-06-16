@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getClient, getMattersForClient, getClientChildCounts } from '@/app/actions/clients';
 import { getUserProfile } from '@/lib/supabase/server';
-import { canDeleteEntities } from '@/lib/auth/roles';
+import { canDeleteEntities, canCreateAssessment } from '@/lib/auth/roles';
 import { DeleteClientButton } from './DeleteClientButton';
 import { ClientNameEditor } from './ClientNameEditor';
 import { ClientClioLinker } from './ClientClioLinker';
@@ -35,6 +35,8 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
   const canDelete = profile ? canDeleteEntities(profile.role) : false;
   // Same permission as delete — MLRO / platform_admin only
   const canRename = canDelete;
+  // Solicitor and above — same as creating an assessment
+  const canEditDetails = profile ? canCreateAssessment(profile.role) : false;
 
   return (
     <>
@@ -56,7 +58,16 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Client Details</h2>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle} style={{ border: 0, padding: 0, margin: 0 }}>
+            Client Details
+          </h2>
+          {canEditDetails && (
+            <Link href={`/clients/${client.id}/edit`} className={styles.secondaryButton}>
+              Edit details
+            </Link>
+          )}
+        </div>
         <div className={styles.detailGrid}>
           <div className={styles.detailField}>
             <div className={styles.detailLabel}>Client ID</div>
@@ -78,6 +89,34 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               {new Date(client.updated_at).toLocaleString()}
             </div>
           </div>
+          <div className={styles.detailField}>
+            <div className={styles.detailLabel}>Entity Type</div>
+            <div className={styles.detailValue}>{client.entity_type || '—'}</div>
+          </div>
+          <div className={styles.detailField}>
+            <div className={styles.detailLabel}>Sector</div>
+            <div className={styles.detailValue}>
+              {client.sector && client.sector.toLowerCase() !== 'general'
+                ? client.sector
+                : '—'}
+            </div>
+          </div>
+          {client.client_type !== 'individual' && (
+            <>
+              <div className={styles.detailField}>
+                <div className={styles.detailLabel}>Company Number</div>
+                <div className={styles.detailValue}>
+                  {client.registered_number || '—'}
+                </div>
+              </div>
+              <div className={styles.detailField}>
+                <div className={styles.detailLabel}>Registered Address</div>
+                <div className={styles.detailValue}>
+                  {client.registered_address || '—'}
+                </div>
+              </div>
+            </>
+          )}
           <div className={styles.detailField}>
             <div className={styles.detailLabel}>Last CDD Verification</div>
             <div className={styles.detailValue}>
