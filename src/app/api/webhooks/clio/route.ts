@@ -20,6 +20,7 @@ import {
   findFeeVariantMain,
   isStandaloneAdminMatter,
   classifyStandaloneAdminMatter,
+  enrichClioImportedClient,
 } from '@/lib/clio';
 import type { ClioWebhookPayload } from '@/lib/clio';
 
@@ -216,6 +217,27 @@ export async function POST(request: NextRequest) {
       if (processErr) {
         console.error('Failed to process Clio webhook:', processErr);
         return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
+      }
+
+      // Post-import enrichment: promote generic entity_type to a specific
+      // default, and Companies House lookup-by-name for corporates with no
+      // registered_number. Non-blocking — log enrichment errors but don't
+      // fail the webhook (the matter + client are already created).
+      const rpcResultData = processResult as
+        | { client_id?: string; matter_id?: string }
+        | null;
+      const createdClientId = rpcResultData?.client_id;
+      if (createdClientId) {
+        try {
+          const enrichment = await enrichClioImportedClient(
+            supabase,
+            firm_id,
+            createdClientId
+          );
+          console.log('Post-import enrichment:', JSON.stringify(enrichment));
+        } catch (err) {
+          console.error('Post-import enrichment failed (non-fatal):', err);
+        }
       }
 
       // Auto-renew webhook if expiring within 2 days

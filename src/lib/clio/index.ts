@@ -50,5 +50,11 @@ export {
   classifyStandaloneAdminMatter,
 } from './fee-variant';
 
+export {
+  promoteGenericEntityType,
+  enrichClioImportedClient,
+} from './post-import-enrichment';
+export type { EnrichmentOutcome } from './post-import-enrichment';
+
 export { generateSowHtml, generateSofHtml } from './sow-sof-html';
 export type { SowHtmlParams, SofHtmlParams } from './sow-sof-html';
