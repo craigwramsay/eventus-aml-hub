@@ -19,6 +19,7 @@ import {
   refreshClioToken,
   normalizeClientName,
   findFeeVariantMain,
+  fetchClioContact,
   ClioError,
 } from '@/lib/clio';
 import { getClioAccessTokenForFirm } from '@/lib/clio/token';
@@ -3564,9 +3565,35 @@ const SPECIFIC_MATTER_DELETES: Array<{
   },
 ];
 
+/**
+ * One-shot "import this specific Clio matter (by display_number) and merge
+ * it onto the keep-matter, adopting its Clio reference + clio_matter_id".
+ * For recovering Clio links that were lost in earlier merge operations.
+ *
+ * Different from SPECIFIC_MATTER_MERGES — that one assumes the source matter
+ * already exists in the Hub. This one fetches the matter from Clio and
+ * imports it first, then performs the merge.
+ */
+const SPECIFIC_MATTER_IMPORT_AND_MERGES: Array<{
+  caseName: string;
+  keepMatterId: string;
+  clientName: string;
+  clioDisplayNumber: string;
+  sinceISOForLookup: string;
+}> = [
+  {
+    caseName: 'Davvic Limited — re-import VIMBO of Davvic Ltd-00042',
+    keepMatterId: 'd45a3464-5406-4146-afb6-00fcbd43e33a',
+    clientName: 'Davvic Limited',
+    clioDisplayNumber: 'VIMBO of Davvic Ltd-00042',
+    // The Clio matter has been around a while — go back far enough to find it
+    sinceISOForLookup: '2025-01-01T00:00:00.000Z',
+  },
+];
+
 export interface SpecificMatterCleanupOutcome {
   caseName: string;
-  caseType: 'merge_with_clio_ref' | 'delete_billing_matter';
+  caseType: 'merge_with_clio_ref' | 'delete_billing_matter' | 'import_and_merge';
   status: 'done' | 'nothing_to_do' | 'skipped' | 'error';
   reason?: string;
   steps?: string[];
@@ -3792,6 +3819,210 @@ async function executeBillingMatterDelete(
   return { caseName: spec.caseName, caseType, status: 'done', steps };
 }
 
+async function executeImportAndMerge(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string,
+  spec: {
+    caseName: string;
+    keepMatterId: string;
+    clientName: string;
+    clioDisplayNumber: string;
+    sinceISOForLookup: string;
+  }
+): Promise<SpecificMatterCleanupOutcome> {
+  const steps: string[] = [];
+  const caseType: 'import_and_merge' = 'import_and_merge';
+
+  // 1. Find the keep matter
+  const { data: keepMatter } = await supabase
+    .from('matters')
+    .select('id, firm_id, client_id, reference, clio_matter_id')
+    .eq('id', spec.keepMatterId)
+    .maybeSingle();
+  if (!keepMatter) {
+    return { caseName: spec.caseName, caseType, status: 'nothing_to_do', reason: 'Keep matter not found' };
+  }
+  const keep = keepMatter as {
+    id: string;
+    firm_id: string;
+    client_id: string;
+    reference: string;
+    clio_matter_id: string | null;
+  };
+  if (keep.firm_id !== firmId) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: 'Keep matter not in your firm' };
+  }
+  if (keep.reference === spec.clioDisplayNumber && keep.clio_matter_id) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'nothing_to_do',
+      reason: 'Keep matter already has the Clio reference + link',
+    };
+  }
+
+  // 2. Get Clio access token
+  const tokenResult = await getClioAccessTokenForFirm(supabase, firmId);
+  if (!tokenResult) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: 'Clio is not connected for this firm' };
+  }
+
+  // 3. List Clio matters and find the one with the matching display_number
+  let clioMatters;
+  try {
+    clioMatters = await listClioMattersCreatedSince(
+      tokenResult.accessToken,
+      spec.sinceISOForLookup,
+      500
+    );
+  } catch (err) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'error',
+      reason: `Clio API error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+    };
+  }
+  const clioMatter = clioMatters.find((m) => m.display_number === spec.clioDisplayNumber);
+  if (!clioMatter) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'skipped',
+      reason: `Clio matter "${spec.clioDisplayNumber}" not found via API (already imported under a different keep ID?)`,
+    };
+  }
+  if (!clioMatter.client) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: 'Clio matter has no client' };
+  }
+
+  // 4. Check if this clio_matter_id is already linked somewhere in Hub
+  const clioMatterIdStr = String(clioMatter.id);
+  const { data: alreadyLinked } = await supabase
+    .from('matters')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('clio_matter_id', clioMatterIdStr)
+    .maybeSingle();
+  const alreadyLinkedRow = alreadyLinked as { id: string } | null;
+  if (alreadyLinkedRow && alreadyLinkedRow.id === keep.id) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'nothing_to_do',
+      reason: 'Keep matter is already linked to this Clio matter',
+    };
+  }
+  if (alreadyLinkedRow && alreadyLinkedRow.id !== keep.id) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'error',
+      reason: `Clio matter is already linked to a different Hub matter (${alreadyLinkedRow.id})`,
+    };
+  }
+
+  // 5. Fetch contact details for the RPC call
+  let contact;
+  try {
+    contact = await fetchClioContact(clioMatter.client.id, tokenResult.accessToken);
+  } catch (err) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'error',
+      reason: `Failed to fetch Clio contact: ${err instanceof Error ? err.message : 'Unknown error'}`,
+    };
+  }
+
+  // 6. Process via RPC — creates a new Hub matter under the existing client
+  const { data: rpcData, error: rpcErr } = await supabase.rpc('process_clio_webhook', {
+    p_firm_id: firmId,
+    p_clio_matter_id: clioMatterIdStr,
+    p_matter_display_number: clioMatter.display_number || '',
+    p_matter_description: clioMatter.description || '',
+    p_clio_contact_id: String(contact.id),
+    p_contact_name: contact.name,
+    p_contact_type: contact.type || 'Person',
+    p_user_id: userId,
+  });
+  if (rpcErr) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: `RPC failed: ${rpcErr.message}`, steps };
+  }
+  const rpcResult = rpcData as { client_id?: string; matter_id?: string } | null;
+  const newMatterId = rpcResult?.matter_id;
+  if (!newMatterId) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: 'RPC returned no matter_id', steps };
+  }
+  steps.push(`Imported Clio matter (new Hub matter ${newMatterId})`);
+
+  // 7. Verify the new matter is under the same client as the keep matter
+  const { data: newMatter } = await supabase
+    .from('matters')
+    .select('id, client_id, reference, clio_matter_id')
+    .eq('id', newMatterId)
+    .single();
+  if (!newMatter || newMatter.client_id !== keep.client_id) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'error',
+      reason: `New matter's client (${newMatter?.client_id}) doesn't match keep matter's client (${keep.client_id}) — different ${spec.clientName} record?`,
+      steps,
+    };
+  }
+
+  const adoptedClioMatterId = newMatter.clio_matter_id!;
+  const adoptedReference = newMatter.reference;
+
+  // 8. NULL clio_matter_id on the new matter (release unique index)
+  const { error: e8 } = await supabase
+    .from('matters')
+    .update({ clio_matter_id: null })
+    .eq('id', newMatterId);
+  if (e8) return { caseName: spec.caseName, caseType, status: 'error', reason: `Free new clio_matter_id: ${e8.message}`, steps };
+  steps.push('Released clio_matter_id from new matter');
+
+  // 9. SET clio_matter_id + reference on the keep matter
+  const { error: e9 } = await supabase
+    .from('matters')
+    .update({ clio_matter_id: adoptedClioMatterId, reference: adoptedReference })
+    .eq('id', keep.id);
+  if (e9) return { caseName: spec.caseName, caseType, status: 'error', reason: `Update keep matter: ${e9.message}`, steps };
+  steps.push(`Set clio_matter_id=${adoptedClioMatterId} and reference="${adoptedReference}" on keep matter`);
+
+  // 10. Repoint audit events
+  await supabase
+    .from('audit_events')
+    .update({ entity_id: keep.id })
+    .eq('firm_id', firmId)
+    .eq('entity_type', 'matter')
+    .eq('entity_id', newMatterId);
+
+  // 11. Delete the new matter
+  const { error: e11 } = await supabase.from('matters').delete().eq('id', newMatterId);
+  if (e11) return { caseName: spec.caseName, caseType, status: 'error', reason: `Delete new matter: ${e11.message}`, steps };
+  steps.push('Deleted intermediate new matter');
+
+  await supabase.from('audit_events').insert({
+    firm_id: firmId,
+    entity_type: 'matter',
+    entity_id: keep.id,
+    action: 'specific_matter_import_and_merge',
+    metadata: {
+      kept_matter_id: keep.id,
+      intermediate_matter_id: newMatterId,
+      adopted_clio_matter_id: adoptedClioMatterId,
+      adopted_reference: adoptedReference,
+      clio_display_number: spec.clioDisplayNumber,
+    },
+    created_by: userId,
+  });
+
+  return { caseName: spec.caseName, caseType, status: 'done', steps };
+}
+
 export async function runSpecificMatterCleanups(): Promise<
   { success: true; result: SpecificMatterCleanupsResult } | { success: false; error: string }
 > {
@@ -3809,6 +4040,9 @@ export async function runSpecificMatterCleanups(): Promise<
     }
     for (const spec of SPECIFIC_MATTER_DELETES) {
       outcomes.push(await executeBillingMatterDelete(supabase, profile.firm_id, user.id, spec));
+    }
+    for (const spec of SPECIFIC_MATTER_IMPORT_AND_MERGES) {
+      outcomes.push(await executeImportAndMerge(supabase, profile.firm_id, user.id, spec));
     }
 
     return { success: true, result: { outcomes } };
