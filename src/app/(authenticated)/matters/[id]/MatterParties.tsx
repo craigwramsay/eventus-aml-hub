@@ -87,7 +87,7 @@ export function MatterParties({ matterId, parties, canEdit }: MatterPartiesProps
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
-        <h2>Parties on this matter</h2>
+        <h2>Client{parties.length === 1 ? '' : 's'} on this matter</h2>
         {canEdit && !isPicking && (
           <button
             type="button"

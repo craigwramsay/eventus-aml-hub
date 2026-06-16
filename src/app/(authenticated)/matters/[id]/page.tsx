@@ -59,7 +59,21 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
       )}
 
       <div className={styles.header}>
-        <h1 className={styles.title}>{matter.description || matter.reference}</h1>
+        <div className={styles.headerTitleGroup}>
+          <h1 className={styles.title}>{matter.description || matter.reference}</h1>
+          {parties.length > 0 && (
+            <div className={styles.headerClients}>
+              {parties.map((p, i) => (
+                <span key={p.client.id}>
+                  <Link href={`/clients/${p.client.id}`} className={styles.headerClientLink}>
+                    {p.client.name}
+                  </Link>
+                  {i < parties.length - 1 && <span className={styles.headerClientSep}>·</span>}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <span
           className={`${styles.badge} ${
             matter.status === 'open' ? styles.badgeOpen : styles.badgeClosed
