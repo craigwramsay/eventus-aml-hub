@@ -18,6 +18,8 @@ import {
   registerClioWebhook,
   deleteClioWebhook,
   findFeeVariantMain,
+  isStandaloneAdminMatter,
+  classifyStandaloneAdminMatter,
 } from '@/lib/clio';
 import type { ClioWebhookPayload } from '@/lib/clio';
 
@@ -152,6 +154,23 @@ export async function POST(request: NextRequest) {
 
       // Fetch contact details for email etc.
       const contact = await fetchClioContact(matter.client.id, access_token);
+
+      // Standalone-admin skip: matters that are pure Clio bookkeeping with
+      // no AML value, regardless of any related matter. Catches:
+      //   - "Retainer - <Location>" (Clio email-folder matters per region)
+      //   - "PAYABLE BY X" (fee receivables)
+      //   - "RECEIVABLE FROM X"
+      if (matter.description && isStandaloneAdminMatter(matter.description)) {
+        const category = classifyStandaloneAdminMatter(matter.description);
+        console.log(
+          `Skipping Clio standalone admin matter "${matter.description}" (category=${category})`
+        );
+        return NextResponse.json({
+          status: 'skipped',
+          reason: 'standalone_admin',
+          category,
+        });
+      }
 
       // Fee-variant skip: if Clio is firing a matter.create for a sub-matter
       // that's a fee/disbursement variant of a matter we already have under

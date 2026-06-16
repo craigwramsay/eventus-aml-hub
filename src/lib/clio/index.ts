@@ -43,7 +43,12 @@ export { getClioAccessTokenForFirm } from './token';
 
 export { normalizeClientName } from './name-normaliser';
 
-export { isFeeVariantOf, findFeeVariantMain } from './fee-variant';
+export {
+  isFeeVariantOf,
+  findFeeVariantMain,
+  isStandaloneAdminMatter,
+  classifyStandaloneAdminMatter,
+} from './fee-variant';
 
 export { generateSowHtml, generateSofHtml } from './sow-sof-html';
 export type { SowHtmlParams, SofHtmlParams } from './sow-sof-html';
