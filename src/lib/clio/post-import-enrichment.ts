@@ -34,6 +34,7 @@ import {
   CompaniesHouseError,
   type CompanySearchHit,
 } from '@/lib/companies-house/client';
+import { normalizeClientName } from './name-normaliser';
 
 export type EnrichmentOutcome =
   | { entityTypeUpdated: boolean; chOutcome: 'populated' | 'ambiguous' | 'not_found' | 'skipped' | 'error'; chError?: string; chMatchCount?: number; populatedNumber?: string; populatedAddress?: string };
@@ -126,7 +127,23 @@ export async function enrichClioImportedClient(
         updates.registered_number = populatedNumber;
         updates.registered_address = populatedAddress;
       } else {
-        chOutcome = 'ambiguous';
+        // Multiple raw hits. Filter to those whose normalised name matches
+        // the client name exactly — handles cases like "ROCK 424 Ltd" where
+        // CH's fuzzy search returns 5 hits ("ROCK 424 LIMITED" + 4 unrelated
+        // "rock..." companies) but normalised matching pins it to the one.
+        const clientNorm = normalizeClientName(client.name as string);
+        const exactNormMatches = hits.filter(
+          (h) => normalizeClientName(h.companyName) === clientNorm
+        );
+        if (exactNormMatches.length === 1) {
+          chOutcome = 'populated';
+          populatedNumber = exactNormMatches[0].companyNumber;
+          populatedAddress = exactNormMatches[0].address;
+          updates.registered_number = populatedNumber;
+          updates.registered_address = populatedAddress;
+        } else {
+          chOutcome = 'ambiguous';
+        }
       }
     }
   }
