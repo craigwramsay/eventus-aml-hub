@@ -19,6 +19,8 @@ import {
   refreshClioToken,
   normalizeClientName,
   findFeeVariantMain,
+  isStandaloneAdminMatter,
+  classifyStandaloneAdminMatter,
   fetchClioContact,
   ClioError,
 } from '@/lib/clio';
@@ -883,6 +885,7 @@ export interface BackfillClioMatterOutcome {
     | 'manual_duplicate_candidate'
     | 'multiple_manual_candidates'
     | 'fee_variant_skipped'
+    | 'standalone_admin_skipped'
     | 'error';
   /** For manual_duplicate_candidate: the existing Hub matter id+reference that looks like a manual entry. */
   manualMatch?: { matterId: string; reference: string };
@@ -892,6 +895,8 @@ export interface BackfillClioMatterOutcome {
   candidateCount?: number;
   /** For fee_variant_skipped: the main matter's description this is a variant of. */
   feeVariantMain?: string;
+  /** For standalone_admin_skipped: which category (retainer_folder | payable_by | receivable_from). */
+  standaloneAdminCategory?: string;
   error?: string;
 }
 
@@ -905,6 +910,7 @@ export interface BackfillClioMattersResult {
   manualDuplicateCandidates: number;
   multipleManualCandidates: number;
   feeVariantSkipped: number;
+  standaloneAdminSkipped: number;
   errors: number;
   cappedAtMax: boolean;
   outcomes: BackfillClioMatterOutcome[];
@@ -1012,6 +1018,7 @@ export async function backfillClioMatters(
     let manualDuplicateCandidates = 0;
     let multipleManualCandidates = 0;
     let feeVariantSkipped = 0;
+    let standaloneAdminSkipped = 0;
     let errors = 0;
 
     for (const matter of matters) {
@@ -1044,6 +1051,21 @@ export async function backfillClioMatters(
           status: 'already_linked',
         });
         alreadyLinked++;
+        continue;
+      }
+
+      // Standalone-admin skip: pure Clio bookkeeping (Retainer folders,
+      // PAYABLE BY, RECEIVABLE FROM) — never enters the Hub.
+      if (matter.description && isStandaloneAdminMatter(matter.description)) {
+        outcomes.push({
+          clioMatterId,
+          displayNumber,
+          contactName,
+          contactId,
+          status: 'standalone_admin_skipped',
+          standaloneAdminCategory: classifyStandaloneAdminMatter(matter.description) ?? undefined,
+        });
+        standaloneAdminSkipped++;
         continue;
       }
 
@@ -1235,6 +1257,7 @@ export async function backfillClioMatters(
           manual_duplicate_candidates: manualDuplicateCandidates,
           multiple_manual_candidates: multipleManualCandidates,
           fee_variant_skipped: feeVariantSkipped,
+          standalone_admin_skipped: standaloneAdminSkipped,
           errors,
           capped_at_max: cappedAtMax,
           imported_client_ids: importedClientIds,
@@ -1257,6 +1280,7 @@ export async function backfillClioMatters(
         manualDuplicateCandidates,
         multipleManualCandidates,
         feeVariantSkipped,
+        standaloneAdminSkipped,
         errors,
         cappedAtMax,
         outcomes,
@@ -3508,6 +3532,167 @@ export async function deleteClioFeeVariantMatters(
     };
   } catch (err) {
     console.error('Error in deleteClioFeeVariantMatters:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Detect + (optionally) delete Clio standalone admin matters already in the
+ * Hub: "Retainer - <Location>", "PAYABLE BY X", "RECEIVABLE FROM X".
+ *
+ * Mirrors deleteClioFeeVariantMatters but uses the standalone-admin pattern
+ * (no main-matter-prefix required). Skips matters with assessments.
+ */
+export interface DeleteStandaloneAdminOutcome {
+  clientId: string;
+  clientName: string;
+  matterId: string;
+  matterReference: string;
+  matterDescription: string;
+  category: string;
+  status: 'deleted' | 'preview_delete' | 'skipped_has_assessments' | 'error';
+  reason?: string;
+}
+
+export interface DeleteStandaloneAdminResult {
+  dryRun: boolean;
+  totalCandidates: number;
+  deleted: number;
+  skippedHasAssessments: number;
+  errors: number;
+  outcomes: DeleteStandaloneAdminOutcome[];
+}
+
+export async function deleteClioStandaloneAdminMatters(
+  options: { dryRun?: boolean } = {}
+): Promise<
+  { success: true; result: DeleteStandaloneAdminResult } | { success: false; error: string }
+> {
+  const dryRun = options.dryRun ?? true;
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const { data: matters, error: mattersErr } = await supabase
+      .from('matters')
+      .select('id, client_id, reference, description')
+      .eq('firm_id', profile.firm_id);
+    if (mattersErr) return { success: false, error: mattersErr.message };
+
+    type MatterRow = { id: string; client_id: string; reference: string; description: string | null };
+    const rows = (matters || []) as MatterRow[];
+
+    const candidates = rows.filter((m) => m.description && isStandaloneAdminMatter(m.description));
+
+    const clientIds = Array.from(new Set(candidates.map((m) => m.client_id)));
+    const clientsById = new Map<string, string>();
+    if (clientIds.length > 0) {
+      const { data: clients } = await supabase
+        .from('clients')
+        .select('id, name')
+        .eq('firm_id', profile.firm_id)
+        .in('id', clientIds);
+      for (const c of (clients || []) as { id: string; name: string }[]) {
+        clientsById.set(c.id, c.name);
+      }
+    }
+
+    const outcomes: DeleteStandaloneAdminOutcome[] = [];
+
+    for (const m of candidates) {
+      const description = m.description!.trim();
+      const clientName = clientsById.get(m.client_id) ?? m.client_id;
+      const category = classifyStandaloneAdminMatter(description) ?? 'unknown';
+
+      const { count: assessmentCount } = await supabase
+        .from('assessments')
+        .select('id', { count: 'exact', head: true })
+        .eq('firm_id', profile.firm_id)
+        .eq('matter_id', m.id);
+
+      if ((assessmentCount ?? 0) > 0) {
+        outcomes.push({
+          clientId: m.client_id,
+          clientName,
+          matterId: m.id,
+          matterReference: m.reference,
+          matterDescription: description,
+          category,
+          status: 'skipped_has_assessments',
+          reason: `${assessmentCount} assessment(s) — manual review needed`,
+        });
+        continue;
+      }
+
+      if (dryRun) {
+        outcomes.push({
+          clientId: m.client_id,
+          clientName,
+          matterId: m.id,
+          matterReference: m.reference,
+          matterDescription: description,
+          category,
+          status: 'preview_delete',
+        });
+        continue;
+      }
+
+      const { error: deleteErr } = await supabase.from('matters').delete().eq('id', m.id);
+      if (deleteErr) {
+        outcomes.push({
+          clientId: m.client_id,
+          clientName,
+          matterId: m.id,
+          matterReference: m.reference,
+          matterDescription: description,
+          category,
+          status: 'error',
+          reason: `Delete failed (FK ref?): ${deleteErr.message}`,
+        });
+        continue;
+      }
+
+      await supabase.from('audit_events').insert({
+        firm_id: profile.firm_id,
+        entity_type: 'matter',
+        entity_id: m.id,
+        action: 'clio_standalone_admin_matter_deleted',
+        metadata: {
+          category,
+          description,
+          reference: m.reference,
+          client_name: clientName,
+        },
+        created_by: user.id,
+      });
+
+      outcomes.push({
+        clientId: m.client_id,
+        clientName,
+        matterId: m.id,
+        matterReference: m.reference,
+        matterDescription: description,
+        category,
+        status: 'deleted',
+      });
+    }
+
+    const totalCandidates = outcomes.length;
+    const deleted = outcomes.filter((o) => o.status === 'deleted' || o.status === 'preview_delete').length;
+    const skippedHasAssessments = outcomes.filter((o) => o.status === 'skipped_has_assessments').length;
+    const errors = outcomes.filter((o) => o.status === 'error').length;
+
+    return {
+      success: true,
+      result: { dryRun, totalCandidates, deleted, skippedHasAssessments, errors, outcomes },
+    };
+  } catch (err) {
+    console.error('Error in deleteClioStandaloneAdminMatters:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }

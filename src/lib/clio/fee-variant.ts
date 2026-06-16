@@ -49,3 +49,40 @@ export function findFeeVariantMain(
   }
   return null;
 }
+
+/**
+ * Standalone-admin matter detection — Clio matters that are pure bookkeeping
+ * or admin records, not real legal matters with AML implications.
+ *
+ * Independent of any related main matter (unlike fee variants which need a
+ * prefix-relationship to be detected). Catches three patterns the user
+ * identified:
+ *
+ *   - "Retainer - <Location>"  — Clio email-folder matters per office,
+ *                                created to organise incoming emails per region
+ *   - "PAYABLE BY X"           — fee receivable from a third party
+ *   - "RECEIVABLE FROM X"      — same family, occasional variant
+ *
+ * Conservative — only matches the exact start pattern. "Annual Retainer 2026"
+ * doesn't match (doesn't start with "Retainer"); "Retainer Agreement" doesn't
+ * match (no separator). Won't false-positive on real legal matters that
+ * mention these words mid-description.
+ */
+const STANDALONE_ADMIN_PATTERN =
+  /^\s*(retainer\s*[-–—|:·]\s*\S|payable\s+by\s+\S|receivable\s+from\s+\S)/i;
+
+export function isStandaloneAdminMatter(description: string): boolean {
+  return STANDALONE_ADMIN_PATTERN.test(description ?? '');
+}
+
+/**
+ * Human-readable label for the admin category — used in skip diagnostics so
+ * the user can tell at a glance which pattern triggered the skip.
+ */
+export function classifyStandaloneAdminMatter(description: string): string | null {
+  const trimmed = (description ?? '').trim();
+  if (/^retainer\s*[-–—|:·]/i.test(trimmed)) return 'retainer_folder';
+  if (/^payable\s+by\s+/i.test(trimmed)) return 'payable_by';
+  if (/^receivable\s+from\s+/i.test(trimmed)) return 'receivable_from';
+  return null;
+}

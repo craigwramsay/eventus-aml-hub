@@ -26,6 +26,7 @@ import {
   mergeDuplicateMatterPairs,
   deleteClioFeeVariantMatters,
   runSpecificMatterCleanups,
+  deleteClioStandaloneAdminMatters,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -41,6 +42,7 @@ import type {
   MergeDuplicateMattersResult,
   DeleteFeeVariantsResult,
   SpecificMatterCleanupsResult,
+  DeleteStandaloneAdminResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -79,6 +81,7 @@ export function IntegrationCards({
   const [matterDupResult, setMatterDupResult] = useState<MergeDuplicateMattersResult | null>(null);
   const [feeVariantResult, setFeeVariantResult] = useState<DeleteFeeVariantsResult | null>(null);
   const [specificMattersResult, setSpecificMattersResult] = useState<SpecificMatterCleanupsResult | null>(null);
+  const [standaloneAdminResult, setStandaloneAdminResult] = useState<DeleteStandaloneAdminResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -356,6 +359,43 @@ export function IntegrationCards({
       if (!result.success) setError(result.error);
       else {
         setSpecificMattersResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
+  const handlePreviewStandaloneAdmin = () => {
+    setError(null);
+    setSuccess(null);
+    setStandaloneAdminResult(null);
+    startTransition(async () => {
+      const result = await deleteClioStandaloneAdminMatters({ dryRun: true });
+      if (!result.success) setError(result.error);
+      else setStandaloneAdminResult(result.result);
+    });
+  };
+
+  const handleExecuteStandaloneAdmin = () => {
+    setError(null);
+    setSuccess(null);
+    const toDelete = standaloneAdminResult?.deleted ?? 0;
+    if (!toDelete) {
+      setError('No standalone admin matters ready to delete — run Preview first.');
+      return;
+    }
+    const ok = window.confirm(
+      `Delete ${toDelete} standalone admin matter${toDelete === 1 ? '' : 's'}?\n\n` +
+        `These are Clio "Retainer - …", "PAYABLE BY …", and "RECEIVABLE FROM …" entries — ` +
+        `pure Clio bookkeeping with no AML value.\n\n` +
+        `Anything with an assessment is skipped automatically.`
+    );
+    if (!ok) return;
+    setStandaloneAdminResult(null);
+    startTransition(async () => {
+      const result = await deleteClioStandaloneAdminMatters({ dryRun: false });
+      if (!result.success) setError(result.error);
+      else {
+        setStandaloneAdminResult(result.result);
         router.refresh();
       }
     });
@@ -700,6 +740,29 @@ export function IntegrationCards({
                 <button
                   type="button"
                   className={styles.testConnectionButton}
+                  onClick={handlePreviewStandaloneAdmin}
+                  disabled={isPending}
+                  title="Find standalone admin matters (Retainer folders, PAYABLE BY, RECEIVABLE FROM) — pure Clio bookkeeping with no AML value."
+                >
+                  {isPending ? 'Scanning…' : 'Preview Admin Matters'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleExecuteStandaloneAdmin}
+                  disabled={isPending || !standaloneAdminResult || standaloneAdminResult.deleted === 0}
+                  title="Delete each (skips any with assessments)."
+                >
+                  {isPending ? 'Deleting…' : 'Delete Admin Matters'}
+                </button>
+              </div>
+              {standaloneAdminResult && <StandaloneAdminResultPanel result={standaloneAdminResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
                   onClick={handleRunSpecificMatterCleanups}
                   disabled={isPending}
                   title="One-shot: 3 user-specified matter merges (move Clio reference + clio_matter_id onto manual matter, delete source) + 1 billing-matter delete (Davvic / RIBBONWORKS)."
@@ -967,6 +1030,11 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
         {result.feeVariantSkipped > 0 &&
           ' — Clio fee/disbursement sub-matters silently skipped; main matter already in Hub'}
       </Row>
+      <Row label="Standalone admin matters skipped" ok={true}>
+        {result.standaloneAdminSkipped}
+        {result.standaloneAdminSkipped > 0 &&
+          ' — Retainer-folder / PAYABLE BY / RECEIVABLE FROM matters silently skipped'}
+      </Row>
       <Row label="Errors" ok={result.errors === 0}>
         {result.errors}
       </Row>
@@ -1002,6 +1070,9 @@ function BackfillResultPanel({ result }: { result: BackfillClioMattersResult }) 
                 )}
                 {o.status === 'fee_variant_skipped' && (
                   <>Clio fee-variant of <code>{o.feeVariantMain}</code> — skipped</>
+                )}
+                {o.status === 'standalone_admin_skipped' && (
+                  <>Standalone admin matter ({o.standaloneAdminCategory}) — skipped</>
                 )}
                 {o.status === 'error' && <>Error: {o.error}</>}
               </Row>
@@ -1479,6 +1550,51 @@ function FeeVariantResultPanel({ result }: { result: DeleteFeeVariantsResult }) 
                     Deleted (main: <code>{o.mainDescription}</code>)
                   </>
                 )}
+                {o.status === 'skipped_has_assessments' && <>{o.reason}</>}
+                {o.status === 'error' && <>Error: {o.reason}</>}
+              </Row>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+/** Result panel for deleteClioStandaloneAdminMatters. */
+function StandaloneAdminResultPanel({ result }: { result: DeleteStandaloneAdminResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Mode" ok={true}>
+        {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
+      </Row>
+      <Row label="Standalone admin matters detected" ok={true}>
+        {result.totalCandidates}
+      </Row>
+      <Row label={result.dryRun ? 'Ready to delete' : 'Deleted'} ok={true}>
+        {result.deleted}
+      </Row>
+      <Row label="Skipped — has assessments" ok={result.skippedHasAssessments === 0}>
+        {result.skippedHasAssessments}
+      </Row>
+      <Row label="Errors" ok={result.errors === 0}>
+        {result.errors}
+      </Row>
+      {result.outcomes.length > 0 && (
+        <details className={styles.connectionTestDetails} open>
+          <summary>Per-matter outcomes ({result.outcomes.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.outcomes.map((o) => (
+              <Row
+                key={o.matterId}
+                label={`${o.clientName} — ${o.matterDescription}`}
+                ok={o.status === 'deleted' || o.status === 'preview_delete'}
+              >
+                <span style={{ marginRight: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  [{o.category}]
+                </span>
+                {o.status === 'preview_delete' && 'Would delete'}
+                {o.status === 'deleted' && 'Deleted'}
                 {o.status === 'skipped_has_assessments' && <>{o.reason}</>}
                 {o.status === 'error' && <>Error: {o.reason}</>}
               </Row>
