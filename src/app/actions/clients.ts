@@ -7,7 +7,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { Client, Matter } from '@/lib/supabase/types';
-import { canDeleteEntities } from '@/lib/auth/roles';
+import { canDeleteEntities, canCreateAssessment } from '@/lib/auth/roles';
 import type { UserRole } from '@/lib/auth/roles';
 import {
   lookupCompany,
@@ -699,6 +699,133 @@ export async function renameClient(
     return { success: true, oldName, newName: trimmed };
   } catch (err) {
     console.error('Error in renameClient:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Update client details (everything except name, which uses renameClient).
+ *
+ * Designed for filling in fields that Clio doesn't provide on auto-import —
+ * specific entity_type (Clio only gives generic "corporate"/"individual"),
+ * sector, registered_number, registered_address, trading_address,
+ * aml_regulated. Without these, assessments on Clio-imported corporate
+ * clients can't pre-populate properly.
+ *
+ * RBAC: same as creating an assessment — solicitor and above. Updating these
+ * fields is part of the assessment workflow, so anyone who can run
+ * assessments needs to be able to set them.
+ */
+export interface UpdateClientInput {
+  entity_type?: string;
+  sector?: string;
+  registered_number?: string | null;
+  registered_address?: string | null;
+  trading_address?: string | null;
+  aml_regulated?: boolean | null;
+}
+
+export type UpdateClientResult =
+  | { success: true; client: Client }
+  | { success: false; error: string };
+
+export async function updateClientAction(
+  clientId: string,
+  input: UpdateClientInput
+): Promise<UpdateClientResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'User profile not found' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit editing client details' };
+    }
+
+    // Fetch + firm-ownership check
+    const { data: client, error: fetchErr } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', clientId)
+      .single();
+    if (fetchErr || !client) {
+      return { success: false, error: 'Client not found or access denied' };
+    }
+    if (client.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Client does not belong to your firm' };
+    }
+
+    // Build update payload — only include explicitly-supplied keys
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const changedFields: string[] = [];
+    let derivedClientType: 'individual' | 'corporate' | undefined;
+    if (input.entity_type !== undefined) {
+      const newEntityType = input.entity_type.trim();
+      if (!newEntityType) {
+        return { success: false, error: 'Entity type cannot be empty' };
+      }
+      updates.entity_type = newEntityType;
+      // Keep client_type in sync — same derivation as createClientAction
+      derivedClientType =
+        newEntityType.toLowerCase() === 'individual' ? 'individual' : 'corporate';
+      updates.client_type = derivedClientType;
+      changedFields.push('entity_type');
+    }
+    if (input.sector !== undefined) {
+      const newSector = input.sector.trim();
+      if (newSector) {
+        updates.sector = newSector;
+        changedFields.push('sector');
+      }
+    }
+    if (input.registered_number !== undefined) {
+      updates.registered_number = input.registered_number?.trim() || null;
+      changedFields.push('registered_number');
+    }
+    if (input.registered_address !== undefined) {
+      updates.registered_address = input.registered_address?.trim() || null;
+      changedFields.push('registered_address');
+    }
+    if (input.trading_address !== undefined) {
+      updates.trading_address = input.trading_address?.trim() || null;
+      changedFields.push('trading_address');
+    }
+    if (input.aml_regulated !== undefined) {
+      updates.aml_regulated = input.aml_regulated;
+      changedFields.push('aml_regulated');
+    }
+
+    if (changedFields.length === 0) {
+      return { success: true, client: client as Client };
+    }
+
+    const { data: updated, error: updateErr } = await supabase
+      .from('clients')
+      .update(updates)
+      .eq('id', clientId)
+      .select()
+      .single();
+    if (updateErr || !updated) {
+      console.error('Failed to update client:', updateErr);
+      return { success: false, error: 'Failed to update client' };
+    }
+
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'client',
+      entity_id: clientId,
+      action: 'client_details_updated',
+      metadata: { changed_fields: changedFields },
+      created_by: user.id,
+    });
+
+    return { success: true, client: updated as Client };
+  } catch (err) {
+    console.error('Error in updateClientAction:', err);
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
