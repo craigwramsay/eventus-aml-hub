@@ -25,6 +25,7 @@ import {
   cleanupPostBackfillDebris,
   mergeDuplicateMatterPairs,
   deleteClioFeeVariantMatters,
+  runSpecificMatterCleanups,
 } from '@/app/actions/integrations';
 import type {
   TestAmiqusConnectionResult,
@@ -39,6 +40,7 @@ import type {
   CleanupDebrisResult,
   MergeDuplicateMattersResult,
   DeleteFeeVariantsResult,
+  SpecificMatterCleanupsResult,
 } from '@/app/actions/integrations';
 import type { IntegrationProvider } from '@/lib/supabase/types';
 import styles from './page.module.css';
@@ -76,6 +78,7 @@ export function IntegrationCards({
   const [debrisResult, setDebrisResult] = useState<CleanupDebrisResult | null>(null);
   const [matterDupResult, setMatterDupResult] = useState<MergeDuplicateMattersResult | null>(null);
   const [feeVariantResult, setFeeVariantResult] = useState<DeleteFeeVariantsResult | null>(null);
+  const [specificMattersResult, setSpecificMattersResult] = useState<SpecificMatterCleanupsResult | null>(null);
 
   const handleDisconnect = () => {
     setError(null);
@@ -328,6 +331,31 @@ export function IntegrationCards({
       if (!result.success) setError(result.error);
       else {
         setMatterDupResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
+  const handleRunSpecificMatterCleanups = () => {
+    setError(null);
+    setSuccess(null);
+    const ok = window.confirm(
+      'Run specific matter cleanups?\n\n' +
+        'MERGE (move clio_matter_id + reference onto manual, delete source):\n' +
+        '  • Trident Maintenance Services Ltd → keep matter a71c4d56…\n' +
+        '  • Hugh McNally → keep matter 4be2488e…\n' +
+        '  • Curtainwise (Scotland) Ltd. → keep matter 4e531032…\n\n' +
+        'DELETE (Clio billing matter, no AML value):\n' +
+        '  • Davvic Limited — "PAYABLE BY RIBBONWORKS LTD (SC253506)"\n\n' +
+        'Each case skipped if the source has any assessments.'
+    );
+    if (!ok) return;
+    setSpecificMattersResult(null);
+    startTransition(async () => {
+      const result = await runSpecificMatterCleanups();
+      if (!result.success) setError(result.error);
+      else {
+        setSpecificMattersResult(result.result);
         router.refresh();
       }
     });
@@ -666,6 +694,20 @@ export function IntegrationCards({
                 </button>
               </div>
               {feeVariantResult && <FeeVariantResultPanel result={feeVariantResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleRunSpecificMatterCleanups}
+                  disabled={isPending}
+                  title="One-shot: 3 user-specified matter merges (move Clio reference + clio_matter_id onto manual matter, delete source) + 1 billing-matter delete (Davvic / RIBBONWORKS)."
+                >
+                  {isPending ? 'Running…' : 'Run Specific Matter Cleanups'}
+                </button>
+              </div>
+              {specificMattersResult && <SpecificMattersResultPanel result={specificMattersResult} />}
             </div>
           </>
         ) : (
@@ -1444,6 +1486,53 @@ function FeeVariantResultPanel({ result }: { result: DeleteFeeVariantsResult }) 
           </div>
         </details>
       )}
+    </div>
+  );
+}
+
+/** Result panel for runSpecificMatterCleanups (one-shot matter cleanups). */
+function SpecificMattersResultPanel({ result }: { result: SpecificMatterCleanupsResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      {result.outcomes.map((o, i) => (
+        <details
+          key={`${o.caseName}-${i}`}
+          className={styles.connectionTestDetails}
+          open
+        >
+          <summary>
+            {o.caseName} —{' '}
+            {o.status === 'done' && '✓ Done'}
+            {o.status === 'nothing_to_do' && '— Nothing to do'}
+            {o.status === 'skipped' && '⚠ Skipped'}
+            {o.status === 'error' && '✗ Error'}
+          </summary>
+          <div className={styles.connectionTestResult}>
+            <Row label="Type" ok={true}>
+              {o.caseType === 'merge_with_clio_ref'
+                ? 'Merge (adopt Clio reference + clio_matter_id)'
+                : 'Delete Clio billing matter'}
+            </Row>
+            <Row label="Status" ok={o.status === 'done' || o.status === 'nothing_to_do'}>
+              {o.status}
+            </Row>
+            {o.reason && (
+              <Row label="Reason" ok={o.status === 'done' || o.status === 'nothing_to_do'}>
+                {o.reason}
+              </Row>
+            )}
+            {o.steps && o.steps.length > 0 && (
+              <Row label="Steps" ok={true}>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                  {o.steps.map((step, j) => (
+                    <li key={j}>{step}</li>
+                  ))}
+                </ol>
+              </Row>
+            )}
+          </div>
+        </details>
+      ))}
     </div>
   );
 }

@@ -3510,3 +3510,310 @@ export async function deleteClioFeeVariantMatters(
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
+/**
+ * One-shot cleanups for matters the user identified manually that the
+ * automated tools didn't catch.
+ *
+ * Three "absorb Clio side onto manual" merges where the user specified the
+ * keep-matter ID (assessment-bearing) and the source's Clio-format reference.
+ * The source matter's clio_matter_id AND reference both move onto the keep
+ * matter, then the source is deleted. Different from
+ * mergeDuplicateMatterPairs in that it ALSO migrates the reference.
+ *
+ * Plus one "delete Clio billing matter" — a standalone Clio matter created
+ * for fee receivable tracking (e.g. "PAYABLE BY RIBBONWORKS LTD (SC253506)").
+ * Fee-variant detector misses these because they don't share a prefix with a
+ * main matter; they're entirely standalone Clio entries.
+ *
+ * Each case is preconditioned. If state doesn't match, the case is skipped —
+ * safe to re-run; becomes a no-op once everything's done.
+ */
+const SPECIFIC_MATTER_MERGES: Array<{
+  caseName: string;
+  keepMatterId: string;
+  sourceClioReference: string;
+}> = [
+  {
+    caseName: 'Trident Maintenance Services Ltd',
+    keepMatterId: 'a71c4d56-98af-428d-8fb3-9bf6561ccc0b',
+    sourceClioReference:
+      'Documenting the share buy backs by Trident Maintenance Services Limited from (i) Grahame Craigs; and (ii) Helen Craigs-00024',
+  },
+  {
+    caseName: 'Hugh McNally',
+    keepMatterId: '4be2488e-bc89-460c-aaeb-1786bc762a9d',
+    sourceClioReference: 'Advice in respect of loan to Leonard Steel-00026',
+  },
+  {
+    caseName: 'Curtainwise (Scotland) Ltd.',
+    keepMatterId: '4e531032-6e83-4ede-8c69-0e1edf6d6d72',
+    sourceClioReference: 'VIMBO of Curtainwise (Scotland) Limited-00044',
+  },
+];
+
+const SPECIFIC_MATTER_DELETES: Array<{
+  caseName: string;
+  clientName: string;
+  matterDescription: string;
+}> = [
+  {
+    caseName: 'Davvic Limited — PAYABLE BY RIBBONWORKS LTD',
+    clientName: 'Davvic Limited',
+    matterDescription: 'PAYABLE BY RIBBONWORKS LTD (SC253506)',
+  },
+];
+
+export interface SpecificMatterCleanupOutcome {
+  caseName: string;
+  caseType: 'merge_with_clio_ref' | 'delete_billing_matter';
+  status: 'done' | 'nothing_to_do' | 'skipped' | 'error';
+  reason?: string;
+  steps?: string[];
+}
+
+export interface SpecificMatterCleanupsResult {
+  outcomes: SpecificMatterCleanupOutcome[];
+}
+
+async function executeMatterMergeWithClioRef(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string,
+  spec: { caseName: string; keepMatterId: string; sourceClioReference: string }
+): Promise<SpecificMatterCleanupOutcome> {
+  const steps: string[] = [];
+  const caseType: 'merge_with_clio_ref' = 'merge_with_clio_ref';
+
+  // Find the keep matter
+  const { data: keepMatter } = await supabase
+    .from('matters')
+    .select('id, firm_id, client_id, reference, clio_matter_id')
+    .eq('id', spec.keepMatterId)
+    .maybeSingle();
+  if (!keepMatter) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'nothing_to_do',
+      reason: 'Keep matter not found — already merged?',
+    };
+  }
+  const keep = keepMatter as {
+    id: string;
+    firm_id: string;
+    client_id: string;
+    reference: string;
+    clio_matter_id: string | null;
+  };
+  if (keep.firm_id !== firmId) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: 'Keep matter not in your firm' };
+  }
+  if (keep.reference === spec.sourceClioReference && keep.clio_matter_id) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'nothing_to_do',
+      reason: 'Keep matter already has the Clio reference + link',
+    };
+  }
+
+  // Find the source matter by reference under the same client
+  const { data: sourceMatter } = await supabase
+    .from('matters')
+    .select('id, firm_id, client_id, reference, clio_matter_id')
+    .eq('firm_id', firmId)
+    .eq('client_id', keep.client_id)
+    .eq('reference', spec.sourceClioReference)
+    .maybeSingle();
+  if (!sourceMatter) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'nothing_to_do',
+      reason: 'Source Clio matter not found under same client — already merged?',
+    };
+  }
+  const source = sourceMatter as {
+    id: string;
+    firm_id: string;
+    client_id: string;
+    reference: string;
+    clio_matter_id: string | null;
+  };
+  if (!source.clio_matter_id) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'skipped',
+      reason: 'Source matter has no clio_matter_id — nothing to migrate',
+    };
+  }
+  if (source.id === keep.id) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: 'Source and keep are the same matter' };
+  }
+
+  // Safety: no assessments on source
+  const { count: sourceAssessmentCount } = await supabase
+    .from('assessments')
+    .select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId)
+    .eq('matter_id', source.id);
+  if ((sourceAssessmentCount ?? 0) > 0) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'skipped',
+      reason: `${sourceAssessmentCount} assessment(s) on source matter — manual review needed`,
+    };
+  }
+
+  const adoptedClioMatterId = source.clio_matter_id;
+  const adoptedReference = source.reference;
+
+  // Step 1: NULL clio_matter_id on source (release unique index)
+  const { error: e1 } = await supabase
+    .from('matters')
+    .update({ clio_matter_id: null })
+    .eq('id', source.id);
+  if (e1) return { caseName: spec.caseName, caseType, status: 'error', reason: `Free source clio_matter_id: ${e1.message}`, steps };
+  steps.push('Released clio_matter_id from source matter');
+
+  // Step 2: SET clio_matter_id + reference on keep
+  const { error: e2 } = await supabase
+    .from('matters')
+    .update({ clio_matter_id: adoptedClioMatterId, reference: adoptedReference })
+    .eq('id', keep.id);
+  if (e2) return { caseName: spec.caseName, caseType, status: 'error', reason: `Update keep matter: ${e2.message}`, steps };
+  steps.push(`Set clio_matter_id=${adoptedClioMatterId} and reference="${adoptedReference}" on keep matter`);
+
+  // Step 3: repoint audit events from source to keep
+  await supabase
+    .from('audit_events')
+    .update({ entity_id: keep.id })
+    .eq('firm_id', firmId)
+    .eq('entity_type', 'matter')
+    .eq('entity_id', source.id);
+
+  // Step 4: delete source
+  const { error: e4 } = await supabase.from('matters').delete().eq('id', source.id);
+  if (e4) return { caseName: spec.caseName, caseType, status: 'error', reason: `Delete source matter: ${e4.message}`, steps };
+  steps.push('Deleted source matter');
+
+  await supabase.from('audit_events').insert({
+    firm_id: firmId,
+    entity_type: 'matter',
+    entity_id: keep.id,
+    action: 'specific_matter_merge_with_clio_ref',
+    metadata: {
+      kept_matter_id: keep.id,
+      deleted_source_matter_id: source.id,
+      adopted_clio_matter_id: adoptedClioMatterId,
+      adopted_reference: adoptedReference,
+    },
+    created_by: userId,
+  });
+
+  return { caseName: spec.caseName, caseType, status: 'done', steps };
+}
+
+async function executeBillingMatterDelete(
+  supabase: SupabaseInst,
+  firmId: string,
+  userId: string,
+  spec: { caseName: string; clientName: string; matterDescription: string }
+): Promise<SpecificMatterCleanupOutcome> {
+  const steps: string[] = [];
+  const caseType: 'delete_billing_matter' = 'delete_billing_matter';
+
+  const { data: clients } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('name', spec.clientName);
+  const clientIds = ((clients || []) as { id: string }[]).map((c) => c.id);
+  if (clientIds.length === 0) {
+    return { caseName: spec.caseName, caseType, status: 'nothing_to_do', reason: 'Client not found' };
+  }
+
+  const { data: matters } = await supabase
+    .from('matters')
+    .select('id, reference')
+    .eq('firm_id', firmId)
+    .in('client_id', clientIds)
+    .eq('description', spec.matterDescription);
+  const matterRows = (matters || []) as { id: string; reference: string }[];
+  if (matterRows.length === 0) {
+    return { caseName: spec.caseName, caseType, status: 'nothing_to_do', reason: 'Matter not found — already deleted?' };
+  }
+  if (matterRows.length > 1) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'skipped',
+      reason: `Found ${matterRows.length} matters with this description — ambiguous`,
+    };
+  }
+  const target = matterRows[0];
+
+  const { count: assessmentCount } = await supabase
+    .from('assessments')
+    .select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId)
+    .eq('matter_id', target.id);
+  if ((assessmentCount ?? 0) > 0) {
+    return {
+      caseName: spec.caseName,
+      caseType,
+      status: 'skipped',
+      reason: `${assessmentCount} assessment(s) on this matter — manual review needed`,
+    };
+  }
+
+  const { error: deleteErr } = await supabase.from('matters').delete().eq('id', target.id);
+  if (deleteErr) {
+    return { caseName: spec.caseName, caseType, status: 'error', reason: `Delete failed: ${deleteErr.message}` };
+  }
+  steps.push(`Deleted matter "${spec.matterDescription}" (${target.reference})`);
+
+  await supabase.from('audit_events').insert({
+    firm_id: firmId,
+    entity_type: 'matter',
+    entity_id: target.id,
+    action: 'specific_billing_matter_deleted',
+    metadata: {
+      client_name: spec.clientName,
+      matter_description: spec.matterDescription,
+      matter_reference: target.reference,
+    },
+    created_by: userId,
+  });
+
+  return { caseName: spec.caseName, caseType, status: 'done', steps };
+}
+
+export async function runSpecificMatterCleanups(): Promise<
+  { success: true; result: SpecificMatterCleanupsResult } | { success: false; error: string }
+> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) return { success: false, error: error || 'Not authenticated' };
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const outcomes: SpecificMatterCleanupOutcome[] = [];
+
+    for (const spec of SPECIFIC_MATTER_MERGES) {
+      outcomes.push(await executeMatterMergeWithClioRef(supabase, profile.firm_id, user.id, spec));
+    }
+    for (const spec of SPECIFIC_MATTER_DELETES) {
+      outcomes.push(await executeBillingMatterDelete(supabase, profile.firm_id, user.id, spec));
+    }
+
+    return { success: true, result: { outcomes } };
+  } catch (err) {
+    console.error('Error in runSpecificMatterCleanups:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
