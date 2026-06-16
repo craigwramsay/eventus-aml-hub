@@ -1509,9 +1509,9 @@ function SpecificMattersResultPanel({ result }: { result: SpecificMatterCleanups
           </summary>
           <div className={styles.connectionTestResult}>
             <Row label="Type" ok={true}>
-              {o.caseType === 'merge_with_clio_ref'
-                ? 'Merge (adopt Clio reference + clio_matter_id)'
-                : 'Delete Clio billing matter'}
+              {o.caseType === 'merge_with_clio_ref' && 'Merge (adopt Clio reference + clio_matter_id)'}
+              {o.caseType === 'delete_billing_matter' && 'Delete Clio billing matter'}
+              {o.caseType === 'import_and_merge' && 'Re-import Clio matter + merge onto existing'}
             </Row>
             <Row label="Status" ok={o.status === 'done' || o.status === 'nothing_to_do'}>
               {o.status}
