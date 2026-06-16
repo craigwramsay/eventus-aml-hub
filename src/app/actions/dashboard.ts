@@ -60,6 +60,50 @@ export interface AssessmentStaleWarning {
   matterReference: string;
 }
 
+/**
+ * A single matter that needs action — exactly one of four categories:
+ *   - no_assessment: matter is open but no finalised risk assessment yet
+ *   - no_cdd: assessment is finalised but the client has no recorded CDD
+ *   - cdd_expiring: assessment + CDD done, CDD is within 60 days of risk-based expiry
+ *   - cdd_expired: assessment + CDD done, CDD has lapsed past the risk-based expiry
+ *     (or the 24-month universal longstop)
+ *
+ * Matters with finalised assessment AND a current CDD that isn't expiring don't
+ * appear at all — no action required.
+ */
+export type MatterActionCategory =
+  | 'no_assessment'
+  | 'no_cdd'
+  | 'cdd_expiring'
+  | 'cdd_expired';
+
+export interface MatterActionItem {
+  matterId: string;
+  matterReference: string;
+  matterDescription: string | null;
+  matterCreatedAt: string;
+  clientId: string;
+  clientName: string;
+  /** Null when there's no finalised assessment yet (no_assessment category). */
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  category: MatterActionCategory;
+  /** For cdd_expiring + cdd_expired: ISO timestamp at which CDD lapses. */
+  cddExpiresAt: string | null;
+  /** For cdd_expiring: positive number of days until expiry. */
+  daysUntilExpiry: number | null;
+  /** For cdd_expired: positive number of days since expiry. */
+  daysSinceExpiry: number | null;
+  /** Source of truth for whose CDD is at issue. */
+  lastCddVerifiedAt: string | null;
+}
+
+export interface MatterActionItemsResult {
+  noAssessment: MatterActionItem[];
+  noCdd: MatterActionItem[];
+  cddExpiring: MatterActionItem[];
+  cddExpired: MatterActionItem[];
+}
+
 // ── Helpers ────────────────────────────────────────────────────────
 
 function isSolicitor(role: UserRole): boolean {
@@ -544,4 +588,178 @@ export async function getAssessmentStaleWarnings(
   });
 
   return warnings;
+}
+
+/**
+ * Per-open-matter action-required snapshot for the dashboard.
+ *
+ * Each open matter is classified into EXACTLY ONE of four categories:
+ *   1. no_assessment    — no finalised assessment yet
+ *   2. no_cdd           — assessment finalised, but client has no last_cdd_verified_at
+ *   3. cdd_expiring     — assessment + CDD done; CDD within EXPIRY_WINDOW_DAYS of risk-based expiry
+ *   4. cdd_expired      — assessment + CDD done; CDD past expiry (risk-based OR universal longstop)
+ *
+ * Matters with finalised assessment + current CDD that isn't expiring don't appear at all.
+ *
+ * Closed matters are ignored. Each matter contributes one row to one category
+ * (the same client can appear multiple times if they have multiple open matters
+ * at different stages).
+ */
+const CDD_EXPIRING_WINDOW_DAYS = 60;
+
+export async function getMatterActionItems(
+  firmId: string
+): Promise<MatterActionItemsResult> {
+  const supabase = await createClient();
+  const stalenessConfig = getCddStalenessConfig();
+  const longstopMonths = stalenessConfig.universalLongstopMonths ?? 24;
+
+  // All open matters in the firm with their client
+  const { data: matters } = await supabase
+    .from('matters')
+    .select(
+      'id, reference, description, client_id, created_at, clients!matters_client_id_fkey(id, name, last_cdd_verified_at)'
+    )
+    .eq('firm_id', firmId)
+    .eq('status', 'open');
+
+  type MatterRow = {
+    id: string;
+    reference: string;
+    description: string | null;
+    client_id: string;
+    created_at: string;
+    clients:
+      | { id: string; name: string; last_cdd_verified_at: string | null }
+      | { id: string; name: string; last_cdd_verified_at: string | null }[]
+      | null;
+  };
+  const matterRows = (matters || []) as MatterRow[];
+  if (matterRows.length === 0) {
+    return { noAssessment: [], noCdd: [], cddExpiring: [], cddExpired: [] };
+  }
+
+  // Latest finalised assessment per matter
+  const matterIds = matterRows.map((m) => m.id);
+  const { data: assessments } = await supabase
+    .from('assessments')
+    .select('id, matter_id, risk_level, finalised_at')
+    .in('matter_id', matterIds)
+    .not('finalised_at', 'is', null)
+    .order('finalised_at', { ascending: false });
+
+  type AssessmentRow = {
+    id: string;
+    matter_id: string;
+    risk_level: 'LOW' | 'MEDIUM' | 'HIGH';
+    finalised_at: string | null;
+  };
+  const latestAssessmentByMatter = new Map<
+    string,
+    { riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'; finalisedAt: string }
+  >();
+  for (const a of (assessments || []) as AssessmentRow[]) {
+    if (!latestAssessmentByMatter.has(a.matter_id) && a.finalised_at) {
+      latestAssessmentByMatter.set(a.matter_id, {
+        riskLevel: a.risk_level,
+        finalisedAt: a.finalised_at,
+      });
+    }
+  }
+
+  const now = new Date();
+  const result: MatterActionItemsResult = {
+    noAssessment: [],
+    noCdd: [],
+    cddExpiring: [],
+    cddExpired: [],
+  };
+
+  for (const m of matterRows) {
+    const client = Array.isArray(m.clients) ? m.clients[0] : m.clients;
+    if (!client) continue;
+
+    const base = {
+      matterId: m.id,
+      matterReference: m.reference,
+      matterDescription: m.description,
+      matterCreatedAt: m.created_at,
+      clientId: client.id,
+      clientName: client.name,
+      lastCddVerifiedAt: client.last_cdd_verified_at,
+      cddExpiresAt: null as string | null,
+      daysUntilExpiry: null as number | null,
+      daysSinceExpiry: null as number | null,
+    };
+
+    const assessment = latestAssessmentByMatter.get(m.id);
+
+    // 1. No finalised assessment yet
+    if (!assessment) {
+      result.noAssessment.push({
+        ...base,
+        riskLevel: null,
+        category: 'no_assessment',
+      });
+      continue;
+    }
+
+    // 2. Has assessment but client has no CDD verification yet
+    if (!client.last_cdd_verified_at) {
+      result.noCdd.push({
+        ...base,
+        riskLevel: assessment.riskLevel,
+        category: 'no_cdd',
+      });
+      continue;
+    }
+
+    // 3/4. Compute expiry from risk-based threshold + universal longstop
+    const threshold = stalenessConfig.thresholds[assessment.riskLevel];
+    if (!threshold) continue; // misconfig — skip
+    const verifiedAt = new Date(client.last_cdd_verified_at);
+    const riskExpiresAt = new Date(verifiedAt);
+    riskExpiresAt.setMonth(riskExpiresAt.getMonth() + threshold.months);
+    const longstopExpiresAt = new Date(verifiedAt);
+    longstopExpiresAt.setMonth(longstopExpiresAt.getMonth() + longstopMonths);
+    const effectiveExpiresAt =
+      riskExpiresAt < longstopExpiresAt ? riskExpiresAt : longstopExpiresAt;
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysFromNow = Math.ceil(
+      (effectiveExpiresAt.getTime() - now.getTime()) / msPerDay
+    );
+
+    if (daysFromNow <= 0) {
+      result.cddExpired.push({
+        ...base,
+        riskLevel: assessment.riskLevel,
+        category: 'cdd_expired',
+        cddExpiresAt: effectiveExpiresAt.toISOString(),
+        daysSinceExpiry: Math.abs(daysFromNow),
+      });
+    } else if (daysFromNow <= CDD_EXPIRING_WINDOW_DAYS) {
+      result.cddExpiring.push({
+        ...base,
+        riskLevel: assessment.riskLevel,
+        category: 'cdd_expiring',
+        cddExpiresAt: effectiveExpiresAt.toISOString(),
+        daysUntilExpiry: daysFromNow,
+      });
+    }
+    // else: CDD current, not expiring — no entry
+  }
+
+  // Stable sort per category for UI determinism
+  result.noAssessment.sort(
+    (a, b) => new Date(a.matterCreatedAt).getTime() - new Date(b.matterCreatedAt).getTime()
+  );
+  result.noCdd.sort(
+    (a, b) => new Date(a.matterCreatedAt).getTime() - new Date(b.matterCreatedAt).getTime()
+  );
+  // Expiring: soonest expiry first
+  result.cddExpiring.sort((a, b) => (a.daysUntilExpiry ?? 0) - (b.daysUntilExpiry ?? 0));
+  // Expired: most overdue first
+  result.cddExpired.sort((a, b) => (b.daysSinceExpiry ?? 0) - (a.daysSinceExpiry ?? 0));
+
+  return result;
 }

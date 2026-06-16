@@ -1,10 +1,15 @@
-import type { DashboardData, ActivityFeedItem, CddExpiryWarning, AssessmentStaleWarning } from '@/app/actions/dashboard';
+import type {
+  DashboardData,
+  ActivityFeedItem,
+  AssessmentStaleWarning,
+  MatterActionItemsResult,
+} from '@/app/actions/dashboard';
 import type { MlroApprovalRequest } from '@/lib/supabase/types';
 import { StatCard } from './StatCard';
 import { RiskDistribution } from './RiskDistribution';
 import { ActivityFeed } from './ActivityFeed';
 import { PendingApprovals } from './PendingApprovals';
-import { CddExpiryWarnings } from './CddExpiryWarnings';
+import { MatterActionItems } from './MatterActionItems';
 import { AssessmentStaleWarnings } from './AssessmentStaleWarnings';
 import styles from '../page.module.css';
 
@@ -19,7 +24,7 @@ interface MlroDashboardProps {
   data: DashboardData;
   activity: ActivityFeedItem[];
   approvals: EnrichedApproval[];
-  cddWarnings: CddExpiryWarning[];
+  matterActions: MatterActionItemsResult;
   assessmentStaleWarnings: AssessmentStaleWarning[];
 }
 
@@ -28,7 +33,7 @@ export function MlroDashboard({
   data,
   activity,
   approvals,
-  cddWarnings,
+  matterActions,
   assessmentStaleWarnings,
 }: MlroDashboardProps) {
   return (
@@ -62,10 +67,9 @@ export function MlroDashboard({
         high={data.assessmentsByRisk.HIGH}
       />
 
-      <div className={styles.twoColumn}>
-        <PendingApprovals approvals={approvals} />
-        <CddExpiryWarnings warnings={cddWarnings} />
-      </div>
+      <PendingApprovals approvals={approvals} />
+
+      <MatterActionItems data={matterActions} />
 
       <AssessmentStaleWarnings warnings={assessmentStaleWarnings} />
 

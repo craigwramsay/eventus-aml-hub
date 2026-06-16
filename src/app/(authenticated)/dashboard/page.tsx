@@ -9,7 +9,12 @@ import { createClient } from '@/lib/supabase/server';
 import { canDecideApproval } from '@/lib/auth/roles';
 import type { UserRole } from '@/lib/auth/roles';
 import { getPendingApprovals } from '@/app/actions/approvals';
-import { getDashboardData, getActivityFeed, getCddExpiryWarnings, getAssessmentStaleWarnings } from '@/app/actions/dashboard';
+import {
+  getDashboardData,
+  getActivityFeed,
+  getAssessmentStaleWarnings,
+  getMatterActionItems,
+} from '@/app/actions/dashboard';
 import { SolicitorDashboard } from './components/SolicitorDashboard';
 import { MlroDashboard } from './components/MlroDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -69,9 +74,9 @@ export default async function DashboardPage() {
 
   // MLRO / platform_admin layout
   if (role === 'mlro' || role === 'platform_admin') {
-    const [pendingResult, cddWarnings, staleWarnings] = await Promise.all([
+    const [pendingResult, matterActions, staleWarnings] = await Promise.all([
       getPendingApprovals(),
-      getCddExpiryWarnings(firmId),
+      getMatterActionItems(firmId),
       getAssessmentStaleWarnings(firmId),
     ]);
     const approvals = pendingResult.success ? pendingResult.approvals : [];
@@ -82,7 +87,7 @@ export default async function DashboardPage() {
         data={data}
         activity={activity}
         approvals={approvals}
-        cddWarnings={cddWarnings}
+        matterActions={matterActions}
         assessmentStaleWarnings={staleWarnings}
       />
     );
