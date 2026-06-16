@@ -24,6 +24,7 @@ import {
   rollbackLastBackfill,
   cleanupPostBackfillDebris,
   mergeDuplicateMatterPairs,
+  retroactivelyEnrichClioImportedClients,
   deleteClioFeeVariantMatters,
   runSpecificMatterCleanups,
   deleteClioStandaloneAdminMatters,
@@ -40,6 +41,7 @@ import type {
   RollbackBackfillResult,
   CleanupDebrisResult,
   MergeDuplicateMattersResult,
+  RetroEnrichClientsResult,
   DeleteFeeVariantsResult,
   SpecificMatterCleanupsResult,
   DeleteStandaloneAdminResult,
@@ -79,6 +81,7 @@ export function IntegrationCards({
   const [rollbackSince, setRollbackSince] = useState('');
   const [debrisResult, setDebrisResult] = useState<CleanupDebrisResult | null>(null);
   const [matterDupResult, setMatterDupResult] = useState<MergeDuplicateMattersResult | null>(null);
+  const [retroEnrichResult, setRetroEnrichResult] = useState<RetroEnrichClientsResult | null>(null);
   const [feeVariantResult, setFeeVariantResult] = useState<DeleteFeeVariantsResult | null>(null);
   const [specificMattersResult, setSpecificMattersResult] = useState<SpecificMatterCleanupsResult | null>(null);
   const [standaloneAdminResult, setStandaloneAdminResult] = useState<DeleteStandaloneAdminResult | null>(null);
@@ -334,6 +337,46 @@ export function IntegrationCards({
       if (!result.success) setError(result.error);
       else {
         setMatterDupResult(result.result);
+        router.refresh();
+      }
+    });
+  };
+
+  const handlePreviewRetroEnrich = () => {
+    setError(null);
+    setSuccess(null);
+    setRetroEnrichResult(null);
+    startTransition(async () => {
+      const result = await retroactivelyEnrichClioImportedClients({ dryRun: true });
+      if (!result.success) setError(result.error);
+      else setRetroEnrichResult(result.result);
+    });
+  };
+
+  const handleExecuteRetroEnrich = () => {
+    setError(null);
+    setSuccess(null);
+    const willUpdate =
+      (retroEnrichResult?.entityTypeUpdated ?? 0) +
+      (retroEnrichResult?.chPopulated ?? 0);
+    if (!retroEnrichResult || willUpdate === 0) {
+      setError('Run Preview first — nothing to enrich.');
+      return;
+    }
+    const ok = window.confirm(
+      `Retroactively enrich Clio-imported clients?\n\n` +
+        `  • Entity-type promotions: ${retroEnrichResult.entityTypeUpdated}\n` +
+        `  • Companies House populations: ${retroEnrichResult.chPopulated}\n\n` +
+        `Only touches fields that are currently blank or generic. ` +
+        `Won't overwrite values you've explicitly set.`
+    );
+    if (!ok) return;
+    setRetroEnrichResult(null);
+    startTransition(async () => {
+      const result = await retroactivelyEnrichClioImportedClients({ dryRun: false });
+      if (!result.success) setError(result.error);
+      else {
+        setRetroEnrichResult(result.result);
         router.refresh();
       }
     });
@@ -711,6 +754,33 @@ export function IntegrationCards({
                 </button>
               </div>
               {matterDupResult && <MatterDuplicateResultPanel result={matterDupResult} />}
+            </div>
+            <div className={styles.connectionTestBlock}>
+              <div className={styles.connectionTestRow}>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handlePreviewRetroEnrich}
+                  disabled={isPending}
+                  title="Promote generic entity_type ('individual'/'corporate') to specific defaults + auto-populate registered_number/address via Companies House. Preview only — no changes."
+                >
+                  {isPending ? 'Scanning…' : 'Preview Enrich Clio Clients'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.testConnectionButton}
+                  onClick={handleExecuteRetroEnrich}
+                  disabled={
+                    isPending ||
+                    !retroEnrichResult ||
+                    (retroEnrichResult.entityTypeUpdated + retroEnrichResult.chPopulated) === 0
+                  }
+                  title="Apply the entity_type promotions + Companies House populations the preview identified."
+                >
+                  {isPending ? 'Enriching…' : 'Enrich Clio Clients'}
+                </button>
+              </div>
+              {retroEnrichResult && <RetroEnrichResultPanel result={retroEnrichResult} />}
             </div>
             <div className={styles.connectionTestBlock}>
               <div className={styles.connectionTestRow}>
@@ -1453,6 +1523,74 @@ function DebrisCleanupResultPanel({ result }: { result: CleanupDebrisResult }) {
 }
 
 /** Result panel for mergeDuplicateMatterPairs. */
+/** Result panel for retroactivelyEnrichClioImportedClients. */
+function RetroEnrichResultPanel({ result }: { result: RetroEnrichClientsResult }) {
+  return (
+    <div className={styles.connectionTestResult}>
+      <Row label="Mode" ok={true}>
+        {result.dryRun ? 'Preview (no changes made)' : 'Executed'}
+      </Row>
+      <Row label="Clio-linked clients scanned" ok={true}>
+        {result.totalClioLinked}
+      </Row>
+      <Row label={result.dryRun ? 'Entity type would update' : 'Entity type updated'} ok={true}>
+        {result.entityTypeUpdated}
+      </Row>
+      <Row label={result.dryRun ? 'Companies House would populate' : 'Companies House populated'} ok={true}>
+        {result.chPopulated}
+      </Row>
+      <Row
+        label="Companies House: multiple matches (left blank for review)"
+        ok={result.chAmbiguous === 0}
+      >
+        {result.chAmbiguous}
+      </Row>
+      <Row label="Companies House: no match" ok={true}>
+        {result.chNotFound}
+      </Row>
+      <Row label="Skipped (already had values / individuals)" ok={true}>
+        {result.chSkipped}
+      </Row>
+      <Row label="Errors" ok={result.errors === 0}>
+        {result.errors}
+      </Row>
+      {result.outcomes.length > 0 && (
+        <details className={styles.connectionTestDetails}>
+          <summary>Per-client outcomes ({result.outcomes.length})</summary>
+          <div className={styles.connectionTestResult}>
+            {result.outcomes.map((o) => (
+              <Row
+                key={o.clientId}
+                label={o.clientName}
+                ok={o.chOutcome !== 'error'}
+              >
+                {o.entityTypeUpdated && (
+                  <>
+                    Entity type: <code>{o.entityTypeBefore}</code> →{' '}
+                    <code>{o.entityTypeAfter}</code>
+                    {'. '}
+                  </>
+                )}
+                {o.chOutcome === 'populated' && (
+                  <>Companies House: populated <code>{o.populatedNumber}</code></>
+                )}
+                {o.chOutcome === 'ambiguous' && (
+                  <>Companies House: {o.chMatchCount} matches — left blank for manual review</>
+                )}
+                {o.chOutcome === 'not_found' && o.clientType !== 'individual' && (
+                  <>Companies House: no active match for &quot;{o.clientName}&quot;</>
+                )}
+                {o.chOutcome === 'skipped' && !o.entityTypeUpdated && 'No changes needed'}
+                {o.chOutcome === 'error' && <>Error: {o.chError}</>}
+              </Row>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
 function MatterDuplicateResultPanel({ result }: { result: MergeDuplicateMattersResult }) {
   return (
     <div className={styles.connectionTestResult}>

@@ -21,6 +21,8 @@ import {
   findFeeVariantMain,
   isStandaloneAdminMatter,
   classifyStandaloneAdminMatter,
+  enrichClioImportedClient,
+  promoteGenericEntityType,
   fetchClioContact,
   ClioError,
 } from '@/lib/clio';
@@ -1226,6 +1228,16 @@ export async function backfillClioMatters(
       if (createdClientId && !preExistingClientIds.has(createdClientId)) {
         importedClientIds.push(createdClientId);
         preExistingClientIds.add(createdClientId);
+      }
+
+      // Post-import enrichment: promote generic entity_type + Companies House
+      // lookup for the just-created client. Non-fatal — log and continue.
+      if (createdClientId) {
+        try {
+          await enrichClioImportedClient(supabase, profile.firm_id, createdClientId);
+        } catch (err) {
+          console.error('Post-import enrichment failed (non-fatal):', err);
+        }
       }
 
       outcomes.push({
@@ -4233,6 +4245,163 @@ export async function runSpecificMatterCleanups(): Promise<
     return { success: true, result: { outcomes } };
   } catch (err) {
     console.error('Error in runSpecificMatterCleanups:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Retroactively enrich every Clio-imported Hub client.
+ *
+ * Walks every client in the firm with `clio_contact_id IS NOT NULL` and runs
+ * the same post-import enrichment that new imports now get automatically:
+ *   1. Promote generic entity_type ('individual' / 'corporate') to specific
+ *      defaults ('Individual' / 'Private company limited by shares')
+ *   2. Companies House search-by-name for corporates with no
+ *      registered_number — populates registered_number + registered_address
+ *      if exactly one active company matches.
+ *
+ * Only touches fields the user hasn't already filled in. Safe to re-run.
+ *
+ * Supports dryRun.
+ */
+export interface RetroEnrichClientOutcome {
+  clientId: string;
+  clientName: string;
+  clientType: string;
+  entityTypeBefore: string;
+  entityTypeUpdated: boolean;
+  entityTypeAfter?: string;
+  chOutcome: 'populated' | 'ambiguous' | 'not_found' | 'skipped' | 'error';
+  chError?: string;
+  chMatchCount?: number;
+  populatedNumber?: string;
+}
+
+export interface RetroEnrichClientsResult {
+  dryRun: boolean;
+  totalClioLinked: number;
+  entityTypeUpdated: number;
+  chPopulated: number;
+  chAmbiguous: number;
+  chNotFound: number;
+  chSkipped: number;
+  errors: number;
+  outcomes: RetroEnrichClientOutcome[];
+}
+
+export async function retroactivelyEnrichClioImportedClients(
+  options: { dryRun?: boolean } = {}
+): Promise<
+  { success: true; result: RetroEnrichClientsResult } | { success: false; error: string }
+> {
+  const dryRun = options.dryRun ?? true;
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+    if (!canManageIntegrations(profile.role as UserRole)) {
+      return { success: false, error: 'Insufficient permissions' };
+    }
+
+    const { data: clients, error: clientsErr } = await supabase
+      .from('clients')
+      .select('id, name, client_type, entity_type, clio_contact_id, registered_number')
+      .eq('firm_id', profile.firm_id)
+      .not('clio_contact_id', 'is', null)
+      .order('created_at', { ascending: true });
+    if (clientsErr) return { success: false, error: clientsErr.message };
+
+    type ClientRow = {
+      id: string;
+      name: string;
+      client_type: string;
+      entity_type: string | null;
+      registered_number: string | null;
+    };
+    const rows = (clients || []) as ClientRow[];
+
+    const outcomes: RetroEnrichClientOutcome[] = [];
+    let entityTypeUpdated = 0;
+    let chPopulated = 0;
+    let chAmbiguous = 0;
+    let chNotFound = 0;
+    let chSkipped = 0;
+    let errors = 0;
+
+    for (const c of rows) {
+      const result = await enrichClioImportedClient(supabase, profile.firm_id, c.id, {
+        dryRun,
+      });
+      if (result.entityTypeUpdated) entityTypeUpdated++;
+      switch (result.chOutcome) {
+        case 'populated':
+          chPopulated++;
+          break;
+        case 'ambiguous':
+          chAmbiguous++;
+          break;
+        case 'not_found':
+          chNotFound++;
+          break;
+        case 'skipped':
+          chSkipped++;
+          break;
+        case 'error':
+          errors++;
+          break;
+      }
+      outcomes.push({
+        clientId: c.id,
+        clientName: c.name,
+        clientType: c.client_type,
+        entityTypeBefore: c.entity_type ?? '(null)',
+        entityTypeUpdated: result.entityTypeUpdated,
+        entityTypeAfter: result.entityTypeUpdated
+          ? promoteGenericEntityType(c.entity_type) ?? undefined
+          : undefined,
+        chOutcome: result.chOutcome,
+        chError: result.chError,
+        chMatchCount: result.chMatchCount,
+        populatedNumber: result.populatedNumber,
+      });
+    }
+
+    if (!dryRun) {
+      await supabase.from('audit_events').insert({
+        firm_id: profile.firm_id,
+        entity_type: 'integration',
+        entity_id: 'clio',
+        action: 'clio_retro_enrich_clients',
+        metadata: {
+          total: rows.length,
+          entity_type_updated: entityTypeUpdated,
+          ch_populated: chPopulated,
+          ch_ambiguous: chAmbiguous,
+          ch_not_found: chNotFound,
+          ch_skipped: chSkipped,
+          errors,
+        },
+        created_by: user.id,
+      });
+    }
+
+    return {
+      success: true,
+      result: {
+        dryRun,
+        totalClioLinked: rows.length,
+        entityTypeUpdated,
+        chPopulated,
+        chAmbiguous,
+        chNotFound,
+        chSkipped,
+        errors,
+        outcomes,
+      },
+    };
+  } catch (err) {
+    console.error('Error in retroactivelyEnrichClioImportedClients:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }

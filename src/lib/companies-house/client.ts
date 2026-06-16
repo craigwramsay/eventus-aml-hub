@@ -171,3 +171,86 @@ export async function lookupCompany(
     looked_up_at: new Date().toISOString(),
   };
 }
+
+/**
+ * A single result row from the Companies House search-by-name endpoint.
+ * Trimmed-down — only the fields we use for matching + populating clients.
+ */
+export interface CompanySearchHit {
+  companyNumber: string;
+  companyName: string;
+  companyStatus: string;
+  address: string;
+  dateOfCreation: string | null;
+}
+
+/**
+ * Search Companies House by company name.
+ *
+ * Used during Clio auto-import to populate the registered_number /
+ * registered_address fields on newly created Hub clients. Conservative —
+ * the caller decides what to do with multiple hits (typically: leave the
+ * client blank rather than guess).
+ *
+ * The API is fuzzy by default (e.g. "ROCK 424 Ltd" matches "ROCK 424
+ * LIMITED"). We filter post-fetch for active companies only and pass
+ * everything else through.
+ */
+export async function searchCompaniesByName(
+  query: string,
+  options: { limit?: number; activeOnly?: boolean } = {}
+): Promise<CompanySearchHit[]> {
+  const apiKey = process.env.COMPANIES_HOUSE_API_KEY;
+  if (!apiKey) {
+    throw new CompaniesHouseError(
+      'COMPANIES_HOUSE_API_KEY environment variable is not set'
+    );
+  }
+
+  const trimmed = (query ?? '').trim();
+  if (!trimmed) return [];
+
+  const limit = options.limit ?? 20;
+  const url = `${CH_API_BASE}/search/companies?q=${encodeURIComponent(trimmed)}&items_per_page=${limit}`;
+  const response = await fetch(url, {
+    headers: { Authorization: buildAuthHeader(apiKey) },
+  });
+
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new CompaniesHouseError(
+        `Companies House auth failed (${response.status})`,
+        response.status
+      );
+    }
+    throw new CompaniesHouseError(
+      `Companies House search failed: ${response.status} ${response.statusText}`,
+      response.status
+    );
+  }
+
+  type RawHit = {
+    company_number?: string;
+    title?: string;
+    company_status?: string;
+    address_snippet?: string;
+    date_of_creation?: string;
+  };
+  const body = (await response.json()) as { items?: RawHit[] };
+  const items = body.items ?? [];
+
+  const hits: CompanySearchHit[] = items
+    .filter((item) => !!item.company_number && !!item.title)
+    .map((item) => ({
+      companyNumber: item.company_number!,
+      companyName: item.title!,
+      companyStatus: item.company_status ?? 'unknown',
+      address: item.address_snippet ?? '',
+      dateOfCreation: item.date_of_creation ?? null,
+    }));
+
+  if (options.activeOnly) {
+    return hits.filter((h) => h.companyStatus === 'active');
+  }
+  return hits;
+}
