@@ -265,6 +265,8 @@ export function AssessmentForm({
         return renderCountryMultiField(field);
       case 'radio':
         return renderRadioField(field);
+      case 'select':
+        return renderSelectField(field);
       case 'checkbox':
         return renderCheckboxField(field);
       case 'rich_text':
@@ -419,6 +421,34 @@ export function AssessmentForm({
             </label>
           ))}
         </div>
+      </div>
+    );
+  };
+
+  const renderSelectField = (field: FormField): React.ReactNode => {
+    const selectedValue = (answers[field.id] as string) || '';
+    const options = getOptions(field);
+    const fieldReadOnly = isReadOnly(field.id);
+
+    return (
+      <div key={field.id} className={styles.field}>
+        {renderFieldLabel(field, fieldReadOnly)}
+        <select
+          className={styles.input}
+          value={selectedValue}
+          onChange={(e) => {
+            if (!fieldReadOnly) setAnswer(field.id, e.target.value);
+          }}
+          disabled={fieldReadOnly}
+          required={isRequired(field)}
+        >
+          <option value="">Select…</option>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
       </div>
     );
   };
