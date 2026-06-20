@@ -4271,6 +4271,7 @@ export interface RetroEnrichClientOutcome {
   entityTypeBefore: string;
   entityTypeUpdated: boolean;
   entityTypeAfter?: string;
+  sectorCleared: boolean;
   chOutcome: 'populated' | 'ambiguous' | 'not_found' | 'skipped' | 'error';
   chError?: string;
   chMatchCount?: number;
@@ -4281,6 +4282,7 @@ export interface RetroEnrichClientsResult {
   dryRun: boolean;
   totalClioLinked: number;
   entityTypeUpdated: number;
+  sectorCleared: number;
   chPopulated: number;
   chAmbiguous: number;
   chNotFound: number;
@@ -4323,6 +4325,7 @@ export async function retroactivelyEnrichClioImportedClients(
 
     const outcomes: RetroEnrichClientOutcome[] = [];
     let entityTypeUpdated = 0;
+    let sectorCleared = 0;
     let chPopulated = 0;
     let chAmbiguous = 0;
     let chNotFound = 0;
@@ -4334,6 +4337,7 @@ export async function retroactivelyEnrichClioImportedClients(
         dryRun,
       });
       if (result.entityTypeUpdated) entityTypeUpdated++;
+      if (result.sectorCleared) sectorCleared++;
       switch (result.chOutcome) {
         case 'populated':
           chPopulated++;
@@ -4360,6 +4364,7 @@ export async function retroactivelyEnrichClioImportedClients(
         entityTypeAfter: result.entityTypeUpdated
           ? promoteGenericEntityType(c.entity_type) ?? undefined
           : undefined,
+        sectorCleared: result.sectorCleared,
         chOutcome: result.chOutcome,
         chError: result.chError,
         chMatchCount: result.chMatchCount,
@@ -4376,6 +4381,7 @@ export async function retroactivelyEnrichClioImportedClients(
         metadata: {
           total: rows.length,
           entity_type_updated: entityTypeUpdated,
+          sector_cleared: sectorCleared,
           ch_populated: chPopulated,
           ch_ambiguous: chAmbiguous,
           ch_not_found: chNotFound,
@@ -4392,6 +4398,7 @@ export async function retroactivelyEnrichClioImportedClients(
         dryRun,
         totalClioLinked: rows.length,
         entityTypeUpdated,
+        sectorCleared,
         chPopulated,
         chAmbiguous,
         chNotFound,

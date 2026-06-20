@@ -37,7 +37,15 @@ import {
 import { normalizeClientName } from './name-normaliser';
 
 export type EnrichmentOutcome =
-  | { entityTypeUpdated: boolean; chOutcome: 'populated' | 'ambiguous' | 'not_found' | 'skipped' | 'error'; chError?: string; chMatchCount?: number; populatedNumber?: string; populatedAddress?: string };
+  | {
+      entityTypeUpdated: boolean;
+      sectorCleared: boolean;
+      chOutcome: 'populated' | 'ambiguous' | 'not_found' | 'skipped' | 'error';
+      chError?: string;
+      chMatchCount?: number;
+      populatedNumber?: string;
+      populatedAddress?: string;
+    };
 
 export interface EnrichClientOptions {
   /** When true, only PREVIEW what would happen — don't persist. */
@@ -70,25 +78,35 @@ export async function enrichClioImportedClient(
 
   const { data: client, error: fetchErr } = await supabase
     .from('clients')
-    .select('id, firm_id, name, entity_type, client_type, registered_number, registered_address')
+    .select('id, firm_id, name, entity_type, client_type, sector, registered_number, registered_address')
     .eq('id', clientId)
     .single();
 
   if (fetchErr || !client) {
-    return { entityTypeUpdated: false, chOutcome: 'error', chError: 'Client not found' };
+    return { entityTypeUpdated: false, sectorCleared: false, chOutcome: 'error', chError: 'Client not found' };
   }
   if (client.firm_id !== firmId) {
-    return { entityTypeUpdated: false, chOutcome: 'error', chError: 'Firm mismatch' };
+    return { entityTypeUpdated: false, sectorCleared: false, chOutcome: 'error', chError: 'Firm mismatch' };
   }
 
   const updates: Record<string, unknown> = {};
   let entityTypeUpdated = false;
+  let sectorCleared = false;
 
   // 1. Promote entity_type
   const promotedEntityType = promoteGenericEntityType(client.entity_type);
   if (promotedEntityType && promotedEntityType !== client.entity_type) {
     updates.entity_type = promotedEntityType;
     entityTypeUpdated = true;
+  }
+
+  // 1b. Clear sector if it's the DB default 'general'. We never want assessment
+  // forms to silently pre-fill this — the user must consciously pick a sector
+  // from the dropdown. Setting to empty string (the column may be NOT NULL).
+  const currentSector = (client.sector as string | null | undefined)?.trim() ?? '';
+  if (currentSector.toLowerCase() === 'general') {
+    updates.sector = '';
+    sectorCleared = true;
   }
 
   // 2. Companies House lookup — corporates only, only when registered_number is blank
@@ -157,6 +175,7 @@ export async function enrichClioImportedClient(
     if (updateErr) {
       return {
         entityTypeUpdated: false,
+        sectorCleared: false,
         chOutcome: 'error',
         chError: `Update failed: ${updateErr.message}`,
       };
@@ -165,6 +184,7 @@ export async function enrichClioImportedClient(
 
   return {
     entityTypeUpdated,
+    sectorCleared,
     chOutcome,
     chError,
     chMatchCount,
