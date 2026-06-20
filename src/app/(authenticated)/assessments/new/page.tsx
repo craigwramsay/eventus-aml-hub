@@ -133,13 +133,16 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
     // Treat 'general' (the DB default for Clio-imported clients without an
     // explicit sector) as unset — leave the field editable so the user can
     // pick a real sector from the dropdown.
+    // Pre-fill sector from the client, but leave it editable. Whatever the
+    // user picks gets written back to the client on submit, so a sector
+    // change on this assessment becomes the persistent default for the next
+    // one.
     const explicitSector =
       matter.client.sector && matter.client.sector.toLowerCase() !== 'general'
         ? matter.client.sector
         : null;
     if (explicitSector) {
       initialValues['12'] = explicitSector;
-      readOnlyFields.push('12');
     }
     initialValues['16'] = isExistingClient ? 'Existing client' : 'New client';
     readOnlyFields.push('16');
@@ -170,7 +173,9 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
           );
           if (matchingOption) {
             initialValues['49'] = matchingOption;
-            readOnlyFields.push('49');
+            // Not locked — the server re-derives at submit so this is just
+            // the initial display. If the user changes sector inline, the
+            // server uses the new sector to compute the final risk.
           }
         }
       }

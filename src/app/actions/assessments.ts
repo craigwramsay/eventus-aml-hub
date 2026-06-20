@@ -178,16 +178,21 @@ export async function submitAssessment(
     let enrichedFormAnswers: FormAnswers = { ...form_answers };
 
     if (derivedClientType === 'corporate') {
-      const clientSector = client.sector;
+      // Trust the form's submitted sector (field 12) as the source of truth —
+      // the user may have changed it inline. Fall back to the stored sector
+      // if the form somehow didn't include one.
+      const submittedSector =
+        typeof form_answers['12'] === 'string' ? (form_answers['12'] as string).trim() : '';
+      const storedSector = (client.sector ?? '').trim();
+      const effectiveSector = submittedSector || storedSector;
 
-      if (!clientSector) {
+      if (!effectiveSector || effectiveSector.toLowerCase() === 'general') {
         return { success: false, error: 'Client sector not set' };
       }
 
       let derivedSectorRisk: 'Standard' | 'Higher-risk' | 'Prohibited' | null = null;
-
       for (const [category, sectors] of Object.entries(sectorMapping.categories)) {
-        if (sectors.includes(clientSector)) {
+        if (sectors.includes(effectiveSector)) {
           derivedSectorRisk = category as 'Standard' | 'Higher-risk' | 'Prohibited';
           break;
         }
@@ -196,11 +201,33 @@ export async function submitAssessment(
       if (!derivedSectorRisk) {
         return {
           success: false,
-          error: `Client sector "${clientSector}" not mapped in sector_mapping.json`,
+          error: `Client sector "${effectiveSector}" not mapped in sector_mapping.json`,
         };
       }
 
       enrichedFormAnswers['49'] = derivedSectorRisk;
+
+      // Persist the picked sector back onto the client when it differs from
+      // what's stored. Bi-directional sync: whatever the user picks on the
+      // assessment becomes the default for the next assessment of this client.
+      if (submittedSector && submittedSector !== storedSector) {
+        await supabase
+          .from('clients')
+          .update({ sector: submittedSector, updated_at: new Date().toISOString() })
+          .eq('id', client.id);
+        await supabase.from('audit_events').insert({
+          firm_id: profile.firm_id,
+          entity_type: 'client',
+          entity_id: client.id,
+          action: 'client_sector_updated_from_assessment',
+          metadata: {
+            old_sector: storedSector || null,
+            new_sector: submittedSector,
+            matter_id,
+          },
+          created_by: user.id,
+        });
+      }
     }
 
     const assessmentOutput = runAssessmentWithConfig(

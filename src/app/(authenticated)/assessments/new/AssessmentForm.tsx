@@ -13,6 +13,7 @@ import { submitAssessment } from '@/app/actions/assessments';
 import { QuestionHelperButton } from '@/components/assistant/QuestionHelperButton';
 import { CountryMultiSelect } from '@/components/forms/CountryMultiSelect';
 import type { FormAnswers } from '@/lib/rules-engine/types';
+import sectorMapping from '@/config/eventus/rules/sector_mapping.json';
 import styles from './page.module.css';
 
 interface FormFieldLabel {
@@ -172,6 +173,40 @@ export function AssessmentForm({
           delete next[depId];
         }
       }
+      // Sector → re-derive sector-risk (field 49) so the display follows the
+      // user's choice. Corporate-only.
+      if (
+        fieldId === '12' &&
+        derivedClientType === 'corporate' &&
+        typeof value === 'string'
+      ) {
+        if (!value) {
+          delete next['49'];
+        } else {
+          let derivedCategory: string | null = null;
+          for (const [category, sectors] of Object.entries(sectorMapping.categories)) {
+            if ((sectors as string[]).includes(value)) {
+              derivedCategory = category;
+              break;
+            }
+          }
+          if (derivedCategory) {
+            const field49 = corporateFormConfig.fields.find((f) => f.id === '49');
+            if (
+              field49?.label &&
+              typeof field49.label !== 'string' &&
+              field49.label.options
+            ) {
+              const matchingOption = field49.label.options.find((opt: string) =>
+                opt.startsWith(derivedCategory as string)
+              );
+              if (matchingOption) {
+                next['49'] = matchingOption;
+              }
+            }
+          }
+        }
+      }
       return next;
     });
     // Also clear currency display if the gate field hides the currency field
@@ -179,7 +214,7 @@ export function AssessmentForm({
     if (dependents?.includes(currencyFieldId)) {
       setCurrencyDisplay('');
     }
-  }, [dependentFieldMap, currencyFieldId]);
+  }, [dependentFieldMap, currencyFieldId, derivedClientType, corporateFormConfig]);
 
   const toggleCheckbox = useCallback((fieldId: string, option: string) => {
     setAnswers((prev) => {
