@@ -22,6 +22,8 @@ export {
   ensureComplianceFolder,
   uploadDocumentToClio,
   getClioDocumentUrl,
+  buildClioContactUrl,
+  buildClioMatterUrl,
 } from './client';
 
 export type {

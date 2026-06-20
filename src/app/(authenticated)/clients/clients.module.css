@@ -668,6 +668,15 @@
   color: var(--text-primary);
 }
 
+.clioLinkedAnchor {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.clioLinkedAnchor:hover {
+  text-decoration: underline;
+}
+
 .clioLinkedDot {
   display: inline-block;
   width: 0.5rem;

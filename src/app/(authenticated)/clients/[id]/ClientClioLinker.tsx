@@ -15,6 +15,8 @@ interface ClientClioLinkerProps {
   clientName: string;
   clioContactId: string | null;
   canEdit: boolean;
+  /** Pre-built Clio web URL for this contact, or null if unlinked. */
+  clioContactUrl: string | null;
 }
 
 export function ClientClioLinker({
@@ -22,6 +24,7 @@ export function ClientClioLinker({
   clientName,
   clioContactId,
   canEdit,
+  clioContactUrl,
 }: ClientClioLinkerProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -108,8 +111,22 @@ export function ClientClioLinker({
     return (
       <div className={styles.clioLinkDisplay}>
         <span className={styles.clioLinkedLabel}>
-          <span className={styles.clioLinkedDot} aria-hidden /> Linked to Clio (contact ID{' '}
-          <code>{clioContactId}</code>)
+          <span className={styles.clioLinkedDot} aria-hidden />{' '}
+          {clioContactUrl ? (
+            <a
+              href={clioContactUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.clioLinkedAnchor}
+              title="Open this contact in Clio"
+            >
+              Linked to Clio (contact ID <code>{clioContactId}</code>) ↗
+            </a>
+          ) : (
+            <>
+              Linked to Clio (contact ID <code>{clioContactId}</code>)
+            </>
+          )}
         </span>
         {canEdit && (
           <button

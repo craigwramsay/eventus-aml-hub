@@ -16,6 +16,7 @@ import { DeleteMatterButton } from './DeleteMatterButton';
 import { AssessmentStaleBanner } from './AssessmentStaleBanner';
 import { CddLongstopBanner } from './CddLongstopBanner';
 import { MatterParties } from './MatterParties';
+import { getClioBaseUrl, buildClioMatterUrl } from '@/lib/clio';
 import styles from '../matters.module.css';
 
 interface MatterDetailPageProps {
@@ -108,6 +109,22 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
             <div className={styles.detailLabel}>Matter ID</div>
             <div className={styles.detailValue}>{matter.id}</div>
           </div>
+          {matter.clio_matter_id && (
+            <div className={styles.detailField}>
+              <div className={styles.detailLabel}>Clio Link</div>
+              <div className={styles.detailValue}>
+                <a
+                  href={buildClioMatterUrl(getClioBaseUrl(), matter.clio_matter_id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.tableLink}
+                  title="Open this matter in Clio"
+                >
+                  Linked to Clio matter <code>{matter.clio_matter_id}</code> ↗
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -115,6 +132,7 @@ export default async function MatterDetailPage({ params }: MatterDetailPageProps
         matterId={matter.id}
         parties={parties}
         canEdit={canEditParties}
+        clioBaseUrl={getClioBaseUrl()}
       />
 
       <div className={styles.section}>

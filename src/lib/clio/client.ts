@@ -498,6 +498,22 @@ export async function uploadDocumentToClio(
 }
 
 /**
+ * Build a Clio web UI URL for viewing a contact.
+ * Given the base URL (so this is usable from server components that already
+ * resolved the region, OR from client components that get it as a prop).
+ */
+export function buildClioContactUrl(baseUrl: string, contactId: string | number): string {
+  return `${baseUrl}/nc/#/contacts/${contactId}`;
+}
+
+/**
+ * Build a Clio web UI URL for viewing a matter.
+ */
+export function buildClioMatterUrl(baseUrl: string, matterId: string | number): string {
+  return `${baseUrl}/nc/#/matters/${matterId}`;
+}
+
+/**
  * Build a Clio web UI URL for the matter's documents tab.
  * Clio EU doesn't support deep-linking to individual documents or folders,
  * so we link to the matter documents page (one click from Compliance folder).
