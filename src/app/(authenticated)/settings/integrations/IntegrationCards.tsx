@@ -358,6 +358,7 @@ export function IntegrationCards({
     setSuccess(null);
     const willUpdate =
       (retroEnrichResult?.entityTypeUpdated ?? 0) +
+      (retroEnrichResult?.sectorCleared ?? 0) +
       (retroEnrichResult?.chPopulated ?? 0);
     if (!retroEnrichResult || willUpdate === 0) {
       setError('Run Preview first — nothing to enrich.');
@@ -366,6 +367,7 @@ export function IntegrationCards({
     const ok = window.confirm(
       `Retroactively enrich Clio-imported clients?\n\n` +
         `  • Entity-type promotions: ${retroEnrichResult.entityTypeUpdated}\n` +
+        `  • Sector 'general' cleared: ${retroEnrichResult.sectorCleared}\n` +
         `  • Companies House populations: ${retroEnrichResult.chPopulated}\n\n` +
         `Only touches fields that are currently blank or generic. ` +
         `Won't overwrite values you've explicitly set.`
@@ -773,7 +775,7 @@ export function IntegrationCards({
                   disabled={
                     isPending ||
                     !retroEnrichResult ||
-                    (retroEnrichResult.entityTypeUpdated + retroEnrichResult.chPopulated) === 0
+                    (retroEnrichResult.entityTypeUpdated + retroEnrichResult.sectorCleared + retroEnrichResult.chPopulated) === 0
                   }
                   title="Apply the entity_type promotions + Companies House populations the preview identified."
                 >
@@ -1536,6 +1538,9 @@ function RetroEnrichResultPanel({ result }: { result: RetroEnrichClientsResult }
       <Row label={result.dryRun ? 'Entity type would update' : 'Entity type updated'} ok={true}>
         {result.entityTypeUpdated}
       </Row>
+      <Row label={result.dryRun ? "Sector 'general' would clear" : "Sector 'general' cleared"} ok={true}>
+        {result.sectorCleared}
+      </Row>
       <Row label={result.dryRun ? 'Companies House would populate' : 'Companies House populated'} ok={true}>
         {result.chPopulated}
       </Row>
@@ -1571,6 +1576,7 @@ function RetroEnrichResultPanel({ result }: { result: RetroEnrichClientsResult }
                     {'. '}
                   </>
                 )}
+                {o.sectorCleared && <>Sector cleared from <code>general</code>. </>}
                 {o.chOutcome === 'populated' && (
                   <>Companies House: populated <code>{o.populatedNumber}</code></>
                 )}
@@ -1580,7 +1586,7 @@ function RetroEnrichResultPanel({ result }: { result: RetroEnrichClientsResult }
                 {o.chOutcome === 'not_found' && o.clientType !== 'individual' && (
                   <>Companies House: no active match for &quot;{o.clientName}&quot;</>
                 )}
-                {o.chOutcome === 'skipped' && !o.entityTypeUpdated && 'No changes needed'}
+                {o.chOutcome === 'skipped' && !o.entityTypeUpdated && !o.sectorCleared && 'No changes needed'}
                 {o.chOutcome === 'error' && <>Error: {o.chError}</>}
               </Row>
             ))}
