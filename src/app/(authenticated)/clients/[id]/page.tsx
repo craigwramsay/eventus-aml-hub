@@ -10,6 +10,7 @@ import { canDeleteEntities, canCreateAssessment } from '@/lib/auth/roles';
 import { DeleteClientButton } from './DeleteClientButton';
 import { ClientNameEditor } from './ClientNameEditor';
 import { ClientClioLinker } from './ClientClioLinker';
+import { getClioBaseUrl, buildClioContactUrl } from '@/lib/clio';
 import styles from '../clients.module.css';
 
 interface ClientDetailPageProps {
@@ -136,6 +137,11 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                 clientId={client.id}
                 clientName={client.name}
                 clioContactId={client.clio_contact_id ?? null}
+                clioContactUrl={
+                  client.clio_contact_id
+                    ? buildClioContactUrl(getClioBaseUrl(), client.clio_contact_id)
+                    : null
+                }
                 canEdit={canRename}
               />
             </div>

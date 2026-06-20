@@ -500,6 +500,15 @@
   color: var(--text-muted);
 }
 
+.partyClioLink {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.partyClioLink:hover {
+  text-decoration: underline;
+}
+
 .partyPrimaryBadge {
   flex-shrink: 0;
   padding: 0.125rem 0.625rem;

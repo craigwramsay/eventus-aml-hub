@@ -16,9 +16,11 @@ interface MatterPartiesProps {
   matterId: string;
   parties: MatterParty[];
   canEdit: boolean;
+  /** Pre-resolved Clio base URL for building per-contact deep links. */
+  clioBaseUrl: string;
 }
 
-export function MatterParties({ matterId, parties, canEdit }: MatterPartiesProps) {
+export function MatterParties({ matterId, parties, canEdit, clioBaseUrl }: MatterPartiesProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +118,20 @@ export function MatterParties({ matterId, parties, canEdit }: MatterPartiesProps
               <span className={styles.partyMeta}>
                 {p.client.client_type === 'individual' ? 'Individual' : 'Corporate'}
                 {p.role === 'primary' ? ' · Primary (from Clio)' : ' · Co-client'}
-                {p.client.clio_contact_id && ' · Clio-linked'}
+                {p.client.clio_contact_id && (
+                  <>
+                    {' · '}
+                    <a
+                      href={`${clioBaseUrl}/nc/#/contacts/${p.client.clio_contact_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.partyClioLink}
+                      title="Open this contact in Clio"
+                    >
+                      Clio-linked ↗
+                    </a>
+                  </>
+                )}
               </span>
             </div>
             {canEdit && p.role === 'co_client' && (
@@ -182,7 +197,21 @@ export function MatterParties({ matterId, parties, canEdit }: MatterPartiesProps
                     <span>{c.name}</span>
                     <span className={styles.partyMeta}>
                       {c.client_type === 'individual' ? 'Individual' : 'Corporate'}
-                      {c.clio_contact_id && ' · Clio-linked'}
+                      {c.clio_contact_id && (
+                        <>
+                          {' · '}
+                          <a
+                            href={`${clioBaseUrl}/nc/#/contacts/${c.clio_contact_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.partyClioLink}
+                            title="Open this contact in Clio"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Clio-linked ↗
+                          </a>
+                        </>
+                      )}
                     </span>
                   </div>
                   <button
