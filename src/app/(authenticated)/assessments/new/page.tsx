@@ -130,8 +130,15 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
       initialValues['10'] = matter.client.entity_type;
       readOnlyFields.push('10');
     }
-    if (matter.client.sector) {
-      initialValues['12'] = matter.client.sector;
+    // Treat 'general' (the DB default for Clio-imported clients without an
+    // explicit sector) as unset — leave the field editable so the user can
+    // pick a real sector from the dropdown.
+    const explicitSector =
+      matter.client.sector && matter.client.sector.toLowerCase() !== 'general'
+        ? matter.client.sector
+        : null;
+    if (explicitSector) {
+      initialValues['12'] = explicitSector;
       readOnlyFields.push('12');
     }
     initialValues['16'] = isExistingClient ? 'Existing client' : 'New client';
@@ -144,11 +151,12 @@ export default async function NewAssessmentPage({ searchParams }: NewAssessmentP
     if (isExistingClient) {
       readOnlyFields.push('72');
     }
-    // Derive sector risk from config and pre-populate field 49 (read-only)
-    if (matter.client.sector) {
+    // Derive sector risk from config and pre-populate field 49 (read-only).
+    // Same 'general' guard as above — without a real sector we can't derive risk.
+    if (explicitSector) {
       let derivedCategory: string | null = null;
       for (const [category, sectors] of Object.entries(sectorMapping.categories)) {
-        if ((sectors as string[]).includes(matter.client.sector)) {
+        if ((sectors as string[]).includes(explicitSector)) {
           derivedCategory = category;
           break;
         }
