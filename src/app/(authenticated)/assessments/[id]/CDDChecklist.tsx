@@ -19,7 +19,7 @@ import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDrive
 import { toggleItemCompletion } from '@/app/actions/progress';
 import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved, recordManualIdVerification } from '@/app/actions/evidence';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
-import { initiateAmiqusVerification, linkExistingAmiqusRecord } from '@/app/actions/amiqus';
+import { initiateAmiqusVerification, linkExistingAmiqusRecord, type PriorPersonVerification } from '@/app/actions/amiqus';
 import { CDDChecklistItem } from './CDDChecklistItem';
 import styles from './page.module.css';
 
@@ -69,6 +69,8 @@ interface CDDChecklistProps {
   directorNames?: string[];
   /** Manually-entered beneficial owner names (for "Identify and verify all beneficial owners") */
   beneficialOwnerNames?: string[];
+  /** Prior Amiqus verifications keyed by person display name (for per-person carry-forward UI) */
+  priorPersonVerifications?: Record<string, PriorPersonVerification>;
 }
 
 export function CDDChecklist({
@@ -96,6 +98,7 @@ export function CDDChecklist({
   clientAmiqus,
   directorNames = [],
   beneficialOwnerNames = [],
+  priorPersonVerifications = {},
 }: CDDChecklistProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -228,20 +231,42 @@ export function CDDChecklist({
     });
   }, [assessmentId, router, startTransition]);
 
-  const handleConfirmStillValid = useCallback((actionId: string) => {
+  const handleConfirmStillValid = useCallback((
+    actionId: string,
+    person?: { name: string; amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null,
+  ) => {
     setError(null);
-    setConfirmingAction(actionId);
+    const trackingKey = person ? `${actionId}::${person.name}` : actionId;
+    setConfirmingAction(trackingKey);
+    // For per-person confirm, the verified_at comes from THAT person's prior
+    // verification (not the client's blanket date) so the review-window check
+    // is accurate per individual.
+    const verifiedAt = person?.verifiedAt ?? lastCddVerifiedAt ?? null;
+    if (!verifiedAt) {
+      setConfirmingAction(null);
+      setError('No prior verification date available');
+      return;
+    }
     startTransition(async () => {
-      const result = await confirmIdentityStillValid(assessmentId, actionId, lastCddVerifiedAt!, riskLevel || 'MEDIUM');
+      const result = await confirmIdentityStillValid(
+        assessmentId,
+        actionId,
+        verifiedAt,
+        riskLevel || 'MEDIUM',
+        person ? { name: person.name, amiqusRecordId: person.amiqusRecordId, amiqusClientId: person.amiqusClientId } : null,
+      );
       setConfirmingAction(null);
       if (!result.success) {
         setError(result.error);
       } else {
-        setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
+        // Only auto-tick the checklist item for blanket (single-person) confirms.
+        if (!person) {
+          setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
+        }
         router.refresh();
       }
     });
-  }, [assessmentId, router, startTransition]);
+  }, [assessmentId, lastCddVerifiedAt, riskLevel, router, startTransition]);
 
   const handleDocumentConfirm = useCallback((actionId: string) => {
     setError(null);
@@ -381,6 +406,7 @@ export function CDDChecklist({
         matterDescription={matterDescription}
         verifications={amiqusVerificationsByAction.get(action.actionId) || []}
         clientAmiqus={clientAmiqus}
+        priorPersonVerifications={priorPersonVerifications}
         priorSowData={priorSowData}
         syncRecords={syncRecords}
         userNames={userNames}

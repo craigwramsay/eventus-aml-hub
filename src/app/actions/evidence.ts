@@ -872,12 +872,25 @@ function isIdentityActionId(actionId: string): boolean {
  *
  * Only allowed when the prior verification is within the risk-based threshold
  * and the universal longstop has not been breached.
+ *
+ * When `person` is supplied the confirmation is scoped to that specific named
+ * person (used on multi-person items like directors and beneficial owners) —
+ * the evidence row labels and notes mention the person by name, the source
+ * Amiqus record is recorded in `data`, and the action is NOT auto-completed
+ * (other persons may still need verifying).
  */
+export interface ConfirmPersonContext {
+  name: string;
+  amiqusRecordId: number;
+  amiqusClientId?: number | null;
+}
+
 export async function confirmIdentityStillValid(
   assessmentId: string,
   actionId: string,
   lastCddVerifiedAt: string,
-  riskLevel: string
+  riskLevel: string,
+  person?: ConfirmPersonContext | null
 ): Promise<SingleEvidenceResult> {
   try {
     const { supabase, user, profile, error } = await getUserAndProfile();
@@ -940,6 +953,27 @@ export async function confirmIdentityStillValid(
     );
     const thresholdLabel = threshold?.label ?? `${longstopMonths} months`;
 
+    // Build per-person variants of the row content when scoped to a named
+    // director / beneficial owner — keeps multi-person items legible.
+    const verifiedDateFormatted = verifiedDate.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const label = person
+      ? `Prior identity verification confirmed still valid for ${person.name}`
+      : 'Prior identity verification confirmed still valid';
+    const notes = person
+      ? `${person.name}'s identity was last verified on ${verifiedDateFormatted} (Amiqus case ${person.amiqusRecordId}). Confirmed still within ${thresholdLabel} review period for ${normalisedRisk} risk.`
+      : `Identity last verified on ${verifiedDateFormatted}. Confirmed still within ${thresholdLabel} review period for ${normalisedRisk} risk.`;
+    const data_payload = person
+      ? {
+          person_name: person.name,
+          source_amiqus_record_id: person.amiqusRecordId,
+          source_amiqus_client_id: person.amiqusClientId ?? null,
+        }
+      : null;
+
     // Create evidence record
     const { data, error: insertErr } = await supabase
       .from('assessment_evidence')
@@ -948,10 +982,11 @@ export async function confirmIdentityStillValid(
         assessment_id: assessmentId,
         action_id: actionId,
         evidence_type: 'manual_record',
-        label: 'Prior identity verification confirmed still valid',
+        label,
         source: 'Manual',
-        notes: `Identity last verified on ${verifiedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}. Confirmed still within ${thresholdLabel} review period for ${normalisedRisk} risk.`,
+        notes,
         verified_at: lastCddVerifiedAt,
+        data: data_payload,
         created_by: user.id,
       })
       .select()
@@ -962,8 +997,12 @@ export async function confirmIdentityStillValid(
       return { success: false, error: 'Failed to create evidence record' };
     }
 
-    // Mark the checklist item as complete
-    await toggleItemCompletion(assessmentId, actionId, true);
+    // For single-person items (the blanket-client flow) we auto-complete the
+    // action. For multi-person items the user ticks the checkbox themselves
+    // once every named director/BO is covered, so don't auto-complete here.
+    if (!person) {
+      await toggleItemCompletion(assessmentId, actionId, true);
+    }
 
     // Update client CDD date (preserves the original verification date)
     await updateClientCddDate(supabase, assessmentId, lastCddVerifiedAt);
@@ -980,6 +1019,8 @@ export async function confirmIdentityStillValid(
         last_cdd_verified_at: lastCddVerifiedAt,
         months_since_verification: monthsSince,
         risk_level: normalisedRisk,
+        person_name: person?.name ?? null,
+        source_amiqus_record_id: person?.amiqusRecordId ?? null,
       },
       created_by: user.id,
     });

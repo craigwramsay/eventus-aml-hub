@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { MandatoryAction } from '@/lib/rules-engine/types';
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
+import type { PriorPersonVerification } from '@/app/actions/amiqus';
 import { EvidencePanel } from './EvidencePanel';
 import { ItemActionBar } from './ItemActionBar';
 import { BeneficialOwnersEditor } from './BeneficialOwnersEditor';
@@ -159,6 +160,8 @@ interface CDDChecklistItemProps {
   matterDescription?: string;
   verifications: AmiqusVerification[];
   clientAmiqus?: { amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null;
+  /** Prior Amiqus verifications keyed by person display name (for per-person carry-forward) */
+  priorPersonVerifications?: Record<string, PriorPersonVerification>;
   priorSowData?: Record<string, string | string[]> | null;
   syncRecords: ClioDriveSync[];
   userNames: Record<string, string>;
@@ -184,7 +187,10 @@ interface CDDChecklistItemProps {
     verificationDate: string;
     notes?: string;
   }) => void;
-  onConfirmStillValid: (actionId: string) => void;
+  onConfirmStillValid: (
+    actionId: string,
+    person?: { name: string; amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null,
+  ) => void;
   onDocumentConfirm: (actionId: string) => void;
   onInitiateAmiqus: (actionId: string, name: string, email: string) => void;
   onLinkAmiqus: (actionId: string, e: React.FormEvent<HTMLFormElement>) => void;
@@ -221,6 +227,7 @@ export function CDDChecklistItem({
   matterDescription,
   verifications,
   clientAmiqus,
+  priorPersonVerifications = {},
   priorSowData,
   syncRecords,
   userNames,
@@ -253,6 +260,12 @@ export function CDDChecklistItem({
   const showApproval = isApprovalAction(action);
   const showConfirm = isConfirmAction(action);
   const showDocumentConfirm = isDocumentConfirmAction(action);
+  // Multi-person identity items (directors / beneficial owners). Carry-forward
+  // on these is per-person — the blanket "client's most recent verification"
+  // prompt is too coarse when there are multiple individuals to verify.
+  const isMultiPersonIdentity = showAmiqus &&
+    (action.actionId === 'identify_and_verify_directors' ||
+      action.actionId === 'identify_and_verify_beneficial_owners');
 
   const completionDate = progressRecord?.completed_at
     ? formatDateShort(progressRecord.completed_at)
@@ -374,8 +387,9 @@ export function CDDChecklistItem({
         </div>
       )}
 
-      {/* Confirm Still Valid (carry-forward) */}
-      {showAmiqus && !isFinalised && canConfirmStillValid(lastCddVerifiedAt, riskLevel) && itemEvidence.length === 0 && !effectiveCompleted && (
+      {/* Confirm Still Valid (carry-forward) — blanket version for single-person identity items only.
+          Multi-person items (directors / BOs) render a per-person block below. */}
+      {showAmiqus && !isMultiPersonIdentity && !isFinalised && canConfirmStillValid(lastCddVerifiedAt, riskLevel) && itemEvidence.length === 0 && !effectiveCompleted && (
         <div className={`${styles.confirmStillValidBlock} ${styles.itemFullRow}`}>
           <p className={styles.confirmStillValidInfo}>
             Identity last verified on{' '}
@@ -391,6 +405,24 @@ export function CDDChecklistItem({
             {confirmingAction === action.actionId ? 'Confirming...' : 'Confirm Still Valid'}
           </button>
         </div>
+      )}
+
+      {/* Per-person carry-forward for multi-person identity items. One row per named
+          director / beneficial owner, each showing whether THAT person already has a
+          prior Amiqus verification on this client and (when within the review window)
+          a Confirm Still Valid button scoped to them. */}
+      {showAmiqus && isMultiPersonIdentity && !isFinalised && !effectiveCompleted && personList && personList.length > 0 && (
+        <PerPersonCarryForwardBlock
+          actionId={action.actionId}
+          personList={personList}
+          riskLevel={riskLevel}
+          priorPersonVerifications={priorPersonVerifications}
+          verifications={verifications}
+          itemEvidence={itemEvidence}
+          isPending={isPending}
+          confirmingAction={confirmingAction}
+          onConfirmStillValid={onConfirmStillValid}
+        />
       )}
 
       {/* Action bar */}
@@ -428,6 +460,136 @@ export function CDDChecklistItem({
         openLinkAmiqus={openLinkAmiqus}
         setOpenLinkAmiqus={setOpenLinkAmiqus}
       />
+    </div>
+  );
+}
+
+/**
+ * Per-person carry-forward block. One row per named director / BO showing:
+ *   - "verified on X (N months ago) — Confirm Still Valid" when there's a
+ *     prior matching Amiqus and it's within the risk-based review window
+ *   - "verified on X — review window exceeded" when there's a prior match but
+ *     it's stale
+ *   - "no prior verification on file" when there's no match
+ * Hides each row once a verification exists for that person on the current
+ * assessment (matched by name in amiqus_client_name) OR a carry-forward
+ * confirmation evidence row has already been created for them.
+ */
+function PerPersonCarryForwardBlock(props: {
+  actionId: string;
+  personList: string[];
+  riskLevel: string | undefined;
+  priorPersonVerifications: Record<string, PriorPersonVerification>;
+  verifications: AmiqusVerification[];
+  itemEvidence: AssessmentEvidence[];
+  isPending: boolean;
+  confirmingAction: string | null;
+  onConfirmStillValid: (
+    actionId: string,
+    person?: { name: string; amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null,
+  ) => void;
+}) {
+  const {
+    actionId,
+    personList,
+    riskLevel,
+    priorPersonVerifications,
+    verifications,
+    itemEvidence,
+    isPending,
+    confirmingAction,
+    onConfirmStillValid,
+  } = props;
+
+  // Lowercase-trim quick comparator for "do we already have an Amiqus row for
+  // this person on the current assessment". We're matching display names from
+  // the directors/BOs list against amiqus_client_name on the verification row.
+  const normaliseLoose = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+  const currentVerifiedNames = new Set(
+    verifications
+      .filter(v => v.status === 'complete' && v.amiqus_client_name)
+      .map(v => normaliseLoose(v.amiqus_client_name!))
+  );
+
+  // Carry-forward confirmation evidence rows already written for this assessment
+  // — render no row for those names so we don't offer a duplicate confirm.
+  const carriedForwardNames = new Set(
+    itemEvidence
+      .filter(e =>
+        e.evidence_type === 'manual_record' &&
+        typeof e.label === 'string' &&
+        e.label.startsWith('Prior identity verification confirmed still valid for ')
+      )
+      .map(e => {
+        const data = (e.data ?? {}) as Record<string, unknown>;
+        const name = typeof data.person_name === 'string' ? data.person_name : '';
+        return name ? normaliseLoose(name) : '';
+      })
+      .filter(Boolean)
+  );
+
+  const rows = personList.map(name => {
+    const looseName = normaliseLoose(name);
+    if (currentVerifiedNames.has(looseName)) return null;
+    if (carriedForwardNames.has(looseName)) return null;
+    const prior = priorPersonVerifications[name] ?? null;
+    return { name, prior };
+  }).filter(Boolean) as Array<{ name: string; prior: PriorPersonVerification | null }>;
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div className={`${styles.confirmStillValidBlock} ${styles.itemFullRow}`}>
+      <p className={styles.confirmStillValidInfo} style={{ marginBottom: '0.5rem', fontWeight: 600 }}>
+        Carry-forward from prior verifications
+      </p>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {rows.map(({ name, prior }) => {
+          if (!prior || !prior.verifiedAt) {
+            return (
+              <li key={name} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <strong style={{ fontSize: '0.875rem' }}>{name}</strong>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #666)', fontStyle: 'italic' }}>
+                  No prior verification on file — use Initiate Amiqus, Link Existing Record, or Record Manual Verification below.
+                </span>
+              </li>
+            );
+          }
+          const inWindow = canConfirmStillValid(prior.verifiedAt, riskLevel);
+          const trackingKey = `${actionId}::${name}`;
+          const confirming = confirmingAction === trackingKey;
+          return (
+            <li key={name} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <strong style={{ fontSize: '0.875rem' }}>{name}</strong>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #666)' }}>
+                Last verified {formatDateShort(prior.verifiedAt)} ({monthsSince(prior.verifiedAt)} months ago) — Amiqus case {prior.amiqusRecordId}
+              </span>
+              {inWindow ? (
+                <button
+                  type="button"
+                  className={styles.confirmStillValidButton}
+                  onClick={() => onConfirmStillValid(actionId, {
+                    name,
+                    amiqusRecordId: prior.amiqusRecordId,
+                    amiqusClientId: prior.amiqusClientId,
+                    verifiedAt: prior.verifiedAt,
+                  })}
+                  disabled={isPending || confirming}
+                >
+                  {confirming ? 'Confirming…' : `Confirm Still Valid for ${name}`}
+                </button>
+              ) : (
+                <span style={{ fontSize: '0.8rem', color: 'var(--danger, #c00)', fontStyle: 'italic' }}>
+                  Review window exceeded — a fresh verification is required.
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <p className={styles.formHint} style={{ marginTop: '0.5rem' }}>
+        Carry-forward applies per named individual. Tick this checklist item once every person above is verified.
+      </p>
     </div>
   );
 }
