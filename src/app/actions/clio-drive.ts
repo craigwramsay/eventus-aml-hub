@@ -9,7 +9,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { ClioDriveSync } from '@/lib/supabase/types';
-import { syncEvidenceToClio, syncFinalisationPdfToClio, retryFailedSync } from '@/lib/clio/drive-sync';
+import { syncEvidenceToClio, syncFinalisationPdfToClio, retryFailedSync, resyncEvidenceUpload } from '@/lib/clio/drive-sync';
 
 /**
  * Trigger Clio Drive sync for a newly created evidence record.
@@ -113,6 +113,41 @@ export async function retryClioDriveSync(
   } catch (err) {
     console.error('Clio Drive retry error:', err);
     return { success: false, error: 'Retry failed' };
+  }
+}
+
+/**
+ * Force-resync an already-synced evidence record. Deletes the old file from
+ * Clio Drive and re-uploads using the current renderer (so an old JSON-format
+ * Companies House file gets replaced with the new HTML version).
+ */
+export async function resyncClioEvidence(
+  syncId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+
+    const { data: syncRecord } = await supabase
+      .from('clio_drive_sync')
+      .select('id, status, sync_type, evidence_id')
+      .eq('id', syncId)
+      .single();
+
+    if (!syncRecord) {
+      return { success: false, error: 'Sync record not found' };
+    }
+    if (syncRecord.sync_type !== 'evidence' || !syncRecord.evidence_id) {
+      return { success: false, error: 'Resync is only available for evidence files' };
+    }
+    if (syncRecord.status !== 'synced') {
+      return { success: false, error: 'Only completed syncs can be resynced' };
+    }
+
+    await resyncEvidenceUpload(supabase, syncId);
+    return { success: true };
+  } catch (err) {
+    console.error('Clio Drive resync error:', err);
+    return { success: false, error: 'Resync failed' };
   }
 }
 

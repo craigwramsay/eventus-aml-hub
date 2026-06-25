@@ -21,6 +21,7 @@ export {
   createClioFolder,
   ensureComplianceFolder,
   uploadDocumentToClio,
+  deleteClioDocument,
   getClioDocumentUrl,
   buildClioContactUrl,
   buildClioMatterUrl,

@@ -194,6 +194,8 @@ interface CDDChecklistItemProps {
   // Link amiqus form state (shared)
   linkRecordId: string;
   setLinkRecordId: (v: string) => void;
+  linkOriginalDate: string;
+  setLinkOriginalDate: (v: string) => void;
   openLinkAmiqus: string | null;
   setOpenLinkAmiqus: (v: string | null) => void;
 }
@@ -239,6 +241,8 @@ export function CDDChecklistItem({
   onDecideApproval,
   linkRecordId,
   setLinkRecordId,
+  linkOriginalDate,
+  setLinkOriginalDate,
   openLinkAmiqus,
   setOpenLinkAmiqus,
 }: CDDChecklistItemProps) {
@@ -309,6 +313,7 @@ export function CDDChecklistItem({
             progressRecord={progressRecord}
             isCompleted={effectiveCompleted}
             isApprovalAction={showApproval}
+            isFinalised={isFinalised}
             syncRecords={syncRecords}
             userNames={userNames}
             verifications={showAmiqus ? verifications : []}
@@ -418,6 +423,8 @@ export function CDDChecklistItem({
         onManualIdv={onManualIdv}
         linkRecordId={linkRecordId}
         setLinkRecordId={setLinkRecordId}
+        linkOriginalDate={linkOriginalDate}
+        setLinkOriginalDate={setLinkOriginalDate}
         openLinkAmiqus={openLinkAmiqus}
         setOpenLinkAmiqus={setOpenLinkAmiqus}
       />

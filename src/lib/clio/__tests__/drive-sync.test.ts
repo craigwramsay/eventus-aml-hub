@@ -210,7 +210,7 @@ describe('syncEvidenceToClio', () => {
     expect(getClioDocumentUrl).toHaveBeenCalledWith(200, 456, 100);
   });
 
-  it('handles companies_house evidence type by serializing JSON', async () => {
+  it('falls back to JSON when CH payload has no parseable profile', async () => {
     const supabase = createMockSupabase();
     const chData = { company_name: 'Test Ltd', company_number: '12345678' };
     const evidence = {

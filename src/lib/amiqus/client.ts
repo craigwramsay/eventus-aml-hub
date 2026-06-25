@@ -190,7 +190,7 @@ function extractClientId(data: { client_id?: number; client?: number | { id: num
 export async function getAmiqusRecordOrCase(
   id: number,
   apiKey: string
-): Promise<{ type: 'record' | 'case'; data: { id: number; status: string; client_id: number; completed_at: string | null } }> {
+): Promise<{ type: 'record' | 'case'; data: { id: number; status: string; client_id: number; completed_at: string | null; updated_at: string | null } }> {
   // Try cases first (preferred — case IDs match the Amiqus dashboard URL format)
   try {
     const caseData = await getAmiqusCase(id, apiKey);
@@ -201,6 +201,7 @@ export async function getAmiqusRecordOrCase(
         status: caseData.status,
         client_id: extractClientId(caseData),
         completed_at: caseData.completed_at,
+        updated_at: caseData.updated_at ?? null,
       },
     };
   } catch (err) {
@@ -218,6 +219,7 @@ export async function getAmiqusRecordOrCase(
       status: record.status,
       client_id: extractClientId(record),
       completed_at: record.completed_at,
+      updated_at: record.updated_at ?? null,
     },
   };
 }

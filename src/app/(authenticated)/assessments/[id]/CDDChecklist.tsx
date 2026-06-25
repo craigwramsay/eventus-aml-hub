@@ -103,6 +103,7 @@ export function CDDChecklist({
   const [confirmingAction, setConfirmingAction] = useState<string | null>(null);
   const [openLinkAmiqus, setOpenLinkAmiqus] = useState<string | null>(null);
   const [linkRecordId, setLinkRecordId] = useState('');
+  const [linkOriginalDate, setLinkOriginalDate] = useState('');
 
   // Build a set of completed action IDs for optimistic UI
   const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(() => {
@@ -269,17 +270,23 @@ export function CDDChecklist({
     if (!linkRecordId) return;
     setError(null);
     startTransition(async () => {
-      const result = await linkExistingAmiqusRecord(assessmentId, actionId, parseInt(linkRecordId, 10));
+      const result = await linkExistingAmiqusRecord(
+        assessmentId,
+        actionId,
+        parseInt(linkRecordId, 10),
+        linkOriginalDate || null
+      );
       if (!result.success) {
         setError(result.error);
       } else {
         setOpenLinkAmiqus(null);
         setLinkRecordId('');
+        setLinkOriginalDate('');
         setOptimisticCompleted(prev => { const next = new Set(prev); next.add(actionId); return next; });
         router.refresh();
       }
     });
-  }, [assessmentId, linkRecordId, router, startTransition]);
+  }, [assessmentId, linkRecordId, linkOriginalDate, router, startTransition]);
 
   const handleRequestApproval = useCallback(() => {
     setError(null);
@@ -394,6 +401,8 @@ export function CDDChecklist({
         onDecideApproval={handleDecideApproval}
         linkRecordId={linkRecordId}
         setLinkRecordId={setLinkRecordId}
+        linkOriginalDate={linkOriginalDate}
+        setLinkOriginalDate={setLinkOriginalDate}
         openLinkAmiqus={openLinkAmiqus}
         setOpenLinkAmiqus={setOpenLinkAmiqus}
       />

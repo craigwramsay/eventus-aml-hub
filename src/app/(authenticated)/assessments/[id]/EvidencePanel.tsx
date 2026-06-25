@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
 import { SOW_INDIVIDUAL_FIELDS, SOW_CORPORATE_FIELDS, SOF_FIELDS } from '@/lib/clio/sow-sof-html';
 import { isBeneficialOwnerListRow } from '@/lib/evidence/beneficial-owners';
+import { correctAmiqusVerificationDate } from '@/app/actions/amiqus';
 import { CompaniesHouseCard } from './CompaniesHouseCard';
 import { ClioDriveSyncBadge } from './ClioDriveSyncBadge';
 import styles from './page.module.css';
@@ -40,6 +42,8 @@ interface EvidencePanelProps {
   progressRecord?: CddItemProgress;
   isCompleted: boolean;
   isApprovalAction: boolean;
+  /** When true, hide the inline "Correct date" affordance on verification rows */
+  isFinalised?: boolean;
   syncRecords: ClioDriveSync[];
   userNames: Record<string, string>;
   /** Amiqus verifications for this action (merged into evidence list) */
@@ -53,11 +57,44 @@ export function EvidencePanel({
   progressRecord,
   isCompleted,
   isApprovalAction,
+  isFinalised = false,
   syncRecords,
   userNames,
   verifications,
   clientAmiqus,
 }: EvidencePanelProps) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [editingDateId, setEditingDateId] = useState<string | null>(null);
+  const [editingDateValue, setEditingDateValue] = useState<string>('');
+  const [dateEditError, setDateEditError] = useState<string | null>(null);
+
+  const openDateEdit = (verificationId: string, currentVerifiedAt: string | null) => {
+    setEditingDateId(verificationId);
+    setEditingDateValue(currentVerifiedAt || '');
+    setDateEditError(null);
+  };
+  const cancelDateEdit = () => {
+    setEditingDateId(null);
+    setEditingDateValue('');
+    setDateEditError(null);
+  };
+  const saveDateEdit = (verificationId: string) => {
+    if (!editingDateValue) {
+      setDateEditError('Pick a date');
+      return;
+    }
+    setDateEditError(null);
+    startTransition(async () => {
+      const result = await correctAmiqusVerificationDate(verificationId, editingDateValue);
+      if (!result.success) {
+        setDateEditError(result.error);
+      } else {
+        cancelDateEdit();
+        router.refresh();
+      }
+    });
+  };
   // Companies House and SoW/SoF Declaration evidence are expanded by default —
   // these contain the substantive content (CH report, declaration form values)
   // that should be visible without needing to click "Details".
@@ -116,6 +153,7 @@ export function EvidencePanel({
           // Only show "confirmed still valid" wording when there's exactly one verification
           // (for multiple verifications, each is a separate Amiqus record for a different person)
           const showCarryForwardWording = hasCarryForward && verifications.length === 1;
+          const isEditingThis = editingDateId === verification.id;
           return (
             <div key={verification.id}>
               <div className={styles.evidenceLine}>
@@ -126,10 +164,57 @@ export function EvidencePanel({
                     : `${namePrefix}Identity verified electronically${verifiedDate ? ` on ${verifiedDate}` : ''}${verification.amiqus_record_id ? ` (case ${verification.amiqus_record_id})` : ''}`
                   }
                 </span>
+                {!isFinalised && !isEditingThis && (
+                  <button
+                    type="button"
+                    className={styles.evidenceDetailToggle}
+                    onClick={() => openDateEdit(verification.id, verification.verified_at)}
+                  >
+                    Correct date
+                  </button>
+                )}
                 <a href={amiqusUrl} target="_blank" rel="noopener noreferrer" className={styles.evidenceDetailToggle}>
                   View in Amiqus
                 </a>
               </div>
+              {isEditingThis && (
+                <div className={styles.evidenceDetailPanel}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: '0.75rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.875rem' }}>
+                      <span>Original verification date</span>
+                      <input
+                        type="date"
+                        value={editingDateValue}
+                        max={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => setEditingDateValue(e.target.value)}
+                        className={styles.formInput}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className={styles.formSubmit}
+                      onClick={() => saveDateEdit(verification.id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.evidenceDetailToggle}
+                      onClick={cancelDateEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {dateEditError && (
+                    <p style={{ marginTop: '0.5rem', color: 'var(--danger, #c00)', fontSize: '0.85rem' }}>
+                      {dateEditError}
+                    </p>
+                  )}
+                  <p className={styles.formHint} style={{ marginTop: '0.5rem' }}>
+                    Updates this verification, the carry-forward note, and the client&apos;s last-verified date so CDD review windows are calculated correctly.
+                  </p>
+                </div>
+              )}
             </div>
           );
         }
