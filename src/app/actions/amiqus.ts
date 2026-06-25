@@ -299,7 +299,8 @@ function isIdentityActionId(actionId: string): boolean {
 export async function linkExistingAmiqusRecord(
   assessmentId: string,
   actionId: string,
-  amiqusRecordId: number
+  amiqusRecordId: number,
+  overrideVerifiedAt?: string | null
 ): Promise<LinkAmiqusResult> {
   try {
     const { supabase, user, profile, error } = await getUserAndProfile();
@@ -366,10 +367,34 @@ export async function linkExistingAmiqusRecord(
       };
     }
 
-    // Extract verified_at date from completed_at
-    const verifiedAt = amiqusData.completed_at
-      ? amiqusData.completed_at.split('T')[0]
-      : new Date().toISOString().split('T')[0];
+    // Resolve verified_at in priority order:
+    //   1. explicit user override (from the link UI)
+    //   2. Amiqus completed_at (set on records when status=complete)
+    //   3. Amiqus updated_at (always set; on cases this is the approval time)
+    // We deliberately do NOT default to "today" — for an existing verification
+    // that's never a correct guess and would set a wrong CDD review window.
+    const isoDateRe = /^\d{4}-\d{2}-\d{2}$/;
+    let verifiedAt: string | null = null;
+    if (overrideVerifiedAt) {
+      if (!isoDateRe.test(overrideVerifiedAt)) {
+        return { success: false, error: 'Verification date must be in YYYY-MM-DD format' };
+      }
+      const overrideDate = new Date(overrideVerifiedAt + 'T00:00:00');
+      if (Number.isNaN(overrideDate.getTime()) || overrideDate > new Date()) {
+        return { success: false, error: 'Verification date cannot be in the future' };
+      }
+      verifiedAt = overrideVerifiedAt;
+    } else if (amiqusData.completed_at) {
+      verifiedAt = amiqusData.completed_at.split('T')[0];
+    } else if (amiqusData.updated_at) {
+      verifiedAt = amiqusData.updated_at.split('T')[0];
+    }
+    if (!verifiedAt) {
+      return {
+        success: false,
+        error: 'Amiqus did not return a completion date for this record. Enter the original verification date manually and try again.',
+      };
+    }
 
     // For identity actions: validate the verification date against firm's CDD thresholds
     const isIdentityAction = isIdentityActionId(actionId);
@@ -543,6 +568,183 @@ export async function linkExistingAmiqusRecord(
     return { success: true, verification: verification as AmiqusVerification };
   } catch (err) {
     console.error('Error in linkExistingAmiqusRecord:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+export type CorrectVerificationDateResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Correct the verified_at date on an existing Amiqus verification.
+ *
+ * Used when an existing record was linked but the date was wrong (e.g. Amiqus
+ * returned no completed_at and we fell back to today, or the user picked the
+ * wrong value). Updates:
+ *   - amiqus_verifications.verified_at
+ *   - the matching assessment_evidence (Amiqus row) verified_at + data.verified_at
+ *   - the carry-forward "Prior identity verification confirmed still valid"
+ *     evidence row's verified_at + notes wording
+ *   - clients.last_cdd_verified_at — only if it currently matches the OLD date
+ *     (otherwise a newer verification dominates and we should not touch it)
+ *
+ * Refuses to edit verifications attached to a finalised assessment.
+ */
+export async function correctAmiqusVerificationDate(
+  verificationId: string,
+  newVerifiedAt: string
+): Promise<CorrectVerificationDateResult> {
+  try {
+    const { supabase, user, profile, error } = await getUserAndProfile();
+    if (error || !user || !profile) {
+      return { success: false, error: error || 'Not authenticated' };
+    }
+
+    if (!canCreateAssessment(profile.role as UserRole)) {
+      return { success: false, error: 'Your role does not permit editing verification records' };
+    }
+
+    const isoDateRe = /^\d{4}-\d{2}-\d{2}$/;
+    if (!isoDateRe.test(newVerifiedAt)) {
+      return { success: false, error: 'Date must be in YYYY-MM-DD format' };
+    }
+    const newDate = new Date(newVerifiedAt + 'T00:00:00');
+    if (Number.isNaN(newDate.getTime()) || newDate > new Date()) {
+      return { success: false, error: 'Date cannot be in the future' };
+    }
+
+    // Load the verification + assessment
+    const { data: verification } = await supabase
+      .from('amiqus_verifications')
+      .select('id, firm_id, assessment_id, action_id, amiqus_record_id, verified_at')
+      .eq('id', verificationId)
+      .single();
+
+    if (!verification || verification.firm_id !== profile.firm_id) {
+      return { success: false, error: 'Verification not found or access denied' };
+    }
+
+    const { data: assessment } = await supabase
+      .from('assessments')
+      .select('id, finalised_at, matter_id, risk_level')
+      .eq('id', verification.assessment_id)
+      .single();
+
+    if (!assessment) {
+      return { success: false, error: 'Assessment not found' };
+    }
+    if (assessment.finalised_at) {
+      return { success: false, error: 'Assessment is finalised — verification dates cannot be edited' };
+    }
+
+    const oldVerifiedAt: string | null = verification.verified_at;
+
+    // 1. Update the verification row
+    const { error: vUpdErr } = await supabase
+      .from('amiqus_verifications')
+      .update({ verified_at: newVerifiedAt })
+      .eq('id', verificationId);
+    if (vUpdErr) {
+      console.error('Failed to update amiqus_verifications.verified_at:', vUpdErr);
+      return { success: false, error: 'Failed to update verification' };
+    }
+
+    // 2. Update the Amiqus assessment_evidence row (linked by amiqus_record_id in `data`)
+    const { data: amiqusEvidenceRows } = await supabase
+      .from('assessment_evidence')
+      .select('id, data')
+      .eq('assessment_id', verification.assessment_id)
+      .eq('action_id', verification.action_id)
+      .eq('evidence_type', 'amiqus');
+
+    for (const ev of amiqusEvidenceRows || []) {
+      const data = (ev.data ?? {}) as Record<string, unknown>;
+      if (data.amiqus_record_id === verification.amiqus_record_id) {
+        await supabase
+          .from('assessment_evidence')
+          .update({
+            verified_at: newVerifiedAt,
+            data: { ...data, verified_at: newVerifiedAt },
+          })
+          .eq('id', ev.id);
+      }
+    }
+
+    // 3. Update the carry-forward manual_record evidence row if present
+    const { data: carryRows } = await supabase
+      .from('assessment_evidence')
+      .select('id, notes')
+      .eq('assessment_id', verification.assessment_id)
+      .eq('action_id', verification.action_id)
+      .eq('evidence_type', 'manual_record')
+      .eq('label', 'Prior identity verification confirmed still valid');
+
+    if (carryRows && carryRows.length > 0) {
+      const cddConfig = getCddStalenessConfig();
+      const riskLevel = (assessment.risk_level || 'MEDIUM').toUpperCase();
+      const threshold = cddConfig.thresholds[riskLevel];
+      const thresholdLabel = threshold?.label ?? `${cddConfig.universalLongstopMonths ?? 24} months`;
+      const formattedNewDate = newDate.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      const refreshedNotes = `Identity last verified on ${formattedNewDate}. Confirmed still within ${thresholdLabel} review period for ${riskLevel} risk.`;
+      for (const row of carryRows) {
+        await supabase
+          .from('assessment_evidence')
+          .update({ verified_at: newVerifiedAt, notes: refreshedNotes })
+          .eq('id', row.id);
+      }
+    }
+
+    // 4. clients.last_cdd_verified_at — only touch if it currently equals the old date
+    //    (a later verification may have pushed it forward, in which case leave alone).
+    try {
+      const { data: matter } = await supabase
+        .from('matters')
+        .select('client_id')
+        .eq('id', assessment.matter_id)
+        .single();
+
+      if (matter) {
+        const { data: client } = await supabase
+          .from('clients')
+          .select('last_cdd_verified_at')
+          .eq('id', matter.client_id)
+          .single();
+
+        if (client && oldVerifiedAt && client.last_cdd_verified_at === oldVerifiedAt) {
+          await supabase
+            .from('clients')
+            .update({ last_cdd_verified_at: newVerifiedAt })
+            .eq('id', matter.client_id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to recheck client CDD date (non-fatal):', err);
+    }
+
+    // 5. Audit
+    await supabase.from('audit_events').insert({
+      firm_id: profile.firm_id,
+      entity_type: 'amiqus_verification',
+      entity_id: verificationId,
+      action: 'amiqus_verified_at_corrected',
+      metadata: {
+        assessment_id: verification.assessment_id,
+        action_id: verification.action_id,
+        amiqus_record_id: verification.amiqus_record_id,
+        old_verified_at: oldVerifiedAt,
+        new_verified_at: newVerifiedAt,
+      },
+      created_by: user.id,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error in correctAmiqusVerificationDate:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

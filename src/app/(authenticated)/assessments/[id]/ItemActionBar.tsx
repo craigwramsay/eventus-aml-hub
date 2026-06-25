@@ -44,6 +44,8 @@ interface ItemActionBarProps {
   // State for link Amiqus form
   linkRecordId: string;
   setLinkRecordId: (v: string) => void;
+  linkOriginalDate: string;
+  setLinkOriginalDate: (v: string) => void;
   openLinkAmiqus: string | null;
   setOpenLinkAmiqus: (v: string | null) => void;
 }
@@ -77,6 +79,8 @@ export function ItemActionBar({
   onManualIdv,
   linkRecordId,
   setLinkRecordId,
+  linkOriginalDate,
+  setLinkOriginalDate,
   openLinkAmiqus,
   setOpenLinkAmiqus,
 }: ItemActionBarProps) {
@@ -350,6 +354,22 @@ export function ItemActionBar({
             />
             <p className={styles.formHint}>
               The case number from your Amiqus URL (e.g. id.amiqus.co/cases/<strong>39229</strong>).
+            </p>
+          </div>
+          <div className={styles.formField}>
+            <label htmlFor={`amiqus-original-date-${action.actionId}`} className={styles.formLabel}>
+              Original verification date <span style={{ fontWeight: 'normal', color: 'var(--text-muted, #666)' }}>(optional)</span>
+            </label>
+            <input
+              id={`amiqus-original-date-${action.actionId}`}
+              type="date"
+              value={linkOriginalDate}
+              onChange={(e) => setLinkOriginalDate(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+              className={styles.formInput}
+            />
+            <p className={styles.formHint}>
+              Leave blank to use the date Amiqus has on file. Set this if you know the original verification date (the CDD review window is calculated from this).
             </p>
           </div>
           <button type="submit" disabled={isPending} className={styles.formSubmit}>
