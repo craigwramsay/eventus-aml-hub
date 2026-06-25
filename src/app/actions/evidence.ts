@@ -284,6 +284,14 @@ export async function addManualRecord(
       await updateClientCddDate(supabase, assessmentId, verifiedAt);
     }
 
+    // File notes are pushed to the Clio Drive Compliance folder as readable
+    // HTML so the same record appears alongside other evidence in Clio.
+    // Other manual_record rows (e.g. carry-forward confirmations) carry no
+    // narrative file content and aren't worth syncing.
+    if (label.trim() === 'File note') {
+      triggerClioSync(assessmentId, data.id, profile.firm_id, user.id).catch(() => {});
+    }
+
     return { success: true, evidence: data as AssessmentEvidence };
   } catch (err) {
     console.error('Error in addManualRecord:', err);

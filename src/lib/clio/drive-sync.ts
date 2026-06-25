@@ -20,10 +20,21 @@ import { generateAssessmentPdf } from './drive-pdf';
 import type { CddItemSummary, CddEvidenceItem, DeclarationData, RiskFactorSummary } from './drive-pdf';
 import { generateSowHtml, generateSofHtml } from './sow-sof-html';
 import { parseCHReport, getDirectorNames, generateCompaniesHouseHtml } from './ch-report';
+import { generateFileNoteHtml } from './file-note-html';
+import { computeChecklistItemInfo, type ChecklistAction } from './checklist-numbering';
 import { isBeneficialOwnerListRow } from '@/lib/evidence/beneficial-owners';
 
 /** Evidence types that produce files worth syncing to Clio Drive */
 const SYNCABLE_EVIDENCE_TYPES = ['file_upload', 'companies_house', 'sow_declaration', 'sof_declaration'];
+
+/**
+ * `manual_record` is a catch-all type used for several non-file evidence rows
+ * (e.g. carry-forward confirmations). Only the user-typed "File note" subset
+ * is worth pushing to Clio Drive — others have no narrative content.
+ */
+function isFileNote(evidence: { evidence_type: string; label?: string | null }): boolean {
+  return evidence.evidence_type === 'manual_record' && evidence.label === 'File note';
+}
 
 /**
  * Sync a single evidence record to Clio Drive.
@@ -49,7 +60,7 @@ export async function syncEvidenceToClio(
   if (!evidence) return;
 
   // Only sync syncable types
-  if (!SYNCABLE_EVIDENCE_TYPES.includes(evidence.evidence_type)) return;
+  if (!SYNCABLE_EVIDENCE_TYPES.includes(evidence.evidence_type) && !isFileNote(evidence)) return;
 
   // Check for existing synced record (prevent duplicates)
   const { data: existing } = await supabase
@@ -704,6 +715,62 @@ async function executeSyncUpload(
         fileName = `SoF-Declaration-${context.assessmentReference}.html`;
         fileContent = Buffer.from(html, 'utf-8');
       }
+      contentType = 'text/html';
+    } else if (isFileNote(evidence)) {
+      // Render the user's file note as a self-contained HTML doc and name it
+      // by the checklist item number so the Compliance folder is navigable.
+      const context = await fetchAssessmentContext(supabase, evidence.assessment_id);
+      if (!context) {
+        await updateSyncStatus(supabase, syncId, 'failed', 'Assessment context not found');
+        return;
+      }
+
+      // Look up the checklist item number + label from output_snapshot.
+      let itemNumber: number | null = null;
+      let itemLabel: string | null = null;
+      if (evidence.action_id) {
+        const { data: assessment } = await supabase
+          .from('assessments')
+          .select('output_snapshot')
+          .eq('id', evidence.assessment_id)
+          .single();
+        const snapshot = (assessment?.output_snapshot ?? {}) as { mandatoryActions?: ChecklistAction[] };
+        const info = computeChecklistItemInfo(snapshot.mandatoryActions ?? [], evidence.action_id);
+        if (info) {
+          itemNumber = info.number;
+          itemLabel = info.label;
+        }
+      }
+
+      let authorName: string | null = null;
+      if (evidence.created_by) {
+        const { data: authorProfile } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('user_id', evidence.created_by)
+          .single();
+        if (authorProfile?.full_name) authorName = authorProfile.full_name;
+      }
+
+      const html = generateFileNoteHtml({
+        clientName: context.clientName,
+        matterReference: context.matterReference,
+        assessmentReference: context.assessmentReference,
+        itemNumber,
+        itemLabel,
+        notes: evidence.notes ?? '',
+        authorName,
+        createdAt: evidence.created_at,
+      });
+
+      // Filename embeds the checklist item number + a short evidence id so
+      // multiple notes against the same item don't clash. Fall back to a
+      // date-stamped name when the note isn't tied to an item.
+      const shortId = evidence.id.replace(/-/g, '').slice(0, 6);
+      fileName = itemNumber !== null
+        ? `FileNote-Item${itemNumber}-${shortId}.html`
+        : `FileNote-${shortId}.html`;
+      fileContent = Buffer.from(html, 'utf-8');
       contentType = 'text/html';
     } else {
       await updateSyncStatus(supabase, syncId, 'failed', 'No file content available');
