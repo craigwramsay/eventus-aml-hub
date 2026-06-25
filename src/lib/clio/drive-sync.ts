@@ -18,7 +18,7 @@ import { getClioAccessTokenForFirm } from './token';
 import { generateAssessmentPdf } from './drive-pdf';
 import type { CddItemSummary, CddEvidenceItem, DeclarationData, RiskFactorSummary } from './drive-pdf';
 import { generateSowHtml, generateSofHtml } from './sow-sof-html';
-import { parseCHReport, getDirectorNames } from './ch-report';
+import { parseCHReport, getDirectorNames, generateCompaniesHouseHtml } from './ch-report';
 import { isBeneficialOwnerListRow } from '@/lib/evidence/beneficial-owners';
 
 /** Evidence types that produce files worth syncing to Clio Drive */
@@ -562,10 +562,41 @@ async function executeSyncUpload(
       fileContent = Buffer.from(await fileData.arrayBuffer());
       contentType = fileData.type || 'application/octet-stream';
     } else if (evidence.evidence_type === 'companies_house' && evidence.data) {
-      // Serialize Companies House data as JSON
-      fileName = `CompaniesHouse-${evidence.label || 'lookup'}.json`;
-      fileContent = Buffer.from(JSON.stringify(evidence.data, null, 2), 'utf-8');
-      contentType = 'application/json';
+      // Render Companies House lookup as a self-contained HTML document so
+      // it's actually readable from Clio Drive (the JSON dump that used to
+      // live here was only useful to developers).
+      const parsed = parseCHReport(evidence.data);
+      const chData = evidence.data as Record<string, unknown>;
+      const profile = (chData?.profile ?? {}) as Record<string, unknown>;
+      const companyName = (profile.company_name as string | undefined)
+        || evidence.label
+        || 'lookup';
+      const companyNumber = profile.company_number as string | undefined;
+
+      if (parsed) {
+        const context = await fetchAssessmentContext(supabase, evidence.assessment_id);
+        if (!context) {
+          await updateSyncStatus(supabase, syncId, 'failed', 'Assessment context not found');
+          return;
+        }
+        const html = generateCompaniesHouseHtml({
+          companyName,
+          companyNumber,
+          clientName: context.clientName,
+          matterReference: context.matterReference,
+          assessmentReference: context.assessmentReference,
+          report: parsed,
+        });
+        fileName = `CompaniesHouse-${companyName}.html`;
+        fileContent = Buffer.from(html, 'utf-8');
+        contentType = 'text/html';
+      } else {
+        // Malformed payload — fall back to raw JSON so the evidence isn't lost.
+        console.warn(`[clio-drive-sync] CH evidence ${evidence.id} parse failed; uploading raw JSON`);
+        fileName = `CompaniesHouse-${companyName}.json`;
+        fileContent = Buffer.from(JSON.stringify(evidence.data, null, 2), 'utf-8');
+        contentType = 'application/json';
+      }
     } else if ((evidence.evidence_type === 'sow_declaration' || evidence.evidence_type === 'sof_declaration') && evidence.data) {
       // Render SoW/SoF declaration as HTML
       const context = await fetchAssessmentContext(supabase, evidence.assessment_id);
