@@ -643,7 +643,17 @@ async function executeSyncUpload(
         return;
       }
 
-      fileName = evidence.file_name || evidence.file_path.split('/').pop() || 'document';
+      const originalName = evidence.file_name || evidence.file_path.split('/').pop() || 'document';
+      // Prefix with the checklist item number (e.g. "Item-5-engagement-letter.pdf")
+      // so the matter's Compliance folder reads in the same order as the
+      // checklist on screen. Falls through to the original filename when the
+      // upload isn't tied to a specific item.
+      const uploadItemInfo = evidence.action_id
+        ? await lookupChecklistItemInfo(supabase, evidence.assessment_id, evidence.action_id)
+        : null;
+      fileName = uploadItemInfo
+        ? `Item-${uploadItemInfo.number}-${originalName}`
+        : originalName;
       fileContent = Buffer.from(await fileData.arrayBuffer());
       contentType = fileData.type || 'application/octet-stream';
     } else if (evidence.evidence_type === 'companies_house' && evidence.data) {
@@ -726,21 +736,11 @@ async function executeSyncUpload(
       }
 
       // Look up the checklist item number + label from output_snapshot.
-      let itemNumber: number | null = null;
-      let itemLabel: string | null = null;
-      if (evidence.action_id) {
-        const { data: assessment } = await supabase
-          .from('assessments')
-          .select('output_snapshot')
-          .eq('id', evidence.assessment_id)
-          .single();
-        const snapshot = (assessment?.output_snapshot ?? {}) as { mandatoryActions?: ChecklistAction[] };
-        const info = computeChecklistItemInfo(snapshot.mandatoryActions ?? [], evidence.action_id);
-        if (info) {
-          itemNumber = info.number;
-          itemLabel = info.label;
-        }
-      }
+      const noteItemInfo = evidence.action_id
+        ? await lookupChecklistItemInfo(supabase, evidence.assessment_id, evidence.action_id)
+        : null;
+      const itemNumber = noteItemInfo?.number ?? null;
+      const itemLabel = noteItemInfo?.label ?? null;
 
       let authorName: string | null = null;
       if (evidence.created_by) {
@@ -864,6 +864,26 @@ async function executeDirectUpload(
 
     await updateSyncStatus(supabase, syncId, 'failed', message);
   }
+}
+
+/**
+ * Look up the on-screen checklist item number + label for an action by
+ * reading the assessment's output_snapshot and running the same numbering
+ * walk the UI uses. Returns null when the action isn't in the snapshot.
+ */
+async function lookupChecklistItemInfo(
+  supabase: SupabaseClient,
+  assessmentId: string,
+  actionId: string,
+): Promise<{ number: number; label: string } | null> {
+  const { data: assessment } = await supabase
+    .from('assessments')
+    .select('output_snapshot')
+    .eq('id', assessmentId)
+    .single();
+  if (!assessment) return null;
+  const snapshot = (assessment.output_snapshot ?? {}) as { mandatoryActions?: ChecklistAction[] };
+  return computeChecklistItemInfo(snapshot.mandatoryActions ?? [], actionId);
 }
 
 /**
