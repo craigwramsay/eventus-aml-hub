@@ -10,7 +10,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ClioDriveSync } from '@/lib/supabase/types';
-import { retryClioDriveSync } from '@/app/actions/clio-drive';
+import { retryClioDriveSync, resyncClioEvidence } from '@/app/actions/clio-drive';
 import styles from './page.module.css';
 
 interface ClioDriveSyncBadgeProps {
@@ -56,6 +56,25 @@ export function ClioDriveSyncBadge({
     });
   }
 
+  function handleResync() {
+    if (!record) return;
+    if (typeof window !== 'undefined') {
+      const ok = window.confirm(
+        'Resync to Clio? The current file in Clio Drive will be replaced with the latest version.'
+      );
+      if (!ok) return;
+    }
+    setRetryError(null);
+    startTransition(async () => {
+      const result = await resyncClioEvidence(record.id);
+      if (!result.success) {
+        setRetryError(result.error || 'Resync failed');
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
   if (record.status === 'pending' || record.status === 'uploading') {
     return (
       <span className={`${styles.clioSyncBadge} ${styles.clioSyncPending}`}>
@@ -66,15 +85,34 @@ export function ClioDriveSyncBadge({
   }
 
   if (record.status === 'synced' && record.clio_document_url) {
+    // Only show Resync for evidence syncs (not the finalisation HTML, which
+    // doesn't have a force-resync path).
+    const canResync = syncType === 'evidence';
     return (
-      <a
-        href={record.clio_document_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`${styles.clioSyncBadge} ${styles.clioSyncSynced}`}
-      >
-        View in Clio
-      </a>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <a
+          href={record.clio_document_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${styles.clioSyncBadge} ${styles.clioSyncSynced}`}
+        >
+          View in Clio
+        </a>
+        {canResync && (
+          <button
+            type="button"
+            className={styles.clioRetryButton}
+            onClick={handleResync}
+            disabled={isPending}
+            title="Replace the file in Clio Drive with the latest version"
+          >
+            {isPending ? 'Resyncing…' : 'Resync'}
+          </button>
+        )}
+        {retryError && (
+          <span className={styles.clioRetryError}>{retryError}</span>
+        )}
+      </span>
     );
   }
 

@@ -10,6 +10,7 @@ import type { AssessmentEvidence } from '@/lib/supabase/types';
 import {
   ensureComplianceFolder,
   uploadDocumentToClio,
+  deleteClioDocument,
   getClioDocumentUrl,
   getClioBaseUrl,
   ClioError,
@@ -510,6 +511,79 @@ export async function retryFailedSync(
       syncRecord.created_by || ''
     );
   }
+}
+
+/**
+ * Force-resync an already-synced evidence record:
+ * deletes the previously uploaded Clio document and re-runs the upload on the
+ * same sync row. Used when the renderer changes (e.g. switching the Companies
+ * House evidence from JSON to HTML) and we want the file in Clio Drive to
+ * reflect the new format.
+ *
+ * If the Clio delete fails (e.g. user removed the file manually, token issues),
+ * we log it but continue — the new upload will land alongside.
+ */
+export async function resyncEvidenceUpload(
+  supabase: SupabaseClient,
+  syncId: string
+): Promise<void> {
+  const { data: syncRecord } = await supabase
+    .from('clio_drive_sync')
+    .select('*')
+    .eq('id', syncId)
+    .single();
+
+  if (!syncRecord) return;
+  if (syncRecord.sync_type !== 'evidence' || !syncRecord.evidence_id) return;
+
+  const { data: evidence } = await supabase
+    .from('assessment_evidence')
+    .select('*')
+    .eq('id', syncRecord.evidence_id)
+    .single();
+
+  if (!evidence) {
+    await updateSyncStatus(supabase, syncId, 'failed', 'Evidence record not found');
+    return;
+  }
+
+  // Best-effort delete of the existing Clio document before re-upload.
+  if (syncRecord.clio_document_id) {
+    try {
+      const tokenResult = await getClioAccessTokenForFirm(supabase, syncRecord.firm_id);
+      if (tokenResult) {
+        await deleteClioDocument(syncRecord.clio_document_id, tokenResult.accessToken);
+      }
+    } catch (err) {
+      console.warn(
+        `[clio-drive-sync] Failed to delete old document ${syncRecord.clio_document_id} during resync; continuing.`,
+        err
+      );
+    }
+  }
+
+  // Reset the row to pending so executeSyncUpload can run cleanly. Null out
+  // the old document refs so a partial failure doesn't leave a stale "synced"
+  // url pointing at a file we just deleted.
+  await supabase
+    .from('clio_drive_sync')
+    .update({
+      status: 'pending',
+      clio_document_id: null,
+      clio_document_url: null,
+      error_message: null,
+      synced_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', syncId);
+
+  await executeSyncUpload(
+    supabase,
+    syncId,
+    evidence,
+    syncRecord.firm_id,
+    syncRecord.clio_matter_id
+  );
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────

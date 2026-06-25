@@ -498,6 +498,28 @@ export async function uploadDocumentToClio(
 }
 
 /**
+ * Delete a document from Clio Drive.
+ *
+ * Tolerates 404 (already gone) — used when re-syncing evidence so the previous
+ * upload is removed before the replacement goes up.
+ */
+export async function deleteClioDocument(
+  documentId: number,
+  accessToken: string
+): Promise<void> {
+  try {
+    await clioFetch<unknown>(
+      `/api/v4/documents/${documentId}.json`,
+      accessToken,
+      { method: 'DELETE' }
+    );
+  } catch (err) {
+    if (err instanceof ClioError && err.statusCode === 404) return;
+    throw err;
+  }
+}
+
+/**
  * Build a Clio web UI URL for viewing a contact.
  * Given the base URL (so this is usable from server components that already
  * resolved the region, OR from client components that get it as a prop).
