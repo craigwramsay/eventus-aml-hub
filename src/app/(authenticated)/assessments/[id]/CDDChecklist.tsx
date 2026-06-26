@@ -18,6 +18,7 @@ import type { MandatoryAction, EDDTriggerResult } from '@/lib/rules-engine/types
 import type { AssessmentEvidence, CddItemProgress, AmiqusVerification, ClioDriveSync } from '@/lib/supabase/types';
 import { toggleItemCompletion } from '@/app/actions/progress';
 import { uploadEvidence, addManualRecord, lookupCompaniesHouse, confirmIdentityStillValid, confirmDocumentSaved, recordManualIdVerification } from '@/app/actions/evidence';
+import { checkClioComplianceFolderForFilename } from '@/app/actions/clio-drive';
 import { requestMLROApproval, withdrawApproval, decideApproval } from '@/app/actions/approvals';
 import { initiateAmiqusVerification, linkExistingAmiqusRecord } from '@/app/actions/amiqus';
 import { CDDChecklistItem } from './CDDChecklistItem';
@@ -193,7 +194,24 @@ export function CDDChecklist({
     e.preventDefault();
     setError(null);
     const formData = new FormData(e.currentTarget);
+    const file = formData.get('file');
+    const filename = file instanceof File ? file.name : null;
     startTransition(async () => {
+      // Best-effort pre-flight: warn the user if a file with the same name (or
+      // the Item-N-prefixed variant we'd upload as) is already in this matter's
+      // Clio Compliance folder. Skipped silently if Clio isn't connected.
+      if (filename) {
+        const check = await checkClioComplianceFolderForFilename(assessmentId, filename, actionId);
+        if (check.exists) {
+          const list = check.matches.map(n => `  • ${n}`).join('\n');
+          const ok = typeof window !== 'undefined'
+            ? window.confirm(
+                `A file with this name is already in this matter's Clio Drive Compliance folder:\n\n${list}\n\nUpload anyway? Clio will hold a second copy.`,
+              )
+            : true;
+          if (!ok) return;
+        }
+      }
       const result = await uploadEvidence(assessmentId, formData, actionId);
       if (!result.success) setError(result.error);
       else router.refresh();

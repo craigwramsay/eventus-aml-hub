@@ -10,6 +10,9 @@
 import { createClient } from '@/lib/supabase/server';
 import type { ClioDriveSync } from '@/lib/supabase/types';
 import { syncEvidenceToClio, syncFinalisationPdfToClio, retryFailedSync, resyncEvidenceUpload } from '@/lib/clio/drive-sync';
+import { listClioFolderDocuments, findClioFolder } from '@/lib/clio/client';
+import { getClioAccessTokenForFirm } from '@/lib/clio/token';
+import { computeChecklistItemInfo, type ChecklistAction } from '@/lib/clio/checklist-numbering';
 
 /**
  * Trigger Clio Drive sync for a newly created evidence record.
@@ -148,6 +151,78 @@ export async function resyncClioEvidence(
   } catch (err) {
     console.error('Clio Drive resync error:', err);
     return { success: false, error: 'Resync failed' };
+  }
+}
+
+/**
+ * Pre-flight check before uploading an evidence file: does a document with the
+ * same name (or the `Item-N-`-prefixed variant we'd upload as) already exist
+ * in the matter's Clio Drive Compliance folder?
+ *
+ * Best-effort — any failure (Clio not connected, listing errored, no folder
+ * yet) returns `exists: false` so the upload UI proceeds without false
+ * positives. The actual upload still happens via the existing sync path.
+ */
+export interface ClioFilenameCheckResult {
+  exists: boolean;
+  /** The names that matched, lowercased, for display in the warning prompt. */
+  matches: string[];
+}
+
+export async function checkClioComplianceFolderForFilename(
+  assessmentId: string,
+  originalFilename: string,
+  actionId?: string | null,
+): Promise<ClioFilenameCheckResult> {
+  const empty: ClioFilenameCheckResult = { exists: false, matches: [] };
+  if (!originalFilename) return empty;
+
+  try {
+    const supabase = await createClient();
+
+    const { data: assessment } = await supabase
+      .from('assessments')
+      .select('matter_id, firm_id, output_snapshot')
+      .eq('id', assessmentId)
+      .single();
+    if (!assessment) return empty;
+
+    const { data: matter } = await supabase
+      .from('matters')
+      .select('clio_matter_id')
+      .eq('id', assessment.matter_id)
+      .single();
+    if (!matter?.clio_matter_id) return empty;
+
+    const tokenResult = await getClioAccessTokenForFirm(supabase, assessment.firm_id);
+    if (!tokenResult) return empty;
+    const { accessToken } = tokenResult;
+
+    const folder = await findClioFolder(parseInt(matter.clio_matter_id, 10), 'Compliance', accessToken);
+    if (!folder) return empty;
+
+    const docs = await listClioFolderDocuments(folder.id, accessToken);
+    if (docs.length === 0) return empty;
+
+    // Compute the prefixed variant the Hub would upload as.
+    let prefixedName: string | null = null;
+    if (actionId) {
+      const snapshot = (assessment.output_snapshot ?? {}) as { mandatoryActions?: ChecklistAction[] };
+      const info = computeChecklistItemInfo(snapshot.mandatoryActions ?? [], actionId);
+      if (info) prefixedName = `Item-${info.number}-${originalFilename}`;
+    }
+
+    const candidates = new Set<string>([originalFilename.toLowerCase()]);
+    if (prefixedName) candidates.add(prefixedName.toLowerCase());
+
+    const matches = docs
+      .map(d => d.name)
+      .filter(name => candidates.has(name.toLowerCase()));
+
+    return { exists: matches.length > 0, matches };
+  } catch (err) {
+    console.error('Clio filename check error (non-fatal):', err);
+    return empty;
   }
 }
 

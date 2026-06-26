@@ -338,6 +338,30 @@ export async function deleteClioWebhook(
 // ── Clio Drive: Folder & Document Operations ──────────────────────────
 
 /**
+ * List documents directly under a Clio folder. Returns `{ id, name }` for each
+ * — enough for filename-collision checks before uploading new evidence.
+ *
+ * Single page (limit=200). Compliance folders rarely hold more than a few dozen
+ * files, so pagination would be over-engineering today.
+ */
+export async function listClioFolderDocuments(
+  folderId: number,
+  accessToken: string
+): Promise<Array<{ id: number; name: string }>> {
+  const params = new URLSearchParams({
+    fields: 'id,name',
+    parent_id: String(folderId),
+    parent_type: 'Folder',
+    limit: '200',
+  });
+  const data = await clioFetch<{ data: Array<{ id: number; name: string }> }>(
+    `/api/v4/documents.json?${params.toString()}`,
+    accessToken
+  );
+  return Array.isArray(data.data) ? data.data : [];
+}
+
+/**
  * Find a folder by name under a Clio matter.
  * Returns null if not found.
  *
