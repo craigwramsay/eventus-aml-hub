@@ -105,9 +105,27 @@ export function CDDChecklist({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [confirmingAction, setConfirmingAction] = useState<string | null>(null);
-  const [openLinkAmiqus, setOpenLinkAmiqus] = useState<string | null>(null);
+  const [openLinkAmiqus, setOpenLinkAmiqusInternal] = useState<string | null>(null);
   const [linkRecordId, setLinkRecordId] = useState('');
   const [linkOriginalDate, setLinkOriginalDate] = useState('');
+  /** Optional person the link form is scoped to — only set when opened via the
+   *  per-person carry-forward panel. Clears whenever the generic Link Existing
+   *  Record button toggles the form. */
+  const [linkForPersonName, setLinkForPersonName] = useState<string | null>(null);
+
+  const setOpenLinkAmiqus = useCallback((actionId: string | null) => {
+    setOpenLinkAmiqusInternal(actionId);
+    setLinkForPersonName(null);
+    setLinkRecordId('');
+    setLinkOriginalDate('');
+  }, []);
+
+  const openLinkFormForPerson = useCallback((actionId: string, personName: string) => {
+    setOpenLinkAmiqusInternal(actionId);
+    setLinkForPersonName(personName);
+    setLinkRecordId('');
+    setLinkOriginalDate('');
+  }, []);
 
   // Build a set of completed action IDs for optimistic UI
   const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(() => {
@@ -449,6 +467,8 @@ export function CDDChecklist({
         setLinkOriginalDate={setLinkOriginalDate}
         openLinkAmiqus={openLinkAmiqus}
         setOpenLinkAmiqus={setOpenLinkAmiqus}
+        linkForPersonName={linkForPersonName}
+        onOpenLinkForPerson={openLinkFormForPerson}
       />
     );
   };
