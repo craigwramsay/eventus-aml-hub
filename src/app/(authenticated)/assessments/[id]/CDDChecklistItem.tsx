@@ -204,6 +204,10 @@ interface CDDChecklistItemProps {
   setLinkOriginalDate: (v: string) => void;
   openLinkAmiqus: string | null;
   setOpenLinkAmiqus: (v: string | null) => void;
+  /** Name of the person the link form is scoped to (set when opened from the per-person panel). */
+  linkForPersonName: string | null;
+  /** Open the shared link form pre-scoped to a specific director / BO name. */
+  onOpenLinkForPerson: (actionId: string, personName: string) => void;
 }
 
 export function CDDChecklistItem({
@@ -252,6 +256,8 @@ export function CDDChecklistItem({
   setLinkOriginalDate,
   openLinkAmiqus,
   setOpenLinkAmiqus,
+  linkForPersonName,
+  onOpenLinkForPerson,
 }: CDDChecklistItemProps) {
   const effectiveCompleted = isCompleted || approvalCompleted;
   const showCH = isCompaniesHouseAction(action) && isCorporate && !!registeredNumber;
@@ -422,6 +428,7 @@ export function CDDChecklistItem({
           isPending={isPending}
           confirmingAction={confirmingAction}
           onConfirmStillValid={onConfirmStillValid}
+          onOpenLinkForPerson={onOpenLinkForPerson}
         />
       )}
 
@@ -459,6 +466,7 @@ export function CDDChecklistItem({
         setLinkOriginalDate={setLinkOriginalDate}
         openLinkAmiqus={openLinkAmiqus}
         setOpenLinkAmiqus={setOpenLinkAmiqus}
+        linkForPersonName={linkForPersonName}
       />
     </div>
   );
@@ -488,6 +496,7 @@ function PerPersonCarryForwardBlock(props: {
     actionId: string,
     person?: { name: string; amiqusRecordId: number; amiqusClientId: number | null; verifiedAt: string | null } | null,
   ) => void;
+  onOpenLinkForPerson: (actionId: string, personName: string) => void;
 }) {
   const {
     actionId,
@@ -499,6 +508,7 @@ function PerPersonCarryForwardBlock(props: {
     isPending,
     confirmingAction,
     onConfirmStillValid,
+    onOpenLinkForPerson,
   } = props;
 
   // Lowercase-trim quick comparator for "do we already have an Amiqus row for
@@ -545,13 +555,25 @@ function PerPersonCarryForwardBlock(props: {
       </p>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {rows.map(({ name, prior }) => {
+          const linkForPersonButton = (
+            <button
+              type="button"
+              className={styles.evidenceActionButton}
+              onClick={() => onOpenLinkForPerson(actionId, name)}
+              disabled={isPending}
+              style={{ fontSize: '0.8rem' }}
+            >
+              Link Existing for {name}
+            </button>
+          );
           if (!prior || !prior.verifiedAt) {
             return (
               <li key={name} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: '0.875rem' }}>{name}</strong>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #666)', fontStyle: 'italic' }}>
-                  No prior verification on file — use Initiate Amiqus, Link Existing Record, or Record Manual Verification below.
+                  No prior verification on file.
                 </span>
+                {linkForPersonButton}
               </li>
             );
           }
@@ -583,6 +605,7 @@ function PerPersonCarryForwardBlock(props: {
                   Review window exceeded — a fresh verification is required.
                 </span>
               )}
+              {linkForPersonButton}
             </li>
           );
         })}

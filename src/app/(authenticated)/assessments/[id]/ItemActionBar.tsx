@@ -48,6 +48,8 @@ interface ItemActionBarProps {
   setLinkOriginalDate: (v: string) => void;
   openLinkAmiqus: string | null;
   setOpenLinkAmiqus: (v: string | null) => void;
+  /** When set, shows a "Linking for: [Name]" header inside the link form so the user knows which director / BO they're scoping the click to. Pure UI hint — the actual person is still resolved from Amiqus's client record on submit. */
+  linkForPersonName?: string | null;
 }
 
 export function ItemActionBar({
@@ -83,6 +85,7 @@ export function ItemActionBar({
   setLinkOriginalDate,
   openLinkAmiqus,
   setOpenLinkAmiqus,
+  linkForPersonName,
 }: ItemActionBarProps) {
   const [openUpload, setOpenUpload] = useState(false);
   const [openManual, setOpenManual] = useState(false);
@@ -340,6 +343,23 @@ export function ItemActionBar({
           onSubmit={(e) => onLinkAmiqus(action.actionId, e)}
           className={styles.evidenceForm}
         >
+          {linkForPersonName && (
+            <div
+              style={{
+                padding: '0.5rem 0.75rem',
+                background: '#f3f4f6',
+                borderRadius: 6,
+                marginBottom: '0.5rem',
+                fontSize: '0.85rem',
+                color: '#333',
+              }}
+            >
+              Linking for: <strong>{linkForPersonName}</strong>
+              <span style={{ marginLeft: '0.5rem', color: '#666' }}>
+                (the person is confirmed from the Amiqus record on submit — this label is just a reminder of who you clicked for)
+              </span>
+            </div>
+          )}
           <div className={styles.formField}>
             <label htmlFor={`amiqus-record-id-${action.actionId}`} className={styles.formLabel}>Amiqus ID</label>
             <input
