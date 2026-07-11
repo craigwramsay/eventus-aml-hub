@@ -3,7 +3,7 @@ import { getAssessmentWithDetails } from '@/app/actions/assessments';
 import { getEvidenceForAssessment, getLatestSowForClient } from '@/app/actions/evidence';
 import { getProgressForAssessment } from '@/app/actions/progress';
 import { getApprovalForAssessment } from '@/app/actions/approvals';
-import { getAmiqusVerifications, getClientLatestAmiqusVerification, backfillAmiqusClientIds } from '@/app/actions/amiqus';
+import { getAmiqusVerifications, getClientLatestAmiqusVerification, getPriorVerificationsForPersons, backfillAmiqusClientIds } from '@/app/actions/amiqus';
 import { getClioDriveSyncForAssessment } from '@/app/actions/clio-drive';
 import { getUserProfile, createClient } from '@/lib/supabase/server';
 import { canFinaliseAssessment, canDeleteEntities } from '@/lib/auth/roles';
@@ -155,6 +155,15 @@ export default async function AssessmentViewPage({ params }: PageProps) {
   // not always the beneficial owners that should be verified for AML purposes.
   const beneficialOwnerNames = extractBeneficialOwnerNames(evidence);
 
+  // For multi-person identity items (directors / BOs), look up whether each
+  // named person already has a prior Amiqus verification on this client.
+  // Keyed by the display name as supplied so the UI can render each row by
+  // the same label the user sees in the directors/BOs list.
+  const personLookupNames = Array.from(new Set([...directorNames, ...beneficialOwnerNames]));
+  const priorPersonVerifications = personLookupNames.length > 0
+    ? await getPriorVerificationsForPersons(client.id, personLookupNames)
+    : {};
+
   // Separate actions: non-EDD (includes monitoring for acknowledgement), EDD
   const nonEddNonMonitoringActions = outputSnapshot.mandatoryActions.filter(
     (a: MandatoryAction) => a.category !== 'edd'
@@ -263,6 +272,7 @@ export default async function AssessmentViewPage({ params }: PageProps) {
         clientAmiqus={clientAmiqus}
         directorNames={directorNames}
         beneficialOwnerNames={beneficialOwnerNames}
+        priorPersonVerifications={priorPersonVerifications}
       />
 
       {/* 4. Monitoring Statement */}

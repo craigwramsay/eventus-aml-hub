@@ -22,6 +22,7 @@ import {
   formatAmiqusClientName,
   AmiqusError,
 } from '@/lib/amiqus';
+import { normalizePersonName } from '@/lib/clio/person-name-normaliser';
 
 export type InitiateVerificationResult =
   | { success: true; verification: AmiqusVerification }
@@ -273,6 +274,83 @@ export async function getClientLatestAmiqusVerification(
     };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Per-person prior verification lookup across all of the client's prior
+ * assessments. Used for the per-person carry-forward UI on multi-person items
+ * (directors / beneficial owners).
+ *
+ * Returns a map keyed by the ORIGINAL display name (as supplied), so the UI
+ * can render each name back without re-normalising. Each entry points at the
+ * most recent matching verification.
+ */
+export interface PriorPersonVerification {
+  amiqusRecordId: number;
+  amiqusClientId: number | null;
+  amiqusClientName: string | null;
+  verifiedAt: string | null;
+}
+
+export async function getPriorVerificationsForPersons(
+  clientId: string,
+  names: string[]
+): Promise<Record<string, PriorPersonVerification>> {
+  const empty: Record<string, PriorPersonVerification> = {};
+  if (!names || names.length === 0) return empty;
+
+  try {
+    const { supabase, error } = await getUserAndProfile();
+    if (error) return empty;
+
+    const { data: matters } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('client_id', clientId);
+    if (!matters || matters.length === 0) return empty;
+
+    const { data: assessments } = await supabase
+      .from('assessments')
+      .select('id')
+      .in('matter_id', matters.map(m => m.id));
+    if (!assessments || assessments.length === 0) return empty;
+
+    const { data: verifications } = await supabase
+      .from('amiqus_verifications')
+      .select('amiqus_record_id, amiqus_client_id, amiqus_client_name, verified_at')
+      .in('assessment_id', assessments.map(a => a.id))
+      .eq('status', 'complete')
+      .not('amiqus_record_id', 'is', null)
+      .not('amiqus_client_name', 'is', null)
+      .order('verified_at', { ascending: false });
+
+    if (!verifications || verifications.length === 0) return empty;
+
+    // Group verifications by normalised name; first row wins (already ordered DESC by date).
+    const byNormalisedName = new Map<string, PriorPersonVerification>();
+    for (const v of verifications) {
+      if (!v.amiqus_client_name) continue;
+      const key = normalizePersonName(v.amiqus_client_name);
+      if (!key || byNormalisedName.has(key)) continue;
+      byNormalisedName.set(key, {
+        amiqusRecordId: v.amiqus_record_id as number,
+        amiqusClientId: v.amiqus_client_id ?? null,
+        amiqusClientName: v.amiqus_client_name,
+        verifiedAt: v.verified_at,
+      });
+    }
+
+    const result: Record<string, PriorPersonVerification> = {};
+    for (const name of names) {
+      const key = normalizePersonName(name);
+      const match = byNormalisedName.get(key);
+      if (match) result[name] = match;
+    }
+    return result;
+  } catch (err) {
+    console.error('Error in getPriorVerificationsForPersons:', err);
+    return empty;
   }
 }
 
