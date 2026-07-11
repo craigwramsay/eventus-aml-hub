@@ -303,11 +303,7 @@
   }
 }
 
-/* Dark mode: keep the form itself light (it's meant to be printed white) */
-:root[data-theme='dark'] .formCard,
-@media (prefers-color-scheme: dark) {
-  .formCard {
-    background: #fff;
-    color: #1a1a2e;
-  }
-}
+/* Dark mode: the form card is already hard-coded light (background:#fff;
+   color:#1a1a2e) in its base rule above, so no override is needed. This
+   comment is left as a signpost in case future edits parameterise those
+   colours. */
