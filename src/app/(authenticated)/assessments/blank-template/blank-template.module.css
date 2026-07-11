@@ -1,0 +1,313 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+
+.subtitle {
+  color: var(--text-muted, #666);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toggleGroup {
+  display: inline-flex;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.toggleButton {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text, inherit);
+}
+
+.toggleButtonActive {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.printButton {
+  padding: 0.5rem 1rem;
+  background: #1a1a2e;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.printButton:hover {
+  filter: brightness(1.15);
+}
+
+.formCard {
+  background: #fff;
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: 8px;
+  padding: 2rem;
+  color: #1a1a2e;
+}
+
+.formHeader {
+  border-bottom: 2px solid #1a1a2e;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.formTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a2e;
+}
+
+.formMeta {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.subsection {
+  padding-left: 0.5rem;
+  border-left: 3px solid #eee;
+}
+
+.subsectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.questionList {
+  list-style: decimal;
+  margin: 0;
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.questionItem {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.questionLabel {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+}
+
+.required {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.metaChips {
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.chipConditional {
+  background: #f3f4f6;
+  color: #555;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+  margin: 0.1rem 0 0;
+}
+
+.answerArea {
+  margin-top: 0.5rem;
+}
+
+.textLine {
+  border-bottom: 1px solid #aaa;
+  height: 1.75rem;
+  width: 100%;
+  min-width: 240px;
+}
+
+.dateBoxes {
+  border: 1px solid #ccc;
+  padding: 0.4rem 0.75rem;
+  font-family: 'Courier New', monospace;
+  color: #999;
+  border-radius: 4px;
+  display: inline-block;
+  min-width: 180px;
+}
+
+.countryBox {
+  border: 1px solid #ccc;
+  padding: 0.5rem 0.75rem;
+  color: #999;
+  border-radius: 4px;
+  min-height: 3rem;
+}
+
+.optionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.optionItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.radioCircle {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #333;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.checkSquare {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #333;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.instructionBlock {
+  background: #f8f9fa;
+  border-left: 3px solid #1a1a2e;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.instruction {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+  font-style: italic;
+}
+
+.error {
+  color: #b91c1c;
+  padding: 1rem;
+  background: #fef2f2;
+  border-radius: 6px;
+}
+
+/* Print rules: strip all Hub chrome and colour, deliver a clean form. */
+@media print {
+  .actions,
+  .toggleGroup {
+    display: none !important;
+  }
+
+  .formCard {
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .chipConditional {
+    display: none;
+  }
+
+  .section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .questionItem {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* Dark mode: keep the form itself light (it's meant to be printed white) */
+:root[data-theme='dark'] .formCard,
+@media (prefers-color-scheme: dark) {
+  .formCard {
+    background: #fff;
+    color: #1a1a2e;
+  }
+}

@@ -10,6 +10,20 @@
   margin: 0;
 }
 
+.secondaryLink {
+  font-size: 0.9rem;
+  color: var(--accent, #1a1a2e);
+  text-decoration: none;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 6px;
+  background: var(--surface, #fff);
+}
+
+.secondaryLink:hover {
+  border-color: var(--accent, #1a1a2e);
+}
+
 /* Search bar */
 .searchBar {
   margin-bottom: var(--space-3);
