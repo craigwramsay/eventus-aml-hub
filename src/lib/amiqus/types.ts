@@ -71,12 +71,46 @@ export interface AmiqusWebhookResponse {
   created_at: string;
 }
 
+/**
+ * Amiqus webhook payload.
+ *
+ * The current (nested) shape looks like:
+ *   {
+ *     webhook: { uuid, events },
+ *     trigger: { triggered_at, alias },     // event name lives here as 'alias'
+ *     data: {
+ *       record: { id, type, status?, completed_at? },  // type = 'client' | 'organisation' | …
+ *       client: { id, ... }
+ *     }
+ *   }
+ *
+ * An older (flat) shape may still exist in some historical events:
+ *   { event, data: { id, status, client_id, completed_at } }
+ *
+ * Both are accepted; the handler normalises them into a single internal form.
+ * See `normaliseAmiqusWebhook` in the webhook route.
+ */
 export interface AmiqusWebhookPayload {
-  event: string;
+  /** Legacy flat-shape event name. */
+  event?: string;
+  webhook?: { uuid?: string; events?: string[] };
+  trigger?: { triggered_at?: string; alias?: string };
   data: {
-    id: number;
-    status: string;
-    client_id: number;
+    /** Nested (current) shape */
+    record?: {
+      id: number;
+      /** Discriminator added by Amiqus: 'client' | 'organisation'. Absent on
+       *  older payloads; treat as 'client' when missing per Amiqus guidance. */
+      type?: string;
+      status?: string;
+      completed_at?: string | null;
+    };
+    client?: { id: number };
+    /** Legacy flat shape (kept optional so we don't error on it) */
+    id?: number;
+    status?: string;
+    client_id?: number;
     completed_at?: string | null;
+    type?: string;
   };
 }
