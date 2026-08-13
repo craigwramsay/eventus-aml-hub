@@ -7,12 +7,37 @@
  *
  * No user session required — webhook endpoints are in PUBLIC_ROUTES.
  * All DB writes happen through SECURITY DEFINER functions.
+ *
+ * Amiqus is rolling out "organisation" records as a distinct entity type
+ * alongside the existing client records. Per Amiqus's 2026 developer notice,
+ * we check `data.record.type` up-front and disregard anything that isn't a
+ * client — organisation records have their own APIs we don't consume.
  */
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getAmiqusApiKey, getAmiqusRecord } from '@/lib/amiqus';
 import type { AmiqusWebhookPayload } from '@/lib/amiqus';
+
+/**
+ * Amiqus sends webhooks in a nested shape (`data.record.*`, `trigger.alias`)
+ * on current API versions and may still send a flat shape (`data.id`,
+ * `event`) on some historical or edge-case events. Normalise to one form.
+ */
+export function normaliseAmiqusWebhook(payload: AmiqusWebhookPayload): {
+  eventName: string;
+  recordId: number | undefined;
+  recordType: string | undefined;
+  status: string | undefined;
+  completedAt: string | null | undefined;
+} {
+  const eventName = payload.trigger?.alias ?? payload.event ?? '';
+  const recordId = payload.data?.record?.id ?? payload.data?.id;
+  const recordType = payload.data?.record?.type ?? payload.data?.type;
+  const status = payload.data?.record?.status ?? payload.data?.status;
+  const completedAt = payload.data?.record?.completed_at ?? payload.data?.completed_at ?? undefined;
+  return { eventName, recordId, recordType, status, completedAt };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,24 +73,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const recordId = payload.data?.id;
+    const { eventName, recordId, recordType, status, completedAt } = normaliseAmiqusWebhook(payload);
+
+    // Amiqus discriminator: 'client' | 'organisation' (upcoming). Organisation
+    // records have their own APIs we don't consume — silently disregard them
+    // so we don't try to shove an org id into amiqus_verifications.
+    // A missing type field means an older payload from when only client
+    // records existed; treat that as 'client' per Amiqus guidance.
+    if (recordType && recordType !== 'client') {
+      return NextResponse.json({ status: 'ignored', reason: 'non_client_record_type', type: recordType });
+    }
+
     if (!recordId) {
       return NextResponse.json({ status: 'ignored', reason: 'no_record_id' });
     }
 
     // Handle record.finished — verification complete
-    if (payload.event === 'record.finished') {
-      // Fetch the record from Amiqus to get the verified date
+    if (eventName === 'record.finished') {
+      // Prefer the completed_at from the webhook if it's present; otherwise
+      // fetch the record from Amiqus to get the verified date.
       let verifiedAt: string | undefined;
-      const apiKey = getAmiqusApiKey();
-      if (apiKey) {
-        try {
-          const record = await getAmiqusRecord(recordId, apiKey);
-          if (record.completed_at) {
-            verifiedAt = record.completed_at.split('T')[0]; // date only
+      if (completedAt) {
+        verifiedAt = completedAt.split('T')[0];
+      } else {
+        const apiKey = getAmiqusApiKey();
+        if (apiKey) {
+          try {
+            const record = await getAmiqusRecord(recordId, apiKey);
+            if (record.completed_at) {
+              verifiedAt = record.completed_at.split('T')[0]; // date only
+            }
+          } catch (err) {
+            console.warn('Failed to fetch Amiqus record details:', err);
           }
-        } catch (err) {
-          console.warn('Failed to fetch Amiqus record details:', err);
         }
       }
 
@@ -86,20 +126,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle record.updated — status change
-    if (payload.event === 'record.updated') {
+    if (eventName === 'record.updated') {
       // Map Amiqus status to our status
-      let status = 'in_progress';
-      if (payload.data.status === 'failed' || payload.data.status === 'rejected') {
-        status = 'failed';
-      } else if (payload.data.status === 'expired') {
-        status = 'expired';
+      let mappedStatus = 'in_progress';
+      if (status === 'failed' || status === 'rejected') {
+        mappedStatus = 'failed';
+      } else if (status === 'expired') {
+        mappedStatus = 'expired';
       }
 
       const { data: processResult, error: processErr } = await supabase
         .rpc('process_amiqus_webhook', {
           p_firm_id: firm_id,
           p_amiqus_record_id: recordId,
-          p_status: status,
+          p_status: mappedStatus,
         });
 
       if (processErr) {
@@ -111,7 +151,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Unhandled event type — acknowledge
-    return NextResponse.json({ status: 'ignored', event: payload.event });
+    return NextResponse.json({ status: 'ignored', event: eventName });
   } catch (err) {
     console.error('Amiqus webhook error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
